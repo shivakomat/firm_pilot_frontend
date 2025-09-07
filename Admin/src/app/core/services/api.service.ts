@@ -91,6 +91,20 @@ export class ApiService {
   constructor(private http: HttpClient) { }
 
   /**
+   * Debug method to check token status
+   */
+  debugTokenStatus(): void {
+    const token = localStorage.getItem('authToken');
+    const user = localStorage.getItem('currentUser');
+    console.log('=== TOKEN DEBUG ===');
+    console.log('Token exists:', !!token);
+    console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
+    console.log('User exists:', !!user);
+    console.log('User data:', user ? JSON.parse(user) : 'null');
+    console.log('==================');
+  }
+
+  /**
    * Register a new user with the backend API
    * @param signupData - User registration data
    */
@@ -133,6 +147,18 @@ export class ApiService {
    */
   createClient(clientData: CreateClientRequest): Observable<CreateClientResponse> {
     const token = localStorage.getItem('authToken');
+    
+    // Debug token status
+    console.log('=== CREATE CLIENT DEBUG ===');
+    console.log('Token exists:', !!token);
+    console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
+    console.log('Request data:', clientData);
+    console.log('===========================');
+    
+    if (!token) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+    
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`

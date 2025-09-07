@@ -21,6 +21,7 @@ export class ClientlistComponent implements OnInit {
   createClientForm!: UntypedFormGroup;
   submitted = false;
   loading = false;
+  error = '';
 
   // Form for editing existing clients
   editClientForm!: UntypedFormGroup;
@@ -83,7 +84,12 @@ export class ClientlistComponent implements OnInit {
     
     if (this.createClientForm.valid) {
       this.loading = true;
+      this.error = '';
       
+      // Debug token status before making request
+      this.apiService.debugTokenStatus();
+      
+      // Build the client data object with required fields
       const clientData: CreateClientRequest = {
         email: this.createClientForm.value.email,
         firstName: this.createClientForm.value.firstName,
@@ -102,31 +108,39 @@ export class ClientlistComponent implements OnInit {
       if (this.createClientForm.value.status) {
         clientData.status = this.createClientForm.value.status;
       }
-      
-      console.log('Creating client:', clientData);
-      
-      // Call API to create client - POST to /clients
+
       this.apiService.createClient(clientData).subscribe({
         next: (response) => {
-          console.log('Client created successfully:', response);
           this.loading = false;
-          
-          // Refresh the clients list
-          this.loadClients();
-          
-          // Close modal and reset form
-          this.newClientModal?.hide();
-          this.createClientForm.reset();
-          this.submitted = false;
+          if (response.success) {
+            // Reset form and close modal
+            this.createClientForm.reset();
+            this.createClientForm.patchValue({
+              entityType: 'INDIVIDUAL',
+              status: 'invited'
+            });
+            
+            // Reload clients list
+            this.loadClients();
+            
+            // Close modal (you might need to adjust this based on your modal implementation)
+            // this.closeModal();
+          } else {
+            this.error = response.message || 'Failed to create client';
+          }
         },
         error: (error) => {
-          console.error('Error creating client:', error);
-          console.error('Request data that failed:', clientData);
-          console.error('Full error response:', error);
-          if (error.error) {
-            console.error('Backend error details:', error.error);
-          }
           this.loading = false;
+          console.error('Error creating client:', error);
+          
+          // Check if it's an authentication error
+          if (error.status === 401 || error.status === 403) {
+            this.error = 'Authentication failed. Please log in again.';
+            // Optionally redirect to login
+            // this.router.navigate(['/auth/login']);
+          } else {
+            this.error = error.error?.message || 'Failed to create client. Please check the console for details.';
+          }
         }
       });
     } else {

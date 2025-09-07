@@ -5,7 +5,7 @@ export const MENU: MenuItem[] = [
         id: 2,
         label: 'MENUITEMS.DASHBOARDS.TEXT',
         icon: 'bx-home-circle',
-        link: '/dashboards/saas',
+        link: '/dashboards/default',
     },
     {
         id: 8,
