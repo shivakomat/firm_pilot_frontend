@@ -34,6 +34,49 @@ export interface LogoutResponse {
   message?: string;
 }
 
+export interface CreateClientRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface CreateClientResponse {
+  success: boolean;
+  message?: string;
+  client?: any;
+}
+
+export interface Client {
+  id?: number;
+  accountantId?: number;
+  email?: string;
+  firstName: string;
+  lastName: string;
+  entityType?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GetClientsResponse {
+  success: boolean;
+  clients: Client[];
+}
+
+export interface UpdateClientRequest {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  entityType?: string;
+  status?: string;
+}
+
+export interface UpdateClientResponse {
+  success: boolean;
+  message?: string;
+  client?: Client;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -77,5 +120,47 @@ export class ApiService {
     });
 
     return this.http.post<LogoutResponse>(`${this.baseUrl}/auth/logout`, {}, { headers });
+  }
+
+  /**
+   * Create a new client
+   * @param clientData - Client data to create
+   */
+  createClient(clientData: CreateClientRequest): Observable<CreateClientResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<CreateClientResponse>(`${this.baseUrl}/clients`, clientData, { headers });
+  }
+
+  /**
+   * Get all clients
+   */
+  getClients(): Observable<GetClientsResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<GetClientsResponse>(`${this.baseUrl}/clients`, { headers });
+  }
+
+  /**
+   * Update an existing client
+   * @param clientId - ID of the client to update
+   * @param clientData - Updated client data
+   */
+  updateClient(clientId: number, clientData: UpdateClientRequest): Observable<UpdateClientResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.put<UpdateClientResponse>(`${this.baseUrl}/clients/${clientId}`, clientData, { headers });
   }
 }

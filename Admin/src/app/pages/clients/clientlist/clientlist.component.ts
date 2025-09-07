@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
-import { CrudService } from 'src/app/core/services/crud.service';
+import { ApiService, CreateClientRequest, Client } from 'src/app/core/services/api.service';
 import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
 
 @Component({
@@ -14,26 +14,26 @@ import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
 })
 export class ClientlistComponent implements OnInit {
   breadCrumbItems: any[];
-  clients: any[] = [];
-  filteredClients: any[] = [];
+  clients: Client[] = [];
+  filteredClients: Client[] = [];
   searchTerm: string = '';
+  // Form for creating new clients
   createClientForm!: UntypedFormGroup;
   submitted = false;
+  loading = false;
+
+  // Form for editing existing clients
+  editClientForm!: UntypedFormGroup;
+  editSubmitted = false;
+  editLoading = false;
+  selectedClient: any = null;
 
   @ViewChild('newClientModal', { static: false }) newClientModal?: ModalDirective;
+  @ViewChild('editClientModal', { static: false }) editClientModal?: ModalDirective;
 
-  constructor(private api: CrudService, private formBuilder: UntypedFormBuilder) {}
+  constructor(private apiService: ApiService, private formBuilder: UntypedFormBuilder) {}
 
-  formatPhoneNumber(phone: string): string {
-    if (!phone) return '';
-    // Remove all non-digits
-    const cleaned = phone.replace(/\D/g, '');
-    // Format as (XXX) XXX-XXXX
-    if (cleaned.length === 10) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-    }
-    return phone; // Return original if not 10 digits
-  }
+
 
   searchClients(): void {
     if (!this.searchTerm.trim()) {
@@ -41,59 +41,35 @@ export class ClientlistComponent implements OnInit {
     } else {
       const term = this.searchTerm.toLowerCase();
       this.filteredClients = this.clients.filter(client => 
-        client.name?.toLowerCase().includes(term) ||
-        client.email?.toLowerCase().includes(term) ||
-        client.phone_number?.includes(term) ||
-        client.status?.toLowerCase().includes(term)
+        client.firstName?.toLowerCase().includes(term) ||
+        client.lastName?.toLowerCase().includes(term) ||
+        client.email?.toLowerCase().includes(term)
       );
     }
   }
 
-  // Format phone number input as user types
-  formatPhoneInput(event: any): void {
-    let value = event.target.value.replace(/\D/g, ''); // Remove non-digits
-    
-    if (value.length >= 6) {
-      value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
-    } else if (value.length >= 3) {
-      value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
-    } else if (value.length > 0) {
-      value = `(${value}`;
-    }
-    
-    event.target.value = value;
-    this.createClientForm.patchValue({ phone_number: value });
-  }
 
-  // Format budget input with commas
-  formatBudgetInput(event: any): void {
-    let value = event.target.value.replace(/[^\d]/g, ''); // Remove non-digits
-    
-    if (value) {
-      // Add commas for thousands
-      value = parseInt(value).toLocaleString();
-    }
-    
-    event.target.value = value;
-    this.createClientForm.patchValue({ budget: value.replace(/,/g, '') }); // Store without commas
-  }
 
   ngOnInit(): void {
     this.breadCrumbItems = [{ label: 'Clients' }, { label: 'Clients List', active: true }];
     
-    // Initialize the form
+    // Initialize the simplified form for your backend API
     this.createClientForm = this.formBuilder.group({
-      name: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
-      phone_number: ['', [Validators.required, Validators.pattern(/^\(\d{3}\) \d{3}-\d{4}$/)]],
-      budget: ['', [Validators.required]],
-      event_date: ['', [Validators.required]], // Project deadline
-      status: ['New', [Validators.required]],
-      notes: [''],
-      business_id: [1] // Default business ID
+      firstName: ['', [Validators.required]],
+      lastName: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]]
     });
 
-// Load initial clients data
+    // Initialize the edit form with all editable fields
+    this.editClientForm = this.formBuilder.group({
+      firstName: ['', [Validators.required]],
+      lastName: ['', [Validators.required]],
+      email: ['', [Validators.email]],
+      entityType: [''],
+      status: ['']
+    });
+
+    // Load initial clients data
     this.loadClients();
   }
 
@@ -102,53 +78,33 @@ export class ClientlistComponent implements OnInit {
     this.submitted = true;
     
     if (this.createClientForm.valid) {
-      const formData = this.createClientForm.value;
+      this.loading = true;
       
-      // Format event_date from YYYY-MM-DD to YYYYMMDD
-      const eventDate = new Date(formData.event_date);
-      const eventDateFormatted = eventDate.getFullYear().toString() + 
-                                (eventDate.getMonth() + 1).toString().padStart(2, '0') + 
-                                eventDate.getDate().toString().padStart(2, '0');
-      
-      // Format current date for created_date and modified_date
-      const currentDate = new Date();
-      const currentDateFormatted = currentDate.getFullYear().toString() + 
-                                  (currentDate.getMonth() + 1).toString().padStart(2, '0') + 
-                                  currentDate.getDate().toString().padStart(2, '0');
-      
-      // Clean phone number (remove formatting for API)
-      const cleanPhoneNumber = formData.phone_number.replace(/\D/g, '');
-      
-      // Prepare client data for API
-      const clientData = {
-        name: formData.name,
-        phone_number: cleanPhoneNumber,
-        email: formData.email,
-        budget: parseInt(formData.budget) || 0, // Ensure it's a number
-        event_date: parseInt(eventDateFormatted), // Project deadline as YYYYMMDD number
-        status: formData.status,
-        notes: formData.notes || '',
-        business_id: formData.business_id,
-        created_date: parseInt(currentDateFormatted),
-        modified_date: parseInt(currentDateFormatted)
+      const clientData: CreateClientRequest = {
+        firstName: this.createClientForm.value.firstName,
+        lastName: this.createClientForm.value.lastName,
+        email: this.createClientForm.value.email
       };
       
-      console.log('Saving client with formatted data:', clientData);
+      console.log('Creating client:', clientData);
       
-      // Call API to save client - POST to /businesses/clients
-      this.api.addData('/businesses/clients', clientData).subscribe({
+      // Call API to create client - POST to /clients
+      this.apiService.createClient(clientData).subscribe({
         next: (response) => {
-          console.log('Client saved successfully:', response);
+          console.log('Client created successfully:', response);
+          this.loading = false;
+          
           // Refresh the clients list
           this.loadClients();
+          
           // Hide modal and reset form
           this.newClientModal?.hide();
           this.createClientForm.reset();
-          this.createClientForm.patchValue({ status: 'New', business_id: 1 });
           this.submitted = false;
         },
         error: (error) => {
-          console.error('Error saving client:', error);
+          console.error('Error creating client:', error);
+          this.loading = false;
           // You could add user-friendly error handling here
         }
       });
@@ -163,28 +119,75 @@ export class ClientlistComponent implements OnInit {
 
   // Load clients data
   loadClients() {
-    this.api.fetchData('/businesses/clients/1').subscribe({
-      next: (data) => {
-        console.log('API Response:', data);
-        // Parse the backend response structure: { data: [[{...}, 1]], msg: "..." }
-        if (data && (data as any).data && Array.isArray((data as any).data)) {
-          // Extract from data.data[0] and filter out non-objects
-          const nestedArray = (data as any).data[0];
-          if (Array.isArray(nestedArray)) {
-            this.clients = nestedArray.filter(item => typeof item === 'object' && item !== null && item.id);
-            this.filteredClients = [...this.clients]; // Initialize filtered list
-          } else {
-            this.clients = [];
-            this.filteredClients = [];
-          }
+    this.apiService.getClients().subscribe({
+      next: (response) => {
+        console.log('Clients response:', response);
+        if (response.success && response.clients) {
+          this.clients = response.clients;
+          this.filteredClients = [...this.clients];
         } else {
+          console.warn('No clients found in response');
           this.clients = [];
           this.filteredClients = [];
         }
-        console.log('Parsed clients:', this.clients);
       },
       error: (error) => {
-        console.error('API Error:', error);
+        console.error('Error loading clients:', error);
+        this.clients = [];
+        this.filteredClients = [];
+      }
+    });
+  }
+
+  // Convenience getters for easy access to form fields
+  get f() { return this.createClientForm.controls; }
+  get ef() { return this.editClientForm.controls; }
+
+  // Open edit modal and populate form with client data
+  openEditModal(client: any) {
+    this.selectedClient = client;
+    this.editClientForm.patchValue({
+      firstName: client.firstName || '',
+      lastName: client.lastName || '',
+      email: client.email || '',
+      entityType: client.entityType || '',
+      status: client.status || ''
+    });
+    this.editSubmitted = false;
+    this.editClientModal?.show();
+  }
+
+  // Update existing client
+  updateClient() {
+    this.editSubmitted = true;
+
+    if (this.editClientForm.invalid) {
+      return;
+    }
+
+    this.editLoading = true;
+    const clientData = {
+      firstName: this.ef['firstName'].value,
+      lastName: this.ef['lastName'].value,
+      email: this.ef['email'].value || undefined,
+      entityType: this.ef['entityType'].value || undefined,
+      status: this.ef['status'].value || undefined
+    };
+
+    this.apiService.updateClient(this.selectedClient.id, clientData).subscribe({
+      next: (response) => {
+        console.log('Client updated:', response);
+        if (response.success) {
+          this.editClientModal?.hide();
+          this.loadClients(); // Refresh the client list
+          this.editClientForm.reset();
+          this.selectedClient = null;
+        }
+        this.editLoading = false;
+      },
+      error: (error) => {
+        console.error('Error updating client:', error);
+        this.editLoading = false;
       }
     });
   }

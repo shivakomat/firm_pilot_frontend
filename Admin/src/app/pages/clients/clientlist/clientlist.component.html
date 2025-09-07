@@ -25,28 +25,53 @@
             <table class="table table-nowrap align-middle">
               <thead class="table-light">
                 <tr>
-                  <th>Name</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
                   <th>Email</th>
-                  <th>Phone</th>
-                  <th>Budget</th>
+                  <th>Entity Type</th>
                   <th>Status</th>
+                  <th>Created Date</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                @for(client of filteredClients; track $index){
+                @for(client of filteredClients; track client.id){
                 <tr>
-                  <td>{{client.name}}</td>
-                  <td>{{client.email}}</td>
-                  <td>{{formatPhoneNumber(client.phone_number)}}</td>
-                  <td>${{client.budget | number}}</td>
+                  <td>{{client.firstName}}</td>
+                  <td>{{client.lastName}}</td>
+                  <td>{{client.email || 'N/A'}}</td>
                   <td>
-                    <span class="badge" [ngClass]="{
-                      'badge-soft-success': client.status === 'Active',
-                      'badge-soft-warning': client.status === 'New',
-                      'badge-soft-danger': client.status === 'Inactive'
-                    }">{{client.status}}</span>
+                    <span class="badge" [ngClass]="client.entityType === 'INDIVIDUAL' ? 'bg-primary' : 'bg-info'">
+                      {{client.entityType || 'N/A'}}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="client.status === 'invited' ? 'bg-warning' : client.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                      {{client.status || 'N/A'}}
+                    </span>
+                  </td>
+                  <td>{{client.createdAt | date:'short'}}</td>
+                  <td>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit" (click)="openEditModal(client)">
+                        <i class="bx bx-pencil"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="bx bx-trash"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr> }
+                @empty {
+                <tr>
+                  <td colspan="7" class="text-center py-4">
+                    <div class="text-muted">
+                      <i class="bx bx-user-plus font-size-48 text-muted d-block mb-2"></i>
+                      No clients found. Click "New Client" to add your first client.
+                    </div>
+                  </td>
+                </tr>
+                }
               </tbody>
             </table>
           </div>
@@ -67,57 +92,66 @@
       <div class="modal-body">
         <form (ngSubmit)="saveClient()" [formGroup]="createClientForm" autocomplete="off" class="needs-validation createClient-form" id="createClient-form" novalidate>
           <div class="row">
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="client-firstName-input" class="form-label">First Name</label>
+                <input type="text" id="client-firstName-input" class="form-control" 
+                       placeholder="Enter first name" formControlName="firstName" 
+                       [class.is-invalid]="submitted && createClientForm.get('firstName')?.errors" required />
+                @if(submitted && createClientForm.get('firstName')?.errors) {
+                  <div class="invalid-feedback">
+                    @if(createClientForm.get('firstName')?.errors?.['required']) {
+                      First name is required.
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="client-lastName-input" class="form-label">Last Name</label>
+                <input type="text" id="client-lastName-input" class="form-control" 
+                       placeholder="Enter last name" formControlName="lastName" 
+                       [class.is-invalid]="submitted && createClientForm.get('lastName')?.errors" required />
+                @if(submitted && createClientForm.get('lastName')?.errors) {
+                  <div class="invalid-feedback">
+                    @if(createClientForm.get('lastName')?.errors?.['required']) {
+                      Last name is required.
+                    }
+                  </div>
+                }
+              </div>
+            </div>
             <div class="col-lg-12">
               <div class="mb-3">
-                <label for="client-name-input" class="form-label">Client Name</label>
-                <input type="text" id="client-name-input" class="form-control" placeholder="Enter client name" formControlName="name" required />
-                <div class="invalid-feedback">Please enter a client name.</div>
-              </div>
-              <div class="mb-3">
-                <label for="client-email-input" class="form-label">Email</label>
-                <input type="email" id="client-email-input" class="form-control" placeholder="Enter email" formControlName="email" required />
-                <div class="invalid-feedback">Please enter a valid email.</div>
-              </div>
-              <div class="mb-3">
-                <label for="client-phone-input" class="form-label">Phone Number</label>
-                <input type="tel" id="client-phone-input" class="form-control" placeholder="(555) 123-4567" formControlName="phone_number" 
-                       maxlength="14" (input)="formatPhoneInput($event)" required />
-                <div class="invalid-feedback">Please enter a valid phone number.</div>
-              </div>
-              <div class="mb-3">
-                <label for="client-budget-input" class="form-label">Budget</label>
-                <div class="input-group">
-                  <span class="input-group-text">$</span>
-                  <input type="text" id="client-budget-input" class="form-control" placeholder="50,000" formControlName="budget" 
-                         (input)="formatBudgetInput($event)" required />
-                </div>
-                <div class="invalid-feedback">Please enter a budget amount.</div>
-              </div>
-              <div class="mb-3">
-                <label for="client-event-date-input" class="form-label">Project Deadline</label>
-                <input type="date" id="client-event-date-input" class="form-control" formControlName="event_date" required />
-                <div class="invalid-feedback">Please select a project deadline.</div>
-              </div>
-              <div class="mb-3">
-                <label for="client-status-input" class="form-label">Status</label>
-                <select class="form-control" id="client-status-input" formControlName="status" required>
-                  <option value="">Select status</option>
-                  <option value="New">New</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-                <div class="invalid-feedback">Please select a status.</div>
-              </div>
-              <div class="mb-3">
-                <label for="client-notes-input" class="form-label">Notes</label>
-                <textarea id="client-notes-input" class="form-control" placeholder="Enter notes" formControlName="notes" rows="3"></textarea>
+                <label for="client-email-input" class="form-label">Email Address</label>
+                <input type="email" id="client-email-input" class="form-control" 
+                       placeholder="Enter email address" formControlName="email" 
+                       [class.is-invalid]="submitted && createClientForm.get('email')?.errors" required />
+                @if(submitted && createClientForm.get('email')?.errors) {
+                  <div class="invalid-feedback">
+                    @if(createClientForm.get('email')?.errors?.['required']) {
+                      Email is required.
+                    }
+                    @if(createClientForm.get('email')?.errors?.['email']) {
+                      Please enter a valid email address.
+                    }
+                  </div>
+                }
               </div>
             </div>
 
             <div class="col-lg-12">
               <div class="text-end">
-                <button type="button" class="btn btn-outline-secondary me-1" (click)="newClientModal.hide()">Cancel</button>
-                <button type="submit" id="addClient-btn" class="btn btn-success">Add Client</button>
+                <button type="button" class="btn btn-outline-secondary me-2" (click)="newClientModal.hide()" [disabled]="loading">Cancel</button>
+                <button type="submit" id="addClient-btn" class="btn btn-success" [disabled]="loading">
+                  @if(loading) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Creating...
+                  } @else {
+                    Add Client
+                  }
+                </button>
               </div>
             </div>
           </div>
@@ -130,3 +164,110 @@
   <!-- end modal-dialog -->
 </div>
 <!-- end newClientModal -->
+
+<!-- Edit Client Modal -->
+<div bsModal #editClientModal="bs-modal" class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editClientModalLabel">Edit Client</h5>
+        <button type="button" class="btn-close" (click)="editClientModal.hide()"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="editClientForm" (ngSubmit)="updateClient()">
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editFirstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editFirstName" formControlName="firstName" 
+                       [class.is-invalid]="editSubmitted && ef['firstName'].errors">
+                @if (editSubmitted && ef['firstName'].errors) {
+                  <div class="invalid-feedback">
+                    @if (ef['firstName'].errors?.['required']) {
+                      First name is required.
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editLastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editLastName" formControlName="lastName" 
+                       [class.is-invalid]="editSubmitted && ef['lastName'].errors">
+                @if (editSubmitted && ef['lastName'].errors) {
+                  <div class="invalid-feedback">
+                    @if (ef['lastName'].errors?.['required']) {
+                      Last name is required.
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="col-lg-12">
+              <div class="mb-3">
+                <label for="editEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="editEmail" formControlName="email" 
+                       [class.is-invalid]="editSubmitted && ef['email'].errors">
+                @if (editSubmitted && ef['email'].errors) {
+                  <div class="invalid-feedback">
+                    @if (ef['email'].errors?.['email']) {
+                      Please enter a valid email address.
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editEntityType" class="form-label">Entity Type</label>
+                <select class="form-select" id="editEntityType" formControlName="entityType">
+                  <option value="">Select Entity Type</option>
+                  <option value="INDIVIDUAL">Individual</option>
+                  <option value="BUSINESS">Business</option>
+                  <option value="CORPORATION">Corporation</option>
+                  <option value="PARTNERSHIP">Partnership</option>
+                  <option value="LLC">LLC</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editStatus" class="form-label">Status</label>
+                <select class="form-select" id="editStatus" formControlName="status">
+                  <option value="">Select Status</option>
+                  <option value="invited">Invited</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-lg-12">
+              <div class="text-end">
+                <button type="button" class="btn btn-outline-secondary me-2" (click)="editClientModal.hide()" [disabled]="editLoading">Cancel</button>
+                <button type="submit" id="updateClient-btn" class="btn btn-primary" [disabled]="editLoading">
+                  @if(editLoading) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Updating...
+                  } @else {
+                    Update Client
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <!-- end modal body -->
+    </div>
+    <!-- end modal-content -->
+  </div>
+  <!-- end modal-dialog -->
+</div>
+<!-- end edit modal -->
