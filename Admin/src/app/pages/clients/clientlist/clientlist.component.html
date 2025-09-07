@@ -1,0 +1,132 @@
+<div class="container-fluid">
+  <app-page-title title="Clients List" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row mb-2">
+            <div class="col-sm-4">
+              <div class="search-box me-2 mb-2 d-inline-block">
+                <div class="position-relative">
+                  <input type="text" class="form-control" id="searchTableList" placeholder="Search clients..." [(ngModel)]="searchTerm" (ngModelChange)="searchClients()">
+                  <i class="bx bx-search-alt search-icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-8">
+              <div class="text-sm-end">
+                <button type="button" data-bs-toggle="modal" (click)="newClientModal.show()" class="btn btn-success btn-rounded waves-effect waves-light addClient-modal mb-2"><i class="mdi mdi-plus me-1"></i> New Client</button>
+              </div>
+            </div><!-- end col-->
+          </div>
+          <!-- end row -->
+          <div class="table-responsive">
+            <table class="table table-nowrap align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Budget</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for(client of filteredClients; track $index){
+                <tr>
+                  <td>{{client.name}}</td>
+                  <td>{{client.email}}</td>
+                  <td>{{formatPhoneNumber(client.phone_number)}}</td>
+                  <td>${{client.budget | number}}</td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'badge-soft-success': client.status === 'Active',
+                      'badge-soft-warning': client.status === 'New',
+                      'badge-soft-danger': client.status === 'Inactive'
+                    }">{{client.status}}</span>
+                  </td>
+                </tr> }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Client Modal -->
+<div bsModal #newClientModal="bs-modal" class="modal fade" id="newClientModal" tabindex="-1" aria-labelledby="newClientModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newClientModalLabel">Add New Client</h5>
+        <button type="button" class="btn-close" (click)="newClientModal.hide()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="saveClient()" [formGroup]="createClientForm" autocomplete="off" class="needs-validation createClient-form" id="createClient-form" novalidate>
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="mb-3">
+                <label for="client-name-input" class="form-label">Client Name</label>
+                <input type="text" id="client-name-input" class="form-control" placeholder="Enter client name" formControlName="name" required />
+                <div class="invalid-feedback">Please enter a client name.</div>
+              </div>
+              <div class="mb-3">
+                <label for="client-email-input" class="form-label">Email</label>
+                <input type="email" id="client-email-input" class="form-control" placeholder="Enter email" formControlName="email" required />
+                <div class="invalid-feedback">Please enter a valid email.</div>
+              </div>
+              <div class="mb-3">
+                <label for="client-phone-input" class="form-label">Phone Number</label>
+                <input type="tel" id="client-phone-input" class="form-control" placeholder="(555) 123-4567" formControlName="phone_number" 
+                       maxlength="14" (input)="formatPhoneInput($event)" required />
+                <div class="invalid-feedback">Please enter a valid phone number.</div>
+              </div>
+              <div class="mb-3">
+                <label for="client-budget-input" class="form-label">Budget</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="text" id="client-budget-input" class="form-control" placeholder="50,000" formControlName="budget" 
+                         (input)="formatBudgetInput($event)" required />
+                </div>
+                <div class="invalid-feedback">Please enter a budget amount.</div>
+              </div>
+              <div class="mb-3">
+                <label for="client-event-date-input" class="form-label">Project Deadline</label>
+                <input type="date" id="client-event-date-input" class="form-control" formControlName="event_date" required />
+                <div class="invalid-feedback">Please select a project deadline.</div>
+              </div>
+              <div class="mb-3">
+                <label for="client-status-input" class="form-label">Status</label>
+                <select class="form-control" id="client-status-input" formControlName="status" required>
+                  <option value="">Select status</option>
+                  <option value="New">New</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+                <div class="invalid-feedback">Please select a status.</div>
+              </div>
+              <div class="mb-3">
+                <label for="client-notes-input" class="form-label">Notes</label>
+                <textarea id="client-notes-input" class="form-control" placeholder="Enter notes" formControlName="notes" rows="3"></textarea>
+              </div>
+            </div>
+
+            <div class="col-lg-12">
+              <div class="text-end">
+                <button type="button" class="btn btn-outline-secondary me-1" (click)="newClientModal.hide()">Cancel</button>
+                <button type="submit" id="addClient-btn" class="btn btn-success">Add Client</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <!-- end modal body -->
+    </div>
+    <!-- end modal-content -->
+  </div>
+  <!-- end modal-dialog -->
+</div>
+<!-- end newClientModal -->
