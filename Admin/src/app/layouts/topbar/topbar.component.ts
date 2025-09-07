@@ -55,6 +55,7 @@ export class TopbarComponent implements OnInit {
   ];
 
   openMobileMenu: boolean;
+  userFirstName: string = 'User';
 
   @Output() settingsButtonClicked = new EventEmitter();
   @Output() mobileMenuButtonClicked = new EventEmitter();
@@ -67,6 +68,9 @@ export class TopbarComponent implements OnInit {
     this.openMobileMenu = false;
     this.element = document.documentElement;
 
+    // Load user first name from localStorage
+    this.loadUserFirstName();
+
     this.cookieValue = this._cookiesService.get('lang');
     const val = this.listLang.filter(x => x.lang === this.cookieValue);
     this.countryName = val.map(element => element.text);
@@ -75,6 +79,35 @@ export class TopbarComponent implements OnInit {
     } else {
       this.flagvalue = val.map(element => element.flag);
     }
+  }
+
+  /**
+   * Load user's first name from localStorage
+   */
+  loadUserFirstName(): void {
+    const currentUser = localStorage.getItem('currentUser');
+    console.log('=== TOPBAR USER DEBUG ===');
+    console.log('currentUser from localStorage:', currentUser);
+    
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        console.log('Parsed user object:', user);
+        console.log('Available user properties:', Object.keys(user));
+        
+        // Try multiple possible field names for first name
+        this.userFirstName = user.firstName || user.first_name || user.name || user.username || 'Shiva';
+        console.log('Selected userFirstName:', this.userFirstName);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        this.userFirstName = 'Shiva';
+      }
+    } else {
+      console.log('No currentUser found in localStorage - using default');
+      // For now, use the same name as dashboard until backend provides proper user data
+      this.userFirstName = 'Shiva';
+    }
+    console.log('========================');
   }
 
   setLanguage(text: string, lang: string, flag: string) {
