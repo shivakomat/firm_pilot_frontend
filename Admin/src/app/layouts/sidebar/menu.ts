@@ -178,7 +178,7 @@ export const MENU: MenuItem[] = [
     {
         id: 30,
         label: 'MENUITEMS.CHAT.TEXT',
-        icon: 'bx-file',
+        icon: 'bx-chat',
         link: '/chat',
     },
 ];

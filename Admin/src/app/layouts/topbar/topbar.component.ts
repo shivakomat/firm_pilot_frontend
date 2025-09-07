@@ -1,9 +1,7 @@
 import { Component, OnInit, Output, EventEmitter, Inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AuthenticationService } from '../../core/services/auth.service';
-import { AuthfakeauthenticationService } from '../../core/services/authfake.service';
-import { environment } from '../../../environments/environment';
+import { ApiService } from '../../core/services/api.service';
 import { CookieService } from 'ngx-cookie-service';
 import { LanguageService } from '../../core/services/language.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -38,13 +36,15 @@ export class TopbarComponent implements OnInit {
   dataLayout$: Observable<string>;
   // Define layoutMode as a property
 
-  constructor(@Inject(DOCUMENT) private document: any, private router: Router, private authService: AuthenticationService,
-    private authFackservice: AuthfakeauthenticationService,
+  constructor(
+    @Inject(DOCUMENT) private document: any, 
+    private router: Router, 
+    private apiService: ApiService,
     public languageService: LanguageService,
     public translate: TranslateService,
-    public _cookiesService: CookieService, public store: Store<RootReducerState>) {
-
-  }
+    public _cookiesService: CookieService, 
+    public store: Store<RootReducerState>
+  ) { }
 
   listLang: any = [
     { text: 'English', flag: 'assets/images/flags/us.jpg', lang: 'en' },
@@ -103,12 +103,24 @@ export class TopbarComponent implements OnInit {
    * Logout the user
    */
   logout() {
-    if (environment.defaultauth === 'firebase') {
-      this.authService.logout();
-    } else {
-      this.authFackservice.logout();
-    }
-    this.router.navigate(['/auth/login']);
+    // Call backend logout API
+    this.apiService.logout().subscribe({
+      next: (response) => {
+        // Clear local storage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        
+        // Redirect to login page
+        this.router.navigate(['/auth/login']);
+      },
+      error: (error) => {
+        // Even if logout API fails, clear local storage and redirect
+        console.error('Logout API error:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        this.router.navigate(['/auth/login']);
+      }
+    });
   }
 
   /**

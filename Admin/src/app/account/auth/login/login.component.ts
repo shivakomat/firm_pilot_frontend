@@ -1,11 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { AuthenticationService } from '../../../core/services/auth.service';
-import { AuthfakeauthenticationService } from '../../../core/services/authfake.service';
-
-import { Store } from '@ngrx/store';
 import { ActivatedRoute, Router } from '@angular/router';
-import { login } from 'src/app/store/Authentication/authentication.actions';
+import { ApiService, LoginRequest } from '../../../core/services/api.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -26,22 +22,31 @@ export class LoginComponent implements OnInit {
   error: any = '';
   returnUrl: string;
   fieldTextType!: boolean;
+  loading: boolean = false;
 
-  // set the currenr year
+  // set the current year
   year: number = new Date().getFullYear();
 
-  // tslint:disable-next-line: max-line-length
-  constructor(private formBuilder: UntypedFormBuilder, private route: ActivatedRoute, private router: Router, private authenticationService: AuthenticationService, private store: Store,
-    private authFackservice: AuthfakeauthenticationService) { }
+  constructor(
+    private formBuilder: UntypedFormBuilder, 
+    private route: ActivatedRoute, 
+    private router: Router, 
+    private apiService: ApiService
+  ) { }
 
   ngOnInit() {
-    if (localStorage.getItem('currentUser')) {
+    // Check if user is already logged in
+    if (localStorage.getItem('authToken')) {
       this.router.navigate(['/']);
     }
+    
+    // Get return url from route parameters or default to '/'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    
     // form validation
     this.loginForm = this.formBuilder.group({
-      email: ['admin@themesbrand.com', [Validators.required, Validators.email]],
-      password: ['123456', [Validators.required]],
+      email: ['user@firmpilot.com', [Validators.required, Validators.email]],
+      password: ['SecurePassword123!', [Validators.required]],
     });
   }
 
@@ -53,12 +58,42 @@ export class LoginComponent implements OnInit {
    */
   onSubmit() {
     this.submitted = true;
+    this.error = '';
 
-    const email = this.f['email'].value; // Get the username from the form
-    const password = this.f['password'].value; // Get the password from the form
+    // Stop here if form is invalid
+    if (this.loginForm.invalid) {
+      return;
+    }
 
-    // Login Api
-    this.store.dispatch(login({ email: email, password: password }));
+    this.loading = true;
+
+    const loginData: LoginRequest = {
+      email: this.f['email'].value,
+      password: this.f['password'].value
+    };
+
+    this.apiService.login(loginData).subscribe({
+      next: (response) => {
+        this.loading = false;
+        
+        // Store authentication token if provided
+        if (response.token) {
+          localStorage.setItem('authToken', response.token);
+        }
+        
+        // Store user information if provided
+        if (response.user) {
+          localStorage.setItem('currentUser', JSON.stringify(response.user));
+        }
+        
+        // Redirect to return url or dashboard
+        this.router.navigate([this.returnUrl]);
+      },
+      error: (error) => {
+        this.loading = false;
+        this.error = error.error?.message || 'Login failed. Please check your credentials.';
+      }
+    });
   }
 
   /**
