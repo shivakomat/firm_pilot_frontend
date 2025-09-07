@@ -1,0 +1,93 @@
+// Invitation Management Component Styles
+
+.search-box {
+  position: relative;
+  
+  .search-icon {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    color: #74788d;
+    font-size: 16px;
+  }
+}
+
+.card {
+  box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+  border: 1px solid #eff2f7;
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+.table {
+  th {
+    font-weight: 600;
+    color: #495057;
+    border-top: none;
+  }
+  
+  td {
+    vertical-align: middle;
+    border-color: #eff2f7;
+  }
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+  
+  &.bg-warning {
+    color: #212529;
+  }
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.font-size-14 {
+  font-size: 14px !important;
+}
+
+.font-size-24 {
+  font-size: 24px !important;
+}
+
+.font-size-48 {
+  font-size: 48px !important;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .btn-sm {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
+}
+
+// Loading spinner
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+// Statistics cards hover effect
+.card:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0 1rem 2rem rgba(18, 38, 63, 0.1);
+}

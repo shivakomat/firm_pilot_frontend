@@ -156,6 +156,12 @@ export const MENU: MenuItem[] = [
         link: '/filemanager',
     },
     {
+        id: 50,
+        label: 'MENUITEMS.INVITATIONS.TEXT',
+        icon: 'bx-mail-send',
+        link: '/invitations',
+    },
+    {
         id: 37,
         label: 'MENUITEMS.INVOICES.TEXT',
         icon: 'bx-receipt',

@@ -58,6 +58,8 @@ export interface Client {
   lastName: string;
   entityType?: string;
   status?: string;
+  invitationStatus?: 'not_invited' | 'pending' | 'sent' | 'accepted' | 'expired';
+  lastInvitedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -80,6 +82,41 @@ export interface UpdateClientResponse {
   success: boolean;
   message?: string;
   client?: Client;
+}
+
+export interface InviteClientRequest {
+  clientId: number;
+  emailTemplate?: string;
+  expiryDays?: number;
+}
+
+export interface InviteClientResponse {
+  success: boolean;
+  message?: string;
+  invitationId?: string;
+  invitationToken?: string;
+}
+
+export interface Invitation {
+  id: string;
+  clientId: number;
+  clientName: string;
+  clientEmail: string;
+  status: 'pending' | 'sent' | 'accepted' | 'expired';
+  sentAt?: string;
+  acceptedAt?: string;
+  expiresAt?: string;
+  token?: string;
+}
+
+export interface GetInvitationsResponse {
+  success: boolean;
+  invitations: Invitation[];
+}
+
+export interface ResendInvitationResponse {
+  success: boolean;
+  message?: string;
 }
 
 @Injectable({
@@ -193,5 +230,51 @@ export class ApiService {
     });
 
     return this.http.put<UpdateClientResponse>(`${this.baseUrl}/clients/${clientId}`, clientData, { headers });
+  }
+
+  /**
+   * Send invitation to a client
+   * @param inviteData - Invitation data
+   */
+  inviteClient(inviteData: InviteClientRequest): Observable<InviteClientResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+    
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<InviteClientResponse>(`${this.baseUrl}/clients/${inviteData.clientId}/invite`, inviteData, { headers });
+  }
+
+  /**
+   * Get all invitations
+   */
+  getInvitations(): Observable<GetInvitationsResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<GetInvitationsResponse>(`${this.baseUrl}/invitations`, { headers });
+  }
+
+  /**
+   * Resend an invitation
+   * @param invitationId - ID of the invitation to resend
+   */
+  resendInvitation(invitationId: string): Observable<ResendInvitationResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<ResendInvitationResponse>(`${this.baseUrl}/invitations/${invitationId}/resend`, {}, { headers });
   }
 }

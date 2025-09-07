@@ -1,0 +1,206 @@
+<div class="container-fluid">
+  <app-page-title title="Invitation Management" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Total Invitations</p>
+              <h4 class="mb-0">{{getInvitationStats().total}}</h4>
+            </div>
+            <div class="text-primary">
+              <i class="bx bx-mail-send font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Pending</p>
+              <h4 class="mb-0">{{getInvitationStats().pending}}</h4>
+            </div>
+            <div class="text-warning">
+              <i class="bx bx-time-five font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Accepted</p>
+              <h4 class="mb-0">{{getInvitationStats().accepted}}</h4>
+            </div>
+            <div class="text-success">
+              <i class="bx bx-check-circle font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Expired</p>
+              <h4 class="mb-0">{{getInvitationStats().expired}}</h4>
+            </div>
+            <div class="text-danger">
+              <i class="bx bx-x-circle font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invitations Table -->
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row mb-2">
+            <div class="col-sm-4">
+              <div class="search-box me-2 mb-2 d-inline-block">
+                <div class="position-relative">
+                  <input type="text" class="form-control" id="searchTableList" 
+                         placeholder="Search invitations..." 
+                         [(ngModel)]="searchTerm" 
+                         (ngModelChange)="onSearchChange()">
+                  <i class="bx bx-search-alt search-icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-4">
+              <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()">
+                @for(option of statusOptions; track option.value) {
+                  <option [value]="option.value">{{option.label}}</option>
+                }
+              </select>
+            </div>
+            <div class="col-sm-4">
+              <div class="text-sm-end">
+                <button type="button" class="btn btn-success btn-rounded waves-effect waves-light mb-2" 
+                        (click)="loadInvitations()" [disabled]="loading">
+                  <i class="mdi mdi-refresh me-1"></i> Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+
+          @if(loading) {
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2 text-muted">Loading invitations...</p>
+            </div>
+          } @else if(error) {
+            <div class="alert alert-danger" role="alert">
+              <i class="bx bx-error-circle me-2"></i>{{error}}
+            </div>
+          } @else {
+            <div class="table-responsive">
+              <table class="table table-nowrap align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Client Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Sent Date</th>
+                    <th>Expires Date</th>
+                    <th>Accepted Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for(invitation of filteredInvitations; track invitation.id) {
+                    <tr>
+                      <td>
+                        <h5 class="font-size-14 mb-1">{{invitation.clientName}}</h5>
+                        <p class="text-muted mb-0">ID: {{invitation.clientId}}</p>
+                      </td>
+                      <td>{{invitation.clientEmail}}</td>
+                      <td>
+                        <span class="badge" [ngClass]="getInvitationStatusClass(invitation.status)">
+                          {{getInvitationStatusText(invitation.status)}}
+                        </span>
+                      </td>
+                      <td>
+                        @if(invitation.sentAt) {
+                          {{invitation.sentAt | date:'medium'}}
+                        } @else {
+                          <span class="text-muted">-</span>
+                        }
+                      </td>
+                      <td>
+                        @if(invitation.expiresAt) {
+                          <span [ngClass]="invitation.status === 'expired' ? 'text-danger' : 'text-muted'">
+                            {{invitation.expiresAt | date:'medium'}}
+                          </span>
+                        } @else {
+                          <span class="text-muted">-</span>
+                        }
+                      </td>
+                      <td>
+                        @if(invitation.acceptedAt) {
+                          {{invitation.acceptedAt | date:'medium'}}
+                        } @else {
+                          <span class="text-muted">-</span>
+                        }
+                      </td>
+                      <td>
+                        <div class="d-flex gap-2">
+                          @if(canResendInvitation(invitation)) {
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-warning" 
+                                    title="Resend Invitation"
+                                    (click)="resendInvitation(invitation)">
+                              <i class="bx bx-refresh"></i>
+                            </button>
+                          }
+                          <button type="button" 
+                                  class="btn btn-sm btn-outline-info" 
+                                  title="View Details">
+                            <i class="bx bx-show"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="7" class="text-center py-4">
+                        <div class="text-muted">
+                          <i class="bx bx-mail-send font-size-48 text-muted d-block mb-2"></i>
+                          @if(statusFilter === 'all') {
+                            No invitations found. Start by inviting clients from the client list.
+                          } @else {
+                            No {{statusFilter}} invitations found.
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

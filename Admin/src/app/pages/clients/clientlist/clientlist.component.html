@@ -31,6 +31,7 @@
                   <th>Phone Number</th>
                   <th>Entity Type</th>
                   <th>Status</th>
+                  <th>Invitation</th>
                   <th>Created Date</th>
                   <th>Actions</th>
                 </tr>
@@ -52,9 +53,22 @@
                       {{client.status || 'N/A'}}
                     </span>
                   </td>
+                  <td>
+                    <span class="badge" [ngClass]="getInvitationStatusClass(client.invitationStatus)">
+                      {{getInvitationStatusText(client.invitationStatus)}}
+                    </span>
+                    @if(client.lastInvitedAt) {
+                      <div class="text-muted small mt-1">{{client.lastInvitedAt | date:'short'}}</div>
+                    }
+                  </td>
                   <td>{{client.createdAt | date:'short'}}</td>
                   <td>
                     <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-outline-primary" title="Invite Client" 
+                              (click)="openInviteModal(client)"
+                              [disabled]="client.invitationStatus === 'accepted'">
+                        <i class="bx bx-mail-send"></i>
+                      </button>
                       <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit" (click)="openEditModal(client)">
                         <i class="bx bx-pencil"></i>
                       </button>
@@ -66,7 +80,7 @@
                 </tr> }
                 @empty {
                 <tr>
-                  <td colspan="8" class="text-center py-4">
+                  <td colspan="9" class="text-center py-4">
                     <div class="text-muted">
                       <i class="bx bx-user-plus font-size-48 text-muted d-block mb-2"></i>
                       No clients found. Click "New Client" to add your first client.
@@ -337,3 +351,123 @@
   <!-- end modal-dialog -->
 </div>
 <!-- end edit modal -->
+
+<!-- Invite Client Modal -->
+<div bsModal #inviteClientModal="bs-modal" class="modal fade" id="inviteClientModal" tabindex="-1" aria-labelledby="inviteClientModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="inviteClientModalLabel">
+          <i class="bx bx-mail-send me-2"></i>Send Client Invitation
+        </h5>
+        <button type="button" class="btn-close" (click)="inviteClientModal.hide()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="sendInvitation()" [formGroup]="inviteClientForm" autocomplete="off" class="needs-validation inviteClient-form" id="inviteClient-form" novalidate>
+          
+          <!-- Client Information Display -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card bg-light">
+                <div class="card-body p-3">
+                  <h6 class="card-title mb-2">Client Information</h6>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Name:</strong> {{selectedClient?.firstName}} {{selectedClient?.lastName}}</p>
+                      <p class="mb-1"><strong>Email:</strong> {{selectedClient?.email}}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Entity Type:</strong> {{selectedClient?.entityType || 'N/A'}}</p>
+                      <p class="mb-1"><strong>Status:</strong> 
+                        <span class="badge" [ngClass]="selectedClient?.status === 'lead' ? 'bg-info' : selectedClient?.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                          {{selectedClient?.status || 'N/A'}}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invitation Settings -->
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="invite-expiry-input" class="form-label">Invitation Expires In</label>
+                <select id="invite-expiry-input" class="form-select" formControlName="expiryDays">
+                  <option value="7">7 days</option>
+                  <option value="14">14 days</option>
+                  <option value="30">30 days</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label class="form-label">Current Invitation Status</label>
+                <div class="mt-2">
+                  <span class="badge" [ngClass]="getInvitationStatusClass(selectedClient?.invitationStatus)">
+                    {{getInvitationStatusText(selectedClient?.invitationStatus)}}
+                  </span>
+                  @if(selectedClient?.lastInvitedAt) {
+                    <div class="text-muted small mt-1">Last sent: {{selectedClient?.lastInvitedAt | date:'medium'}}</div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Template -->
+          <div class="row">
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="invite-template-input" class="form-label">Email Template</label>
+                <textarea id="invite-template-input" class="form-control" rows="8" 
+                          formControlName="emailTemplate" 
+                          placeholder="Customize the invitation email..."></textarea>
+                <div class="form-text">
+                  <small class="text-muted">
+                    Available variables: {{ '{' }}clientName{{ '}' }}, {{ '{' }}firmName{{ '}' }}, {{ '{' }}invitationLink{{ '}' }}, {{ '{' }}expiryDate{{ '}' }}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="row">
+            <div class="col-12">
+              <div class="text-end">
+                <button type="button" class="btn btn-outline-secondary me-2" (click)="inviteClientModal.hide()" [disabled]="inviteLoading">Cancel</button>
+                @if(selectedClient?.invitationStatus === 'pending' || selectedClient?.invitationStatus === 'sent') {
+                  <button type="submit" class="btn btn-warning" [disabled]="inviteLoading">
+                    @if(inviteLoading) {
+                      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Resending...
+                    } @else {
+                      <i class="bx bx-refresh me-1"></i>Resend Invitation
+                    }
+                  </button>
+                } @else {
+                  <button type="submit" class="btn btn-primary" [disabled]="inviteLoading">
+                    @if(inviteLoading) {
+                      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Sending...
+                    } @else {
+                      <i class="bx bx-mail-send me-1"></i>Send Invitation
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <!-- end modal body -->
+    </div>
+    <!-- end modal-content -->
+  </div>
+  <!-- end modal-dialog -->
+</div>
+<!-- end invite modal -->

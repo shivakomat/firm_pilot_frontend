@@ -109,6 +109,9 @@
       "TEXT": "File Manager",
       "BADGE": "New"
     },
+    "INVITATIONS": {
+      "TEXT": "Invitations"
+    },
     "ECOMMERCE": {
       "TEXT": "Ecommerce",
       "LIST": {

@@ -29,8 +29,14 @@ export class ClientlistComponent implements OnInit {
   editLoading = false;
   selectedClient: any = null;
 
+  // Form for inviting clients
+  inviteClientForm!: UntypedFormGroup;
+  inviteSubmitted = false;
+  inviteLoading = false;
+
   @ViewChild('newClientModal', { static: false }) newClientModal?: ModalDirective;
   @ViewChild('editClientModal', { static: false }) editClientModal?: ModalDirective;
+  @ViewChild('inviteClientModal', { static: false }) inviteClientModal?: ModalDirective;
 
   constructor(private apiService: ApiService, private formBuilder: UntypedFormBuilder) {}
 
@@ -72,6 +78,12 @@ export class ClientlistComponent implements OnInit {
       phoneNumber: [''], // Optional field
       entityType: [''],
       status: ['']
+    });
+
+    // Initialize the invitation form
+    this.inviteClientForm = this.formBuilder.group({
+      expiryDays: [7, [Validators.required]],
+      emailTemplate: [this.getDefaultEmailTemplate()]
     });
 
     // Load initial clients data
@@ -276,4 +288,133 @@ export class ClientlistComponent implements OnInit {
       }
     });
   }
+
+  // Invitation-related methods
+
+  /**
+   * Get default email template for invitations
+   */
+  getDefaultEmailTemplate(): string {
+    return `Dear {clientName},
+
+You have been invited to access your client portal for Firm Pilot.
+
+As a valued client, you now have secure access to:
+• View your account information
+• Upload and manage documents
+• Track the progress of your services
+• Communicate directly with our team
+
+To get started, please click the link below to set up your account:
+{invitationLink}
+
+This invitation will expire on {expiryDate}. If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+{firmName}`;
+  }
+
+  /**
+   * Open invitation modal for a client
+   */
+  openInviteModal(client: Client) {
+    this.selectedClient = client;
+    
+    // Reset form with default values
+    this.inviteClientForm.patchValue({
+      expiryDays: 7,
+      emailTemplate: this.getDefaultEmailTemplate()
+    });
+    
+    this.inviteSubmitted = false;
+    this.inviteClientModal?.show();
+  }
+
+  /**
+   * Send invitation to client
+   */
+  sendInvitation() {
+    this.inviteSubmitted = true;
+
+    if (this.inviteClientForm.invalid || !this.selectedClient?.id) {
+      return;
+    }
+
+    this.inviteLoading = true;
+    
+    const inviteData = {
+      clientId: this.selectedClient.id,
+      expiryDays: this.inviteClientForm.value.expiryDays,
+      emailTemplate: this.inviteClientForm.value.emailTemplate
+    };
+
+    this.apiService.inviteClient(inviteData).subscribe({
+      next: (response) => {
+        console.log('Invitation sent:', response);
+        if (response.success) {
+          this.inviteClientModal?.hide();
+          this.loadClients(); // Refresh the client list to update invitation status
+          this.inviteClientForm.reset();
+          this.selectedClient = null;
+          
+          // Show success message (you can implement toast notifications here)
+          console.log('Invitation sent successfully!');
+        }
+        this.inviteLoading = false;
+      },
+      error: (error) => {
+        console.error('Error sending invitation:', error);
+        this.inviteLoading = false;
+        
+        // Handle authentication errors
+        if (error.status === 401 || error.status === 403) {
+          console.error('Authentication failed. Please log in again.');
+        }
+      }
+    });
+  }
+
+  /**
+   * Get CSS class for invitation status badge
+   */
+  getInvitationStatusClass(status?: string): string {
+    switch (status) {
+      case 'pending':
+        return 'bg-warning';
+      case 'sent':
+        return 'bg-info';
+      case 'accepted':
+        return 'bg-success';
+      case 'expired':
+        return 'bg-danger';
+      case 'not_invited':
+      default:
+        return 'bg-secondary';
+    }
+  }
+
+  /**
+   * Get display text for invitation status
+   */
+  getInvitationStatusText(status?: string): string {
+    switch (status) {
+      case 'pending':
+        return 'Pending';
+      case 'sent':
+        return 'Sent';
+      case 'accepted':
+        return 'Accepted';
+      case 'expired':
+        return 'Expired';
+      case 'not_invited':
+        return 'Not Invited';
+      default:
+        return 'Not Invited';
+    }
+  }
+
+  /**
+   * Get form controls for invitation form (convenience getter)
+   */
+  get if() { return this.inviteClientForm.controls; }
 }
