@@ -28,6 +28,7 @@
                   <th>First Name</th>
                   <th>Last Name</th>
                   <th>Email</th>
+                  <th>Phone Number</th>
                   <th>Entity Type</th>
                   <th>Status</th>
                   <th>Created Date</th>
@@ -40,13 +41,14 @@
                   <td>{{client.firstName}}</td>
                   <td>{{client.lastName}}</td>
                   <td>{{client.email || 'N/A'}}</td>
+                  <td>{{formatPhoneForDisplay(client.phone)}}</td>
                   <td>
                     <span class="badge" [ngClass]="client.entityType === 'INDIVIDUAL' ? 'bg-primary' : 'bg-info'">
                       {{client.entityType || 'N/A'}}
                     </span>
                   </td>
                   <td>
-                    <span class="badge" [ngClass]="client.status === 'invited' ? 'bg-warning' : client.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                    <span class="badge" [ngClass]="client.status === 'lead' ? 'bg-info' : client.status === 'invited' ? 'bg-warning' : client.status === 'active' ? 'bg-success' : client.status === 'inactive' ? 'bg-secondary' : client.status === 'suspended' ? 'bg-danger' : 'bg-secondary'">
                       {{client.status || 'N/A'}}
                     </span>
                   </td>
@@ -64,7 +66,7 @@
                 </tr> }
                 @empty {
                 <tr>
-                  <td colspan="7" class="text-center py-4">
+                  <td colspan="8" class="text-center py-4">
                     <div class="text-muted">
                       <i class="bx bx-user-plus font-size-48 text-muted d-block mb-2"></i>
                       No clients found. Click "New Client" to add your first client.
@@ -122,9 +124,9 @@
                 }
               </div>
             </div>
-            <div class="col-lg-12">
+            <div class="col-lg-6">
               <div class="mb-3">
-                <label for="client-email-input" class="form-label">Email Address</label>
+                <label for="client-email-input" class="form-label">Email Address <span class="text-danger">*</span></label>
                 <input type="email" id="client-email-input" class="form-control" 
                        placeholder="Enter email address" formControlName="email" 
                        [class.is-invalid]="submitted && createClientForm.get('email')?.errors" required />
@@ -135,6 +137,61 @@
                     }
                     @if(createClientForm.get('email')?.errors?.['email']) {
                       Please enter a valid email address.
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="client-phone-input" class="form-label">Phone Number</label>
+                <input type="tel" id="client-phone-input" class="form-control" 
+                       placeholder="(XXX) XXX-XXXX" formControlName="phoneNumber" 
+                       (input)="formatPhoneNumber($event)" maxlength="14" />
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="client-entityType-input" class="form-label">Entity Type <span class="text-danger">*</span></label>
+                <select id="client-entityType-input" class="form-select" 
+                        formControlName="entityType" 
+                        [class.is-invalid]="submitted && createClientForm.get('entityType')?.errors" required>
+                  <option value="">Select Entity Type</option>
+                  <option value="INDIVIDUAL">Individual</option>
+                  <option value="BUSINESS">Business</option>
+                  <option value="CORPORATION">Corporation</option>
+                  <option value="PARTNERSHIP">Partnership</option>
+                  <option value="LLC">LLC</option>
+                </select>
+                @if(submitted && createClientForm.get('entityType')?.errors) {
+                  <div class="invalid-feedback">
+                    @if(createClientForm.get('entityType')?.errors?.['required']) {
+                      Entity type is required.
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="client-status-input" class="form-label">Status <span class="text-danger">*</span></label>
+                <select id="client-status-input" class="form-select" 
+                        formControlName="status" 
+                        [class.is-invalid]="submitted && createClientForm.get('status')?.errors" required>
+                  <option value="">Select Status</option>
+                  <option value="lead">Lead</option>
+                  <option value="invited">Invited</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+                @if(submitted && createClientForm.get('status')?.errors) {
+                  <div class="invalid-feedback">
+                    @if(createClientForm.get('status')?.errors?.['required']) {
+                      Status is required.
                     }
                   </div>
                 }
@@ -206,7 +263,7 @@
               </div>
             </div>
 
-            <div class="col-lg-12">
+            <div class="col-lg-6">
               <div class="mb-3">
                 <label for="editEmail" class="form-label">Email</label>
                 <input type="email" class="form-control" id="editEmail" formControlName="email" 
@@ -218,6 +275,14 @@
                     }
                   </div>
                 }
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editPhoneNumber" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" id="editPhoneNumber" formControlName="phoneNumber"
+                       placeholder="(XXX) XXX-XXXX" (input)="formatPhoneNumber($event)" maxlength="14">
               </div>
             </div>
 
@@ -240,6 +305,7 @@
                 <label for="editStatus" class="form-label">Status</label>
                 <select class="form-select" id="editStatus" formControlName="status">
                   <option value="">Select Status</option>
+                  <option value="lead">Lead</option>
                   <option value="invited">Invited</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>

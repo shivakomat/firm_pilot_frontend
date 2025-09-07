@@ -38,6 +38,9 @@ export interface CreateClientRequest {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
+  entityType?: string;
+  status?: string;
 }
 
 export interface CreateClientResponse {
@@ -50,6 +53,7 @@ export interface Client {
   id?: number;
   accountantId?: number;
   email?: string;
+  phone?: string;
   firstName: string;
   lastName: string;
   entityType?: string;
@@ -67,6 +71,7 @@ export interface UpdateClientRequest {
   firstName: string;
   lastName: string;
   email?: string;
+  phone?: string;
   entityType?: string;
   status?: string;
 }

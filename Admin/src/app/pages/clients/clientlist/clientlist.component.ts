@@ -53,11 +53,14 @@ export class ClientlistComponent implements OnInit {
   ngOnInit(): void {
     this.breadCrumbItems = [{ label: 'Clients' }, { label: 'Clients List', active: true }];
     
-    // Initialize the simplified form for your backend API
+    // Initialize the form for your backend API with all required fields
     this.createClientForm = this.formBuilder.group({
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]]
+      email: ['', [Validators.required, Validators.email]],
+      phoneNumber: [''], // Optional field
+      entityType: ['', [Validators.required]],
+      status: ['invited', [Validators.required]] // Default to 'invited'
     });
 
     // Initialize the edit form with all editable fields
@@ -65,6 +68,7 @@ export class ClientlistComponent implements OnInit {
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.email]],
+      phoneNumber: [''], // Optional field
       entityType: [''],
       status: ['']
     });
@@ -81,10 +85,23 @@ export class ClientlistComponent implements OnInit {
       this.loading = true;
       
       const clientData: CreateClientRequest = {
+        email: this.createClientForm.value.email,
         firstName: this.createClientForm.value.firstName,
-        lastName: this.createClientForm.value.lastName,
-        email: this.createClientForm.value.email
+        lastName: this.createClientForm.value.lastName
       };
+      
+      // Only add optional fields if they have values
+      if (this.createClientForm.value.phoneNumber && this.createClientForm.value.phoneNumber.trim()) {
+        clientData.phone = this.cleanPhoneNumber(this.createClientForm.value.phoneNumber);
+      }
+      
+      if (this.createClientForm.value.entityType) {
+        clientData.entityType = this.createClientForm.value.entityType;
+      }
+      
+      if (this.createClientForm.value.status) {
+        clientData.status = this.createClientForm.value.status;
+      }
       
       console.log('Creating client:', clientData);
       
@@ -97,15 +114,19 @@ export class ClientlistComponent implements OnInit {
           // Refresh the clients list
           this.loadClients();
           
-          // Hide modal and reset form
+          // Close modal and reset form
           this.newClientModal?.hide();
           this.createClientForm.reset();
           this.submitted = false;
         },
         error: (error) => {
           console.error('Error creating client:', error);
+          console.error('Request data that failed:', clientData);
+          console.error('Full error response:', error);
+          if (error.error) {
+            console.error('Backend error details:', error.error);
+          }
           this.loading = false;
-          // You could add user-friendly error handling here
         }
       });
     } else {
@@ -143,6 +164,54 @@ export class ClientlistComponent implements OnInit {
   get f() { return this.createClientForm.controls; }
   get ef() { return this.editClientForm.controls; }
 
+  // Format phone number as user types
+  formatPhoneNumber(event: any): void {
+    let value = event.target.value.replace(/\D/g, ''); // Remove all non-digits
+    
+    if (value.length >= 6) {
+      value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+    } else if (value.length >= 3) {
+      value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+    } else if (value.length > 0) {
+      value = `(${value}`;
+    }
+    
+    // Limit to 14 characters: (XXX) XXX-XXXX
+    if (value.length > 14) {
+      value = value.slice(0, 14);
+    }
+    
+    event.target.value = value;
+    
+    // Update form control with formatted value
+    if (event.target.id === 'client-phone-input') {
+      this.createClientForm.patchValue({ phoneNumber: value });
+    } else if (event.target.id === 'editPhoneNumber') {
+      this.editClientForm.patchValue({ phoneNumber: value });
+    }
+  }
+
+  // Clean phone number for API (remove formatting)
+  cleanPhoneNumber(phone: string): string {
+    return phone ? phone.replace(/\D/g, '') : '';
+  }
+
+  // Format phone number for display in table
+  formatPhoneForDisplay(phone: string): string {
+    if (!phone) return 'N/A';
+    
+    // Remove all non-digits
+    const cleaned = phone.replace(/\D/g, '');
+    
+    // Format as (XXX) XXX-XXXX for 10-digit numbers
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    
+    // Return original if not 10 digits
+    return phone || 'N/A';
+  }
+
   // Open edit modal and populate form with client data
   openEditModal(client: any) {
     this.selectedClient = client;
@@ -150,6 +219,7 @@ export class ClientlistComponent implements OnInit {
       firstName: client.firstName || '',
       lastName: client.lastName || '',
       email: client.email || '',
+      phoneNumber: client.phone || '', // Backend uses 'phone' field name
       entityType: client.entityType || '',
       status: client.status || ''
     });
@@ -170,6 +240,7 @@ export class ClientlistComponent implements OnInit {
       firstName: this.ef['firstName'].value,
       lastName: this.ef['lastName'].value,
       email: this.ef['email'].value || undefined,
+      phone: this.ef['phoneNumber'].value ? this.cleanPhoneNumber(this.ef['phoneNumber'].value) : undefined,
       entityType: this.ef['entityType'].value || undefined,
       status: this.ef['status'].value || undefined
     };
