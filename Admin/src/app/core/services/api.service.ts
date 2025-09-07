@@ -85,9 +85,7 @@ export interface UpdateClientResponse {
 }
 
 export interface InviteClientRequest {
-  clientId: number;
-  emailTemplate?: string;
-  expiryDays?: number;
+  message?: string; // Optional custom message for the invitation
 }
 
 export interface InviteClientResponse {
@@ -97,8 +95,29 @@ export interface InviteClientResponse {
   invitationToken?: string;
 }
 
+export interface AcceptInvitationRequest {
+  firstName: string;
+  lastName: string;
+  password: string;
+}
+
+export interface AcceptInvitationResponse {
+  success: boolean;
+  message?: string;
+  user?: any;
+}
+
+export interface ResendInvitationRequest {
+  message?: string; // Optional custom message for resend
+}
+
+export interface ResendInvitationResponse {
+  success: boolean;
+  message?: string;
+}
+
 export interface Invitation {
-  id: string;
+  id: number;
   clientId: number;
   clientName: string;
   clientEmail: string;
@@ -107,6 +126,7 @@ export interface Invitation {
   acceptedAt?: string;
   expiresAt?: string;
   token?: string;
+  message?: string;
 }
 
 export interface GetInvitationsResponse {
@@ -114,9 +134,10 @@ export interface GetInvitationsResponse {
   invitations: Invitation[];
 }
 
-export interface ResendInvitationResponse {
+export interface GetInvitationByTokenResponse {
   success: boolean;
-  message?: string;
+  invitation?: Invitation;
+  client?: Client;
 }
 
 @Injectable({
@@ -234,9 +255,10 @@ export class ApiService {
 
   /**
    * Send invitation to a client
-   * @param inviteData - Invitation data
+   * @param clientId - ID of the client to invite
+   * @param inviteData - Invitation data with optional message
    */
-  inviteClient(inviteData: InviteClientRequest): Observable<InviteClientResponse> {
+  inviteClient(clientId: number, inviteData: InviteClientRequest): Observable<InviteClientResponse> {
     const token = localStorage.getItem('authToken');
     
     if (!token) {
@@ -248,7 +270,7 @@ export class ApiService {
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.post<InviteClientResponse>(`${this.baseUrl}/clients/${inviteData.clientId}/invite`, inviteData, { headers });
+    return this.http.post<InviteClientResponse>(`${this.baseUrl}/clients/${clientId}/invite`, inviteData, { headers });
   }
 
   /**
@@ -267,14 +289,54 @@ export class ApiService {
   /**
    * Resend an invitation
    * @param invitationId - ID of the invitation to resend
+   * @param resendData - Optional message for resend
    */
-  resendInvitation(invitationId: string): Observable<ResendInvitationResponse> {
+  resendInvitation(invitationId: number, resendData: ResendInvitationRequest = {}): Observable<ResendInvitationResponse> {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.post<ResendInvitationResponse>(`${this.baseUrl}/invitations/${invitationId}/resend`, {}, { headers });
+    return this.http.post<ResendInvitationResponse>(`${this.baseUrl}/invitations/${invitationId}/resend`, resendData, { headers });
+  }
+
+  /**
+   * Get invitation by token (for public access)
+   * @param token - Invitation token
+   */
+  getInvitationByToken(token: string): Observable<GetInvitationByTokenResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.get<GetInvitationByTokenResponse>(`${this.baseUrl}/invitations/${token}`, { headers });
+  }
+
+  /**
+   * Accept an invitation (public endpoint)
+   * @param token - Invitation token
+   * @param acceptData - User registration data
+   */
+  acceptInvitation(token: string, acceptData: AcceptInvitationRequest): Observable<AcceptInvitationResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post<AcceptInvitationResponse>(`${this.baseUrl}/invitations/${token}/accept`, acceptData, { headers });
+  }
+
+  /**
+   * Cancel an invitation
+   * @param invitationId - ID of the invitation to cancel
+   */
+  cancelInvitation(invitationId: number): Observable<{ success: boolean; message?: string }> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.delete<{ success: boolean; message?: string }>(`${this.baseUrl}/invitations/${invitationId}`, { headers });
   }
 }

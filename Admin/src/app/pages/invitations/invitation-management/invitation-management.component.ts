@@ -112,7 +112,11 @@ export class InvitationManagementComponent implements OnInit {
   resendInvitation(invitation: Invitation): void {
     if (!invitation.id) return;
 
-    this.apiService.resendInvitation(invitation.id).subscribe({
+    const resendData = {
+      message: invitation.message // Use existing message or could be customized
+    };
+
+    this.apiService.resendInvitation(invitation.id, resendData).subscribe({
       next: (response) => {
         console.log('Invitation resent:', response);
         if (response.success) {

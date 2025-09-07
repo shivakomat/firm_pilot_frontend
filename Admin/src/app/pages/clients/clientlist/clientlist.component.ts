@@ -82,7 +82,6 @@ export class ClientlistComponent implements OnInit {
 
     // Initialize the invitation form
     this.inviteClientForm = this.formBuilder.group({
-      expiryDays: [7, [Validators.required]],
       emailTemplate: [this.getDefaultEmailTemplate()]
     });
 
@@ -322,7 +321,6 @@ Best regards,
     
     // Reset form with default values
     this.inviteClientForm.patchValue({
-      expiryDays: 7,
       emailTemplate: this.getDefaultEmailTemplate()
     });
     
@@ -343,12 +341,10 @@ Best regards,
     this.inviteLoading = true;
     
     const inviteData = {
-      clientId: this.selectedClient.id,
-      expiryDays: this.inviteClientForm.value.expiryDays,
-      emailTemplate: this.inviteClientForm.value.emailTemplate
+      message: this.inviteClientForm.value.emailTemplate || undefined
     };
 
-    this.apiService.inviteClient(inviteData).subscribe({
+    this.apiService.inviteClient(this.selectedClient.id, inviteData).subscribe({
       next: (response) => {
         console.log('Invitation sent:', response);
         if (response.success) {
