@@ -11,83 +11,83 @@ export const MENU: MenuItem[] = [
         id: 8,
         isLayout: true
     },
-    {
-        id: 40,
-        label: 'MENUITEMS.PROJECTS.TEXT',
-        icon: 'bx-briefcase-alt-2',
-        subItems: [
-            {
-                id: 41,
-                label: 'MENUITEMS.PROJECTS.LIST.GRID',
-                link: '/projects/grid',
-                parentId: 40
-            },
-            {
-                id: 42,
-                label: 'MENUITEMS.PROJECTS.LIST.PROJECTLIST',
-                link: '/projects/list',
-                parentId: 40
-            },
-            {
-                id: 43,
-                label: 'MENUITEMS.PROJECTS.LIST.OVERVIEW',
-                link: '/projects/overview',
-                parentId: 40
-            },
-            {
-                id: 44,
-                label: 'MENUITEMS.PROJECTS.LIST.CREATE',
-                link: '/projects/create',
-                parentId: 40
-            }
-        ]
-    },
-    {
-        id: 45,
-        label: 'MENUITEMS.TASKS.TEXT',
-        icon: 'bx-task',
-        link: '/tasks/list',
-        // subItems: [
-        //     {
-        //         id: 46,
-        //         label: 'MENUITEMS.TASKS.LIST.TASKLIST',
-        //         link: '/tasks/list',
-        //         parentId: 45
-        //     },
-        //     {
-        //         id: 48,
-        //         label: 'MENUITEMS.TASKS.LIST.CREATETASK',
-        //         link: '/tasks/create',
-        //         parentId: 45
-        //     }
-        // ]
-    },
-    {
-        id: 49,
-        label: 'MENUITEMS.CONTACTS.TEXT',
-        icon: 'bxs-user-detail',
-        link: '/contacts/list',
-        // subItems: [
-        //     {
-        //         id: 50,
-        //         label: 'MENUITEMS.CONTACTS.LIST.USERGRID',
-        //         link: '/contacts/grid',
-        //         parentId: 49
-        //     },
-        //     {
-        //         id: 51,
-        //         label: 'MENUITEMS.CONTACTS.LIST.USERLIST',
-        //         link: '/contacts/list',
-        //         parentId: 49
-        //     },
-        //     {
-        //         id: 52,
-        //         label: 'MENUITEMS.CONTACTS.LIST.PROFILE',
-        //         link: '/contacts/profile',
-        //         parentId: 49
-        //     }
-        // ]
-    },
+    // {
+    //     id: 40,
+    //     label: 'MENUITEMS.PROJECTS.TEXT',
+    //     icon: 'bx-briefcase-alt-2',
+    //     subItems: [
+    //         {
+    //             id: 41,
+    //             label: 'MENUITEMS.PROJECTS.LIST.GRID',
+    //             link: '/projects/grid',
+    //             parentId: 40
+    //         },
+    //         {
+    //             id: 42,
+    //             label: 'MENUITEMS.PROJECTS.LIST.PROJECTLIST',
+    //             link: '/projects/list',
+    //             parentId: 40
+    //         },
+    //         {
+    //             id: 43,
+    //             label: 'MENUITEMS.PROJECTS.LIST.OVERVIEW',
+    //             link: '/projects/overview',
+    //             parentId: 40
+    //         },
+    //         {
+    //             id: 44,
+    //             label: 'MENUITEMS.PROJECTS.LIST.CREATE',
+    //             link: '/projects/create',
+    //             parentId: 40
+    //         }
+    //     ]
+    // },
+    // {
+    //     id: 45,
+    //     label: 'MENUITEMS.TASKS.TEXT',
+    //     icon: 'bx-task',
+    //     link: '/tasks/list',
+    //     // subItems: [
+    //     //     {
+    //     //         id: 46,
+    //     //         label: 'MENUITEMS.TASKS.LIST.TASKLIST',
+    //     //         link: '/tasks/list',
+    //     //         parentId: 45
+    //     //     },
+    //     //     {
+    //     //         id: 48,
+    //     //         label: 'MENUITEMS.TASKS.LIST.CREATETASK',
+    //     //         link: '/tasks/create',
+    //     //         parentId: 45
+    //     //     }
+    //     // ]
+    // },
+    // {
+    //     id: 49,
+    //     label: 'MENUITEMS.CONTACTS.TEXT',
+    //     icon: 'bxs-user-detail',
+    //     link: '/contacts/list',
+    //     // subItems: [
+    //     //     {
+    //     //         id: 50,
+    //     //         label: 'MENUITEMS.CONTACTS.LIST.USERGRID',
+    //     //         link: '/contacts/grid',
+    //     //         parentId: 49
+    //     //     },
+    //     //     {
+    //     //         id: 51,
+    //     //         label: 'MENUITEMS.CONTACTS.LIST.USERLIST',
+    //     //         link: '/contacts/list',
+    //     //         parentId: 49
+    //     //     },
+    //     //     {
+    //     //         id: 52,
+    //     //         label: 'MENUITEMS.CONTACTS.LIST.PROFILE',
+    //     //         link: '/contacts/profile',
+    //     //         parentId: 49
+    //     //     }
+    //     // ]
+    // },
     {
         id: 50,
         label: 'MENUITEMS.CLIENTS.TEXT',
@@ -174,6 +174,12 @@ export const MENU: MenuItem[] = [
         //         parentId: 37
         //     },
         // ]
+    },
+    {
+        id: 30,
+        label: 'MENUITEMS.CHAT.TEXT',
+        icon: 'bx-file',
+        link: '/chat',
     },
 ];
 
