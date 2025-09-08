@@ -20,6 +20,7 @@ export class LoginComponent implements OnInit {
   loginForm: UntypedFormGroup;
   submitted: any = false;
   error: any = '';
+  successMessage: string = '';
   returnUrl: string;
   fieldTextType!: boolean;
   loading: boolean = false;
@@ -43,9 +44,18 @@ export class LoginComponent implements OnInit {
     // Get return url from route parameters or default to '/'
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     
+    // Check for registration success message
+    const message = this.route.snapshot.queryParams['message'];
+    if (message) {
+      this.successMessage = message;
+    }
+    
+    // Get pre-filled email from query params (from registration)
+    const prefilledEmail = this.route.snapshot.queryParams['email'] || 'user@firmpilot.com';
+    
     // form validation
     this.loginForm = this.formBuilder.group({
-      email: ['user@firmpilot.com', [Validators.required, Validators.email]],
+      email: [prefilledEmail, [Validators.required, Validators.email]],
       password: ['SecurePassword123!', [Validators.required]],
     });
   }

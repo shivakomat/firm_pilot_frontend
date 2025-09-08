@@ -3,12 +3,17 @@ import { Page404Component } from './extrapages/page404/page404.component';
 import { CyptolandingComponent } from './cyptolanding/cyptolanding.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LayoutComponent } from './layouts/layout.component';
+import { ClientRegistrationComponent } from './pages/invitations/client-registration/client-registration.component';
 
 export const routes: Routes = [
     {
         path: "auth",
         loadChildren: () =>
             import("./account/account.module").then((m) => m.AccountModule),
+    },
+    {
+        path: "register/:token",
+        component: ClientRegistrationComponent,
     },
     {
         path: "",

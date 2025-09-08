@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { InvitationsRoutingModule } from './invitations-routing.module';
-import { InvitationManagementComponent } from './invitation-management/invitation-management.component';
 
 @NgModule({
   declarations: [],
@@ -11,8 +10,7 @@ import { InvitationManagementComponent } from './invitation-management/invitatio
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    InvitationsRoutingModule,
-    InvitationManagementComponent
+    InvitationsRoutingModule
   ]
 })
 export class InvitationsModule { }

@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 
 import { InvitationManagementComponent } from './invitation-management/invitation-management.component';
+import { ClientRegistrationComponent } from './client-registration/client-registration.component';
 
 const routes: Routes = [
   {
@@ -9,8 +10,8 @@ const routes: Routes = [
     component: InvitationManagementComponent
   },
   {
-    path: 'management',
-    component: InvitationManagementComponent
+    path: 'register/:token',
+    component: ClientRegistrationComponent
   }
 ];
 
