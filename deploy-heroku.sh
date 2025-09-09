@@ -2,7 +2,7 @@
 
 # Build Angular app locally first
 echo "Building Angular app locally..."
-ng build --configuration production
+npx ng build --configuration production
 
 # Check if build was successful
 if [ ! -d "dist/skote" ]; then
@@ -10,20 +10,26 @@ if [ ! -d "dist/skote" ]; then
     exit 1
 fi
 
-# Backup current package.json
+# Backup current files
 cp package.json package.local.json
+cp .gitignore .gitignore.backup
 
 # Copy Heroku-only package.json (minimal dependencies)
 cp package.heroku.json package.json
 
-# Add and commit changes
+# Temporarily remove /dist from .gitignore to include build files
+sed -i '' '/^\/dist$/d' .gitignore
+
+# Add and commit changes (including dist folder)
 git add .
-git commit -m "Deploy pre-built Angular app to Heroku"
+git commit -m "Deploy pre-built Angular app to Heroku with dist files"
 
 # Deploy to Heroku
 git push heroku main
 
-# Restore local package.json
+# Restore original files
 cp package.local.json package.json
+cp .gitignore.backup .gitignore
+rm .gitignore.backup
 
-echo "Deployment complete. Local package.json restored."
+echo "Deployment complete. Local files restored."
