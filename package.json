@@ -93,6 +93,7 @@
   },
   "devDependencies": {
     "@angular/language-service": "^18.2.11",
+    "@rollup/rollup-linux-x64-gnu": "^4.50.1",
     "@types/jasmine": "^5.1.4",
     "@types/node": "^22.7.4",
     "jasmine-core": "^5.3.0",
