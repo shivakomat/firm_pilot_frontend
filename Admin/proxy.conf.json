@@ -1,5 +1,23 @@
 {
-  "/businesses": {
+  "/auth/*": {
+    "target": "http://localhost:9000",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/clients/*": {
+    "target": "http://localhost:9000",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/invitations/*": {
+    "target": "http://localhost:9000",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/businesses/*": {
     "target": "http://localhost:9000",
     "secure": false,
     "changeOrigin": true,

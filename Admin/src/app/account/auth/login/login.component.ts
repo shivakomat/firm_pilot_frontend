@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ApiService, LoginRequest } from '../../../core/services/api.service';
 import { CommonModule } from '@angular/common';
 
@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   standalone:true,
-  imports:[CommonModule,FormsModule,ReactiveFormsModule]
+  imports:[CommonModule,FormsModule,ReactiveFormsModule,RouterModule]
 })
 
 /**
