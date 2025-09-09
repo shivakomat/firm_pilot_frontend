@@ -1,6 +1,74 @@
 <div class="container-fluid">
   <app-page-title title="Clients List" [breadcrumbItems]="breadCrumbItems"></app-page-title>
 
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Total Clients</p>
+              <h4 class="mb-0">{{getClientStats().total}}</h4>
+            </div>
+            <div class="text-primary">
+              <i class="bx bx-user font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Active</p>
+              <h4 class="mb-0">{{getClientStats().active}}</h4>
+            </div>
+            <div class="text-success">
+              <i class="bx bx-check-circle font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Invited</p>
+              <h4 class="mb-0">{{getClientStats().invited}}</h4>
+            </div>
+            <div class="text-info">
+              <i class="bx bx-mail-send font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Pending</p>
+              <h4 class="mb-0">{{getClientStats().pending}}</h4>
+            </div>
+            <div class="text-warning">
+              <i class="bx bx-time-five font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clients Table -->
   <div class="row">
     <div class="col-lg-12">
       <div class="card">
@@ -14,8 +82,19 @@
                 </div>
               </div>
             </div>
-            <div class="col-sm-8">
+            <div class="col-sm-4">
+              <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()">
+                @for(option of statusOptions; track option.value) {
+                  <option [value]="option.value">{{option.label}}</option>
+                }
+              </select>
+            </div>
+            <div class="col-sm-4">
               <div class="text-sm-end">
+                <button type="button" class="btn btn-info btn-rounded waves-effect waves-light mb-2 me-2" 
+                        (click)="loadClients()">
+                  <i class="mdi mdi-refresh me-1"></i> Refresh
+                </button>
                 <button type="button" data-bs-toggle="modal" (click)="newClientModal.show()" class="btn btn-success btn-rounded waves-effect waves-light addClient-modal mb-2"><i class="mdi mdi-plus me-1"></i> New Client</button>
               </div>
             </div><!-- end col-->
@@ -49,8 +128,8 @@
                     </span>
                   </td>
                   <td>
-                    <span class="badge" [ngClass]="client.status === 'lead' ? 'bg-info' : client.status === 'invited' ? 'bg-warning' : client.status === 'active' ? 'bg-success' : client.status === 'inactive' ? 'bg-secondary' : client.status === 'suspended' ? 'bg-danger' : 'bg-secondary'">
-                      {{client.status || 'N/A'}}
+                    <span class="badge" [ngClass]="getClientStatusClass(client.status)">
+                      {{getClientStatusText(client.status)}}
                     </span>
                   </td>
                   <td>

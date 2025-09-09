@@ -18,6 +18,17 @@ export class ClientlistComponent implements OnInit {
   clients: Client[] = [];
   filteredClients: Client[] = [];
   searchTerm: string = '';
+  
+  // Filter options
+  statusFilter: string = 'all';
+  statusOptions = [
+    { value: 'all', label: 'All Clients' },
+    { value: 'invited', label: 'Invited' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'pending', label: 'Pending' }
+  ];
+
   // Form for creating new clients
   createClientForm!: UntypedFormGroup;
   submitted = false;
@@ -43,17 +54,42 @@ export class ClientlistComponent implements OnInit {
 
 
 
-  searchClients(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredClients = [...this.clients];
-    } else {
+  /**
+   * Apply search and status filters
+   */
+  applyFilters(): void {
+    let filtered = [...this.clients];
+
+    // Apply status filter
+    if (this.statusFilter !== 'all') {
+      filtered = filtered.filter(client => client.status === this.statusFilter);
+    }
+
+    // Apply search filter
+    if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      this.filteredClients = this.clients.filter(client => 
+      filtered = filtered.filter(client => 
         client.firstName?.toLowerCase().includes(term) ||
         client.lastName?.toLowerCase().includes(term) ||
         client.email?.toLowerCase().includes(term)
       );
     }
+
+    this.filteredClients = filtered;
+  }
+
+  /**
+   * Handle search input change
+   */
+  searchClients(): void {
+    this.applyFilters();
+  }
+
+  /**
+   * Handle status filter change
+   */
+  onStatusFilterChange(): void {
+    this.applyFilters();
   }
 
 
@@ -201,7 +237,7 @@ export class ClientlistComponent implements OnInit {
         console.log('Clients response:', response);
         if (response.success && response.clients) {
           this.clients = response.clients;
-          this.filteredClients = [...this.clients];
+          this.applyFilters();
         } else {
           console.warn('No clients found in response');
           this.clients = [];
@@ -508,4 +544,53 @@ Best regards,
    * Get form controls for invitation form (convenience getter)
    */
   get if() { return this.inviteClientForm.controls; }
+
+  /**
+   * Get summary statistics for clients
+   */
+  getClientStats() {
+    const total = this.clients.length;
+    const invited = this.clients.filter(client => client.status === 'invited').length;
+    const active = this.clients.filter(client => client.status === 'active').length;
+    const inactive = this.clients.filter(client => client.status === 'inactive').length;
+    const pending = this.clients.filter(client => client.status === 'pending').length;
+
+    return { total, invited, active, inactive, pending };
+  }
+
+  /**
+   * Get CSS class for client status badge
+   */
+  getClientStatusClass(status?: string): string {
+    switch (status) {
+      case 'active':
+        return 'bg-success';
+      case 'invited':
+        return 'bg-info';
+      case 'pending':
+        return 'bg-warning';
+      case 'inactive':
+        return 'bg-secondary';
+      default:
+        return 'bg-secondary';
+    }
+  }
+
+  /**
+   * Get display text for client status
+   */
+  getClientStatusText(status?: string): string {
+    switch (status) {
+      case 'active':
+        return 'Active';
+      case 'invited':
+        return 'Invited';
+      case 'pending':
+        return 'Pending';
+      case 'inactive':
+        return 'Inactive';
+      default:
+        return 'Unknown';
+    }
+  }
 }
