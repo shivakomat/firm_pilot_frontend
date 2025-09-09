@@ -1,0 +1,17 @@
+{
+  "name": "firm-pilot-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server.js",
+    "build": "cd Admin && npm install && npm run build-prod",
+    "heroku-postbuild": "cd Admin && npm install && npm run build-prod"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "path": "^0.12.7"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  }
+}
