@@ -4,11 +4,11 @@ const path = require('path');
 const app = express();
 
 // Serve only the static files from the dist directory
-app.use(express.static(__dirname + '/Admin/dist/skote-angular-vertical'));
+app.use(express.static(__dirname + '/dist/skote-angular-vertical'));
 
 app.get('/*', function(req, res) {
   // Send the index.html file for all routes to support Angular routing
-  res.sendFile(path.join(__dirname + '/Admin/dist/skote-angular-vertical/index.html'));
+  res.sendFile(path.join(__dirname + '/dist/skote-angular-vertical/index.html'));
 });
 
 // Start the app by listening on the default Heroku port
