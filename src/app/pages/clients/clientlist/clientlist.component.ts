@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup,
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
 import { ApiService, CreateClientRequest, Client } from 'src/app/core/services/api.service';
 import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-clientlist',
@@ -124,34 +125,64 @@ export class ClientlistComponent implements OnInit {
         next: (response) => {
           this.loading = false;
           if (response.success) {
+            // Show success message
+            Swal.fire({
+              title: 'Success!',
+              text: 'Client has been created successfully.',
+              icon: 'success',
+              confirmButtonColor: '#3085d6',
+              confirmButtonText: 'OK'
+            });
+
             // Reset form and close modal
             this.createClientForm.reset();
             this.createClientForm.patchValue({
               entityType: 'INDIVIDUAL',
               status: 'invited'
             });
+            this.submitted = false;
             
             // Reload clients list
             this.loadClients();
             
-            // Close modal (you might need to adjust this based on your modal implementation)
-            // this.closeModal();
+            // Close modal
+            this.newClientModal?.hide();
           } else {
             this.error = response.message || 'Failed to create client';
+            Swal.fire({
+              title: 'Error!',
+              text: this.error,
+              icon: 'error',
+              confirmButtonColor: '#d33',
+              confirmButtonText: 'OK'
+            });
           }
         },
         error: (error) => {
           this.loading = false;
           console.error('Error creating client:', error);
           
+          let errorMessage = 'Failed to create client. Please try again.';
+          
           // Check if it's an authentication error
           if (error.status === 401 || error.status === 403) {
-            this.error = 'Authentication failed. Please log in again.';
-            // Optionally redirect to login
-            // this.router.navigate(['/auth/login']);
-          } else {
-            this.error = error.error?.message || 'Failed to create client. Please check the console for details.';
+            errorMessage = 'Authentication failed. Please log in again.';
+          } else if (error.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
           }
+          
+          this.error = errorMessage;
+          
+          // Show error modal
+          Swal.fire({
+            title: 'Error!',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK'
+          });
         }
       });
     } else {
@@ -274,16 +305,50 @@ export class ClientlistComponent implements OnInit {
       next: (response) => {
         console.log('Client updated:', response);
         if (response.success) {
+          // Show success message
+          Swal.fire({
+            title: 'Success!',
+            text: 'Client has been updated successfully.',
+            icon: 'success',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK'
+          });
+
           this.editClientModal?.hide();
           this.loadClients(); // Refresh the client list
           this.editClientForm.reset();
           this.selectedClient = null;
+        } else {
+          // Show error message
+          Swal.fire({
+            title: 'Error!',
+            text: response.message || 'Failed to update client.',
+            icon: 'error',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK'
+          });
         }
         this.editLoading = false;
       },
       error: (error) => {
         console.error('Error updating client:', error);
         this.editLoading = false;
+        
+        let errorMessage = 'Failed to update client. Please try again.';
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        // Show error modal
+        Swal.fire({
+          title: 'Error!',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonColor: '#d33',
+          confirmButtonText: 'OK'
+        });
       }
     });
   }
@@ -348,13 +413,28 @@ Best regards,
       next: (response) => {
         console.log('Invitation sent:', response);
         if (response.success) {
+          // Show success message
+          Swal.fire({
+            title: 'Success!',
+            text: 'Invitation has been sent successfully.',
+            icon: 'success',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK'
+          });
+
           this.inviteClientModal?.hide();
           this.loadClients(); // Refresh the client list to update invitation status
           this.inviteClientForm.reset();
           this.selectedClient = null;
-          
-          // Show success message (you can implement toast notifications here)
-          console.log('Invitation sent successfully!');
+        } else {
+          // Show error message
+          Swal.fire({
+            title: 'Error!',
+            text: response.message || 'Failed to send invitation.',
+            icon: 'error',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK'
+          });
         }
         this.inviteLoading = false;
       },
@@ -362,10 +442,25 @@ Best regards,
         console.error('Error sending invitation:', error);
         this.inviteLoading = false;
         
+        let errorMessage = 'Failed to send invitation. Please try again.';
+        
         // Handle authentication errors
         if (error.status === 401 || error.status === 403) {
-          console.error('Authentication failed. Please log in again.');
+          errorMessage = 'Authentication failed. Please log in again.';
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
         }
+        
+        // Show error modal
+        Swal.fire({
+          title: 'Error!',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonColor: '#d33',
+          confirmButtonText: 'OK'
+        });
       }
     });
   }
