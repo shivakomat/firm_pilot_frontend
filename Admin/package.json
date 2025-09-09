@@ -21,6 +21,7 @@
     "@angular/animations": "^18.2.11",
     "@angular/cli": "^18.2.11",
     "@angular/compiler-cli": "^18.2.11",
+    "@angular-devkit/build-angular": "^18.2.11",
     "express": "^4.18.2",
     "path": "^0.12.7",
     "@angular/cdk": "^18.2.6",
@@ -93,9 +94,6 @@
     "zone.js": "^0.14.10"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.2.11",
-    "@angular/cli": "^18.2.11",
-    "@angular/compiler-cli": "^18.2.11",
     "@angular/language-service": "^18.2.11",
     "@cypress/schematic": "^2.5.2",
     "@juggle/resize-observer": "^3.4.0",
