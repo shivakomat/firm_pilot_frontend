@@ -144,7 +144,7 @@ export interface GetInvitationByTokenResponse {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:9000';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
