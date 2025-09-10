@@ -23,6 +23,7 @@ export class DefaultComponent implements OnInit {
   modalRef?: BsModalRef;
   isVisible: string;
   userEmail: string = 'user@firmpilot.com';
+  userDisplayName: string = 'user';
 
   emailSentBarChart: ChartType;
   monthlyEarningChart: ChartType;
@@ -147,12 +148,17 @@ export class DefaultComponent implements OnInit {
         const user = JSON.parse(currentUser);
         // Try multiple possible field names for email
         this.userEmail = user.email || user.emailAddress || user.username || 'user@firmpilot.com';
+        
+        // Extract username part (before @) for display
+        this.userDisplayName = this.userEmail.split('@')[0];
       } catch (error) {
         console.error('Error parsing user data:', error);
         this.userEmail = 'user@firmpilot.com';
+        this.userDisplayName = 'user';
       }
     } else {
       this.userEmail = 'user@firmpilot.com';
+      this.userDisplayName = 'user';
     }
   }
 
