@@ -83,7 +83,7 @@
               </div>
             </div>
             <div class="col-sm-4">
-              <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()">
+              <select class="form-select form-select-primary" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()">
                 @for(option of statusOptions; track option.value) {
                   <option [value]="option.value">{{option.label}}</option>
                 }
