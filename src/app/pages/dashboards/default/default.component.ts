@@ -34,8 +34,8 @@ export class DefaultComponent implements OnInit {
   
   // New dashboard metrics
   clientsInProgress: number = 0;
+  numberOfLeads: number = 0;
   upcomingMeetings: number = 0;
-  revenueYTD: number = 0;
   config:any = {
     backdrop: true,
     ignoreBackdropClick: true
@@ -177,8 +177,8 @@ export class DefaultComponent implements OnInit {
   private loadDashboardMetrics() {
     // Mock data - in real app, these would come from API calls
     this.clientsInProgress = 24;
+    this.numberOfLeads = 42;
     this.upcomingMeetings = 7;
-    this.revenueYTD = 485000;
   }
   opencenterModal(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template);

@@ -85,13 +85,13 @@
                 <div class="card-body">
                     <div class="d-flex">
                         <div class="flex-grow-1">
-                            <p class="text-truncate font-size-14 mb-2">Upcoming Meetings This Week</p>
-                            <h4 class="mb-2">{{upcomingMeetings}}</h4>
-                            <p class="text-muted mb-0"><span class="text-info fw-bold font-size-12 me-2"><i class="ri-calendar-line me-1 align-middle"></i>Next: Tomorrow 2:00 PM</span></p>
+                            <p class="text-truncate font-size-14 mb-2">Number of Leads</p>
+                            <h4 class="mb-2">{{numberOfLeads}}</h4>
+                            <p class="text-muted mb-0"><span class="text-warning fw-bold font-size-12 me-2"><i class="ri-arrow-right-up-line me-1 align-middle"></i>+12.3%</span>from previous month</p>
                         </div>
                         <div class="avatar-sm">
-                            <span class="avatar-title bg-light text-info rounded-3">
-                                <i class="ri-calendar-check-line font-size-24"></i>
+                            <span class="avatar-title bg-light text-warning rounded-3">
+                                <i class="ri-user-add-line font-size-24"></i>
                             </span>
                         </div>
                     </div>
@@ -104,13 +104,13 @@
                 <div class="card-body">
                     <div class="d-flex">
                         <div class="flex-grow-1">
-                            <p class="text-truncate font-size-14 mb-2">Revenue YTD</p>
-                            <h4 class="mb-2">${{revenueYTD | number}}</h4>
-                            <apx-chart [series]="revenueChart.series" [chart]="revenueChart.chart" [stroke]="revenueChart.stroke" [fill]="revenueChart.fill" [colors]="revenueChart.colors"></apx-chart>
+                            <p class="text-truncate font-size-14 mb-2">Upcoming Meetings This Week</p>
+                            <h4 class="mb-2">{{upcomingMeetings}}</h4>
+                            <p class="text-muted mb-0"><span class="text-info fw-bold font-size-12 me-2"><i class="ri-calendar-line me-1 align-middle"></i>Next: Tomorrow 2:00 PM</span></p>
                         </div>
                         <div class="avatar-sm">
-                            <span class="avatar-title bg-light text-success rounded-3">
-                                <i class="ri-money-dollar-circle-line font-size-24"></i>
+                            <span class="avatar-title bg-light text-info rounded-3">
+                                <i class="ri-calendar-check-line font-size-24"></i>
                             </span>
                         </div>
                     </div>
