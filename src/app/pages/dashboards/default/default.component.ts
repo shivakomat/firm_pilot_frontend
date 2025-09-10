@@ -22,6 +22,7 @@ import { LoaderComponent } from 'src/app/shared/ui/loader/loader.component';
 export class DefaultComponent implements OnInit {
   modalRef?: BsModalRef;
   isVisible: string;
+  userEmail: string = 'user@firmpilot.com';
 
   emailSentBarChart: ChartType;
   monthlyEarningChart: ChartType;
@@ -57,6 +58,9 @@ export class DefaultComponent implements OnInit {
         horizontal.setAttribute('checked', 'true');
       }
     }
+
+    // Load user email from localStorage
+    this.loadUserEmail();
 
     /**
      * Fetches the data
@@ -131,6 +135,26 @@ export class DefaultComponent implements OnInit {
       }];
   }
 
+
+  /**
+   * Load user's email from localStorage
+   */
+  loadUserEmail(): void {
+    const currentUser = localStorage.getItem('currentUser');
+    
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        // Try multiple possible field names for email
+        this.userEmail = user.email || user.emailAddress || user.username || 'user@firmpilot.com';
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        this.userEmail = 'user@firmpilot.com';
+      }
+    } else {
+      this.userEmail = 'user@firmpilot.com';
+    }
+  }
 
   /**
    * Change the layout onclick

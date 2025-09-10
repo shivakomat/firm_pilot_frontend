@@ -55,7 +55,7 @@ export class TopbarComponent implements OnInit {
   ];
 
   openMobileMenu: boolean;
-  userFirstName: string = 'User';
+  userEmail: string = 'user@example.com';
 
   @Output() settingsButtonClicked = new EventEmitter();
   @Output() mobileMenuButtonClicked = new EventEmitter();
@@ -68,8 +68,8 @@ export class TopbarComponent implements OnInit {
     this.openMobileMenu = false;
     this.element = document.documentElement;
 
-    // Load user first name from localStorage
-    this.loadUserFirstName();
+    // Load user email from localStorage
+    this.loadUserEmail();
 
     this.cookieValue = this._cookiesService.get('lang');
     const val = this.listLang.filter(x => x.lang === this.cookieValue);
@@ -82,9 +82,9 @@ export class TopbarComponent implements OnInit {
   }
 
   /**
-   * Load user's first name from localStorage
+   * Load user's email from localStorage
    */
-  loadUserFirstName(): void {
+  loadUserEmail(): void {
     const currentUser = localStorage.getItem('currentUser');
     console.log('=== TOPBAR USER DEBUG ===');
     console.log('currentUser from localStorage:', currentUser);
@@ -95,17 +95,16 @@ export class TopbarComponent implements OnInit {
         console.log('Parsed user object:', user);
         console.log('Available user properties:', Object.keys(user));
         
-        // Try multiple possible field names for first name
-        this.userFirstName = user.firstName || user.first_name || user.name || user.username || 'Shiva';
-        console.log('Selected userFirstName:', this.userFirstName);
+        // Try multiple possible field names for email
+        this.userEmail = user.email || user.emailAddress || user.username || 'user@firmpilot.com';
+        console.log('Selected userEmail:', this.userEmail);
       } catch (error) {
         console.error('Error parsing user data:', error);
-        this.userFirstName = 'Shiva';
+        this.userEmail = 'user@firmpilot.com';
       }
     } else {
       console.log('No currentUser found in localStorage - using default');
-      // For now, use the same name as dashboard until backend provides proper user data
-      this.userFirstName = 'Shiva';
+      this.userEmail = 'user@firmpilot.com';
     }
     console.log('========================');
   }
