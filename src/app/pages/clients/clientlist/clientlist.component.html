@@ -24,6 +24,22 @@
         <div class="card-body">
           <div class="d-flex">
             <div class="flex-1 overflow-hidden">
+              <p class="text-truncate font-size-14 mb-2">Leads</p>
+              <h4 class="mb-0">{{getClientStats().lead}}</h4>
+            </div>
+            <div class="text-warning">
+              <i class="bx bx-user-plus font-size-24"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 overflow-hidden">
               <p class="text-truncate font-size-14 mb-2">Active</p>
               <h4 class="mb-0">{{getClientStats().active}}</h4>
             </div>
@@ -40,27 +56,11 @@
         <div class="card-body">
           <div class="d-flex">
             <div class="flex-1 overflow-hidden">
-              <p class="text-truncate font-size-14 mb-2">Invited</p>
-              <h4 class="mb-0">{{getClientStats().invited}}</h4>
+              <p class="text-truncate font-size-14 mb-2">Complete</p>
+              <h4 class="mb-0">{{getClientStats().complete}}</h4>
             </div>
-            <div class="text-info">
-              <i class="bx bx-mail-send font-size-24"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex">
-            <div class="flex-1 overflow-hidden">
-              <p class="text-truncate font-size-14 mb-2">Pending</p>
-              <h4 class="mb-0">{{getClientStats().pending}}</h4>
-            </div>
-            <div class="text-warning">
-              <i class="bx bx-time-five font-size-24"></i>
+            <div class="text-primary">
+              <i class="bx bx-check-double font-size-24"></i>
             </div>
           </div>
         </div>

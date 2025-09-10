@@ -23,10 +23,10 @@ export class ClientlistComponent implements OnInit {
   statusFilter: string = 'all';
   statusOptions = [
     { value: 'all', label: 'All Clients' },
+    { value: 'lead', label: 'Lead' },
     { value: 'invited', label: 'Invited' },
     { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'pending', label: 'Pending' }
+    { value: 'complete', label: 'Complete' }
   ];
 
   // Form for creating new clients
@@ -104,7 +104,7 @@ export class ClientlistComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: [''], // Optional field
       entityType: ['', [Validators.required]],
-      status: ['invited', [Validators.required]] // Default to 'invited'
+      status: ['lead', [Validators.required]] // Default to 'lead'
     });
 
     // Initialize the edit form with all editable fields
@@ -174,7 +174,7 @@ export class ClientlistComponent implements OnInit {
             this.createClientForm.reset();
             this.createClientForm.patchValue({
               entityType: 'INDIVIDUAL',
-              status: 'invited'
+              status: 'lead'
             });
             this.submitted = false;
             
@@ -550,12 +550,12 @@ Best regards,
    */
   getClientStats() {
     const total = this.clients.length;
+    const lead = this.clients.filter(client => client.status === 'lead').length;
     const invited = this.clients.filter(client => client.status === 'invited').length;
     const active = this.clients.filter(client => client.status === 'active').length;
-    const inactive = this.clients.filter(client => client.status === 'inactive').length;
-    const pending = this.clients.filter(client => client.status === 'pending').length;
+    const complete = this.clients.filter(client => client.status === 'complete').length;
 
-    return { total, invited, active, inactive, pending };
+    return { total, lead, invited, active, complete };
   }
 
   /**
@@ -563,14 +563,14 @@ Best regards,
    */
   getClientStatusClass(status?: string): string {
     switch (status) {
-      case 'active':
-        return 'bg-success';
+      case 'lead':
+        return 'bg-warning';
       case 'invited':
         return 'bg-info';
-      case 'pending':
-        return 'bg-warning';
-      case 'inactive':
-        return 'bg-secondary';
+      case 'active':
+        return 'bg-success';
+      case 'complete':
+        return 'bg-primary';
       default:
         return 'bg-secondary';
     }
@@ -581,14 +581,14 @@ Best regards,
    */
   getClientStatusText(status?: string): string {
     switch (status) {
-      case 'active':
-        return 'Active';
+      case 'lead':
+        return 'Lead';
       case 'invited':
         return 'Invited';
-      case 'pending':
-        return 'Pending';
-      case 'inactive':
-        return 'Inactive';
+      case 'active':
+        return 'Active';
+      case 'complete':
+        return 'Complete';
       default:
         return 'Unknown';
     }
