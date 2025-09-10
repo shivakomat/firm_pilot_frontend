@@ -288,30 +288,31 @@ export class ClientlistComponent implements OnInit {
     return phone ? phone.replace(/\D/g, '') : '';
   }
 
-  // Format phone number for display in table
+  // Format phone number for display in forms and table
   formatPhoneForDisplay(phone: string): string {
-    if (!phone) return 'N/A';
+    if (!phone) return '';
     
-    // Remove all non-digits
     const cleaned = phone.replace(/\D/g, '');
     
-    // Format as (XXX) XXX-XXXX for 10-digit numbers
     if (cleaned.length === 10) {
       return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     
-    // Return original if not 10 digits
-    return phone || 'N/A';
+    return phone;
   }
 
   // Open edit modal and populate form with client data
   openEditModal(client: any) {
     this.selectedClient = client;
+    
+    // Format phone number for display
+    const formattedPhone = this.formatPhoneForDisplay(client.phone || '');
+    
     this.editClientForm.patchValue({
       firstName: client.firstName || '',
       lastName: client.lastName || '',
       email: client.email || '',
-      phoneNumber: client.phone || '', // Backend uses 'phone' field name
+      phoneNumber: formattedPhone, // Backend uses 'phone' field name
       entityType: client.entityType || '',
       status: client.status || ''
     });
