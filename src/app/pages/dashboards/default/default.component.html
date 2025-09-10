@@ -20,37 +20,59 @@
     </div>
     <!-- end page title -->
 
+    <!-- Row 1: Key Metrics -->
     <div class="row">
-        <div class="col-12">
-            <div class="card overflow-hidden">
-                <div class="bg-primary-subtle">
-                    <div class="row">
-                        <div class="col-2 align-self-center">
-                            <div class="text-center">
-                                <h6 class="font-size-14 text-primary text-truncate mb-0">{{userDisplayName}}</h6>
-                                <p class="text-muted mb-0 text-truncate font-size-12">Accountant</p>
-                            </div>
+        <div class="col-xl-4 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex">
+                        <div class="flex-grow-1">
+                            <p class="text-truncate font-size-14 mb-2">Clients In Progress</p>
+                            <h4 class="mb-2">{{clientsInProgress}}</h4>
+                            <p class="text-muted mb-0"><span class="text-success fw-bold font-size-12 me-2"><i class="ri-arrow-right-up-line me-1 align-middle"></i>+8.5%</span>from previous month</p>
                         </div>
-                        <div class="col-2 align-self-center">
-                            <div class="text-center">
-                                <h5 class="font-size-15 text-primary mb-1">125</h5>
-                                <p class="text-muted mb-0 font-size-12">Projects</p>
-                            </div>
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-light text-primary rounded-3">
+                                <i class="ri-user-line font-size-24"></i>
+                            </span>
                         </div>
-                        <div class="col-2 align-self-center">
-                            <div class="text-center">
-                                <h5 class="font-size-15 text-primary mb-1">$1245</h5>
-                                <p class="text-muted mb-0 font-size-12">Revenue</p>
-                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex">
+                        <div class="flex-grow-1">
+                            <p class="text-truncate font-size-14 mb-2">Upcoming Meetings This Week</p>
+                            <h4 class="mb-2">{{upcomingMeetings}}</h4>
+                            <p class="text-muted mb-0"><span class="text-info fw-bold font-size-12 me-2"><i class="ri-calendar-line me-1 align-middle"></i>Next: Tomorrow 2:00 PM</span></p>
                         </div>
-                        <div class="col-2 align-self-center">
-                            <div class="text-center">
-                                <h5 class="font-size-15 text-primary mb-1">18</h5>
-                                <p class="text-muted mb-0 font-size-12">Clients</p>
-                            </div>
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-light text-info rounded-3">
+                                <i class="ri-calendar-check-line font-size-24"></i>
+                            </span>
                         </div>
-                        <div class="col-2 align-self-end">
-                            <img src="assets/images/profile-img.png" alt="" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex">
+                        <div class="flex-grow-1">
+                            <p class="text-truncate font-size-14 mb-2">Revenue YTD</p>
+                            <h4 class="mb-2">${{revenueYTD | number}}</h4>
+                            <apx-chart [series]="revenueChart.series" [chart]="revenueChart.chart" [stroke]="revenueChart.stroke" [fill]="revenueChart.fill" [colors]="revenueChart.colors"></apx-chart>
+                        </div>
+                        <div class="avatar-sm">
+                            <span class="avatar-title bg-light text-success rounded-3">
+                                <i class="ri-money-dollar-circle-line font-size-24"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -58,20 +80,28 @@
         </div>
     </div>
 
+    <!-- Row 2: Client Creation Chart -->
     <div class="row">
-        <div class="col-xl-12">
-            <div class="row">
-                @for (stat of statData; track $index) {
-                <div class="col-md-4">
-                    <app-stat [title]="stat.title" [value]="stat.value" [icon]="stat.icon"></app-stat>
-                </div>}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap align-items-center mb-4">
+                        <h5 class="card-title me-2">Client Creation Trends</h5>
+                        <div class="ms-auto">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary">6M</button>
+                                <button type="button" class="btn btn-primary">1Y</button>
+                                <button type="button" class="btn btn-outline-primary">ALL</button>
+                            </div>
+                        </div>
+                    </div>
+                    <apx-chart [series]="clientCreationChart.series" [chart]="clientCreationChart.chart" [stroke]="clientCreationChart.stroke" [xaxis]="clientCreationChart.xaxis" [colors]="clientCreationChart.colors" [legend]="clientCreationChart.legend"></apx-chart>
+                </div>
             </div>
-            <!-- end row -->
-
         </div>
     </div>
-    <!-- end row -->
 
+    <!-- Row 3: Activity Section -->
     <div class="row">
         <div class="col-xl-12">
             <div class="card">

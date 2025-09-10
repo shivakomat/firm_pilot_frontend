@@ -27,8 +27,15 @@ export class DefaultComponent implements OnInit {
 
   emailSentBarChart: ChartType;
   monthlyEarningChart: ChartType;
+  revenueChart: ChartType;
+  clientCreationChart: ChartType;
   transactions: any;
   statData: any;
+  
+  // New dashboard metrics
+  clientsInProgress: number = 0;
+  upcomingMeetings: number = 0;
+  revenueYTD: number = 0;
   config:any = {
     backdrop: true,
     ignoreBackdropClick: true
@@ -81,12 +88,97 @@ export class DefaultComponent implements OnInit {
   private fetchData() {
     this.emailSentBarChart = emailSentBarChart;
     this.monthlyEarningChart = monthlyEarningChart;
+    this.initializeCharts();
+    this.loadDashboardMetrics();
 
     this.isActive = 'year';
     this.configService.getConfig().subscribe(data => {
       this.transactions = data.transactions;
       this.statData = data.statData;
     });
+  }
+
+  /**
+   * Initialize dashboard charts
+   */
+  private initializeCharts() {
+    // Revenue YTD Chart
+    this.revenueChart = {
+      series: [{
+        name: 'Revenue',
+        data: [12000, 15000, 18000, 22000, 25000, 28000, 32000, 35000, 38000, 42000, 45000, 48000]
+      }],
+      chart: {
+        type: 'area',
+        height: 100,
+        sparkline: {
+          enabled: true
+        }
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 2
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.7,
+          opacityTo: 0.3,
+        }
+      },
+      colors: ['#556ee6']
+    };
+
+    // Client Creation Chart
+    this.clientCreationChart = {
+      series: [
+        {
+          name: 'Lead',
+          data: [5, 8, 12, 15, 18, 22, 25, 28, 32, 35, 38, 42]
+        },
+        {
+          name: 'Invited',
+          data: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+        },
+        {
+          name: 'Active',
+          data: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
+        },
+        {
+          name: 'Complete',
+          data: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        }
+      ],
+      chart: {
+        type: 'line',
+        height: 350,
+        toolbar: {
+          show: false
+        }
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3
+      },
+      xaxis: {
+        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      },
+      colors: ['#f1b44c', '#556ee6', '#34c38f', '#50a5f1'],
+      legend: {
+        position: 'top'
+      }
+    };
+  }
+
+  /**
+   * Load dashboard metrics (mock data for now)
+   */
+  private loadDashboardMetrics() {
+    // Mock data - in real app, these would come from API calls
+    this.clientsInProgress = 24;
+    this.upcomingMeetings = 7;
+    this.revenueYTD = 485000;
   }
   opencenterModal(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template);
