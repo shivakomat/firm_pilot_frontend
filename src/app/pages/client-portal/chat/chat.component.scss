@@ -1,0 +1,83 @@
+.message-wrapper {
+  display: flex;
+  max-width: 80%;
+  align-items: flex-start;
+}
+
+.message-content {
+  flex: 1;
+}
+
+.client-content {
+  background-color: #556ee6;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+  margin-left: auto;
+}
+
+.accountant-content {
+  background-color: #f8f9fa;
+  color: #495057;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  border: 1px solid #e9ecef;
+}
+
+.client-message {
+  margin-left: auto;
+}
+
+.accountant-message {
+  margin-right: auto;
+}
+
+.message-header {
+  font-size: 0.75rem;
+}
+
+.client-content .message-header {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.message-body {
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.avatar-title {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.card-header {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+textarea.form-control {
+  resize: none;
+  border: 1px solid #ced4da;
+}
+
+textarea.form-control:focus {
+  border-color: #556ee6;
+  box-shadow: 0 0 0 0.2rem rgba(85, 110, 230, 0.25);
+}
+
+.btn-primary {
+  background-color: #556ee6;
+  border-color: #556ee6;
+}
+
+.btn-primary:hover {
+  background-color: #4c63d2;
+  border-color: #4c63d2;
+}

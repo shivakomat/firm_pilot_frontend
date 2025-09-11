@@ -1,0 +1,84 @@
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="card-title mb-0">Documents</h4>
+      <button type="button" class="btn btn-primary" (click)="uploadDocument()">
+        <i class="ri-upload-cloud-line me-1"></i>Upload Document
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <label for="categoryFilter" class="form-label">Filter by Category</label>
+        <select id="categoryFilter" class="form-select" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
+          <option value="all">All Categories</option>
+          <option value="tax-documents">Tax Documents</option>
+          <option value="financial-statements">Financial Statements</option>
+          <option value="receipts">Receipts</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="searchInput" class="form-label">Search Documents</label>
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by document name..." 
+               [(ngModel)]="searchTerm" (input)="onSearchChange()">
+      </div>
+    </div>
+
+    <!-- Documents Table -->
+    <div class="table-responsive">
+      <table class="table table-nowrap table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Document Name</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Upload Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doc of filteredDocuments">
+            <td>
+              <div class="d-flex align-items-center">
+                <i class="ri-file-text-line me-2 text-muted"></i>
+                {{doc.name}}
+              </div>
+            </td>
+            <td>{{doc.type}}</td>
+            <td>{{doc.size}}</td>
+            <td>{{doc.uploadDate | date:'shortDate'}}</td>
+            <td>
+              <span [class]="getStatusClass(doc.status)">
+                {{doc.status | titlecase}}
+              </span>
+            </td>
+            <td>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="downloadDocument(doc)">
+                <i class="ri-download-line"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredDocuments.length === 0">
+            <td colspan="6" class="text-center text-muted py-4">
+              No documents found matching your criteria.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Upload Instructions -->
+    <div class="alert alert-info mt-4">
+      <h6 class="alert-heading">Upload Guidelines:</h6>
+      <ul class="mb-0">
+        <li>Accepted formats: PDF, JPG, PNG, DOC, DOCX</li>
+        <li>Maximum file size: 10MB</li>
+        <li>Please organize documents by category for easier processing</li>
+        <li>Uploaded documents will be reviewed within 1-2 business days</li>
+      </ul>
+    </div>
+  </div>
+</div>

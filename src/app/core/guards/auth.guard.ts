@@ -10,7 +10,29 @@ export class AuthGuard implements CanActivate {
         const authToken = localStorage.getItem('authToken');
         
         if (authToken) {
-            // User is authenticated
+            // Check user role and redirect accordingly
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                try {
+                    const user = JSON.parse(currentUser);
+                    const userRole = user.role?.toLowerCase();
+                    
+                    // If client trying to access admin areas, redirect to client portal
+                    if (userRole === 'client' && !state.url.includes('client-portal')) {
+                        this.router.navigate(['/client-portal']);
+                        return false;
+                    }
+                    
+                    // If admin trying to access client portal, redirect to dashboard
+                    if (userRole !== 'client' && state.url.includes('client-portal')) {
+                        this.router.navigate(['/dashboard']);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            }
+            
             return true;
         }
 

@@ -23,6 +23,12 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
     },
     {
+        path: "client-portal",
+        loadChildren: () =>
+            import("./pages/client-portal/client-portal.module").then((m) => m.ClientPortalModule),
+        canActivate: [AuthGuard],
+    },
+    {
         path: "pages",
         loadChildren: () =>
             import("./extrapages/extrapages.module").then((m) => m.ExtrapagesModule),

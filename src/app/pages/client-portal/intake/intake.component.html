@@ -1,0 +1,130 @@
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title mb-4">Intake Forms</h4>
+    
+    <p class="text-muted mb-4">Complete the required forms below to help us serve you better. Click on any form to get started.</p>
+
+    <!-- Forms List -->
+    <div class="row">
+      <div class="col-lg-4 col-md-6 mb-4" *ngFor="let form of intakeForms">
+        <div class="card border h-100" [class.border-success]="form.status === 'completed'" 
+             [class.border-warning]="form.status === 'in-progress'">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <i [class]="getStatusIcon(form.status)" class="font-size-24 text-primary"></i>
+              <span [class]="getStatusClass(form.status)">{{form.status | titlecase | replace:'-':' '}}</span>
+            </div>
+            
+            <h5 class="card-title">{{form.title}}</h5>
+            <p class="card-text text-muted">{{form.description}}</p>
+            
+            <div class="mb-3">
+              <small class="text-muted">
+                <i class="ri-calendar-line me-1"></i>
+                Due: {{form.dueDate | date:'shortDate'}}
+              </small>
+              <br>
+              <small class="text-muted">
+                <i class="ri-folder-line me-1"></i>
+                {{form.category}}
+              </small>
+            </div>
+            
+            <button type="button" class="btn btn-primary btn-sm" (click)="openForm(form)"
+                    [disabled]="form.status === 'completed'">
+              <span *ngIf="form.status === 'completed'">
+                <i class="ri-check-line me-1"></i>Completed
+              </span>
+              <span *ngIf="form.status === 'in-progress'">
+                <i class="ri-edit-line me-1"></i>Continue
+              </span>
+              <span *ngIf="form.status === 'not-started'">
+                <i class="ri-play-line me-1"></i>Start Form
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Form Modal -->
+<div class="modal fade" [class.show]="showFormModal" [style.display]="showFormModal ? 'block' : 'none'" 
+     tabindex="-1" *ngIf="showFormModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{selectedForm?.title}}</h5>
+        <button type="button" class="btn-close" (click)="closeForm()"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="currentForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="businessName" class="form-label">Business Name *</label>
+              <input type="text" id="businessName" class="form-control" formControlName="businessName">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="businessType" class="form-label">Business Type *</label>
+              <select id="businessType" class="form-select" formControlName="businessType">
+                <option value="">Select Business Type</option>
+                <option value="LLC">LLC</option>
+                <option value="Corporation">Corporation</option>
+                <option value="Partnership">Partnership</option>
+                <option value="Sole Proprietorship">Sole Proprietorship</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="taxId" class="form-label">Tax ID (EIN) *</label>
+              <input type="text" id="taxId" class="form-control" formControlName="taxId">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="phone" class="form-label">Phone Number *</label>
+              <input type="tel" id="phone" class="form-control" formControlName="phone">
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="address" class="form-label">Business Address *</label>
+            <textarea id="address" class="form-control" rows="2" formControlName="address"></textarea>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">Email Address *</label>
+              <input type="email" id="email" class="form-control" formControlName="email">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="annualRevenue" class="form-label">Annual Revenue</label>
+              <input type="number" id="annualRevenue" class="form-control" formControlName="annualRevenue">
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="numberOfEmployees" class="form-label">Number of Employees</label>
+              <input type="number" id="numberOfEmployees" class="form-control" formControlName="numberOfEmployees">
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="businessDescription" class="form-label">Business Description</label>
+            <textarea id="businessDescription" class="form-control" rows="3" formControlName="businessDescription"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+        <button type="button" class="btn btn-outline-primary" (click)="saveForm()" 
+                [disabled]="!currentForm.valid">Save Draft</button>
+        <button type="button" class="btn btn-primary" (click)="submitForm()" 
+                [disabled]="!currentForm.valid">Submit Form</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [class.show]="showFormModal" *ngIf="showFormModal"></div>

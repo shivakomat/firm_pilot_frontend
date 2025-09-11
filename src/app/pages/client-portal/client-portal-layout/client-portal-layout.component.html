@@ -1,0 +1,58 @@
+<div class="container-fluid">
+  <!-- Client Portal Header -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card overflow-hidden">
+        <div class="bg-primary-subtle">
+          <div class="row">
+            <div class="col-3 align-self-center">
+              <div class="text-center">
+                <h6 class="font-size-14 text-primary text-truncate mb-0">{{userDisplayName}}</h6>
+                <p class="text-muted mb-0 text-truncate font-size-12">Client Portal</p>
+              </div>
+            </div>
+            <div class="col-6 align-self-center">
+              <div class="text-center">
+                <h4 class="text-primary mb-1">Welcome to Your Client Portal</h4>
+                <p class="text-muted mb-0">Access your documents, complete intake forms, and chat with your accountant</p>
+              </div>
+            </div>
+            <div class="col-3 align-self-end">
+              <img src="assets/images/profile-img.png" alt="" class="img-fluid">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Sidebar Navigation -->
+    <div class="col-xl-3 col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-4">Navigation</h5>
+          <div class="list-group list-group-flush">
+            <a routerLink="documents" routerLinkActive="active" class="list-group-item list-group-item-action border-0">
+              <i class="ri-file-text-line me-2"></i>
+              Documents
+            </a>
+            <a routerLink="intake" routerLinkActive="active" class="list-group-item list-group-item-action border-0">
+              <i class="ri-file-list-3-line me-2"></i>
+              Intake Forms
+            </a>
+            <a routerLink="chat" routerLinkActive="active" class="list-group-item list-group-item-action border-0">
+              <i class="ri-chat-3-line me-2"></i>
+              Chat
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="col-xl-9 col-lg-8">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

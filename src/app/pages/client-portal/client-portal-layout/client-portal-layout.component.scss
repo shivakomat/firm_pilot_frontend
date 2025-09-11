@@ -1,0 +1,17 @@
+.list-group-item.active {
+  background-color: #556ee6;
+  border-color: #556ee6;
+  color: white;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.list-group-item.active:hover {
+  background-color: #4c63d2;
+}
+
+.card-title {
+  font-weight: 600;
+}
