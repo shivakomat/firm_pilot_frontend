@@ -24,6 +24,7 @@ export const routes: Routes = [
     },
     {
         path: "client-portal",
+        loadComponent: () => import("./pages/client-portal/client-portal-app-layout/client-portal-app-layout.component").then(c => c.ClientPortalAppLayoutComponent),
         loadChildren: () =>
             import("./pages/client-portal/client-portal.module").then((m) => m.ClientPortalModule),
         canActivate: [AuthGuard],

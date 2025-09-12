@@ -45,7 +45,7 @@ import { RouterModule } from '@angular/router';
                   <div>
                     <h5 class="font-size-16 mb-1">Documents</h5>
                     <p class="text-muted mb-2">View and upload documents</p>
-                    <a routerLink="../documents" class="btn btn-primary btn-sm">
+                    <a routerLink="/client-portal/documents" class="btn btn-primary btn-sm">
                       <i class="bx bx-file me-1"></i> View Documents
                     </a>
                   </div>
@@ -70,7 +70,7 @@ import { RouterModule } from '@angular/router';
                   <div>
                     <h5 class="font-size-16 mb-1">Intake Forms</h5>
                     <p class="text-muted mb-2">Complete required forms</p>
-                    <a routerLink="../intake" class="btn btn-success btn-sm">
+                    <a routerLink="/client-portal/intake" class="btn btn-success btn-sm">
                       <i class="bx bx-edit me-1"></i> Fill Forms
                     </a>
                   </div>
@@ -95,7 +95,7 @@ import { RouterModule } from '@angular/router';
                   <div>
                     <h5 class="font-size-16 mb-1">Chat</h5>
                     <p class="text-muted mb-2">Message your accountant</p>
-                    <a routerLink="../chat" class="btn btn-info btn-sm">
+                    <a routerLink="/client-portal/chat" class="btn btn-info btn-sm">
                       <i class="bx bx-chat me-1"></i> Start Chat
                     </a>
                   </div>

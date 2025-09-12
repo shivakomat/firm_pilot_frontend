@@ -31,12 +31,8 @@ export const CLIENT_PORTAL_MENU: MenuItem[] = [
     },
     {
         id: 6,
-        label: 'MENUITEMS.PORTAL.SWITCH_TO_ACCOUNTANT.TEXT',
-        icon: 'bx-transfer-alt',
-        link: '/dashboards/default',
-        badge: {
-            variant: 'info',
-            text: 'MENUITEMS.PORTAL.SWITCH_TO_ACCOUNTANT.BADGE',
-        }
+        label: 'MENUITEMS.PORTAL.LOGOUT.TEXT',
+        icon: 'bx-log-out',
+        link: '/auth/login'
     }
 ];

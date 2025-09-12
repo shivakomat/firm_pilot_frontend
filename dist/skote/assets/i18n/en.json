@@ -367,6 +367,9 @@
       "SWITCH_TO_ACCOUNTANT": {
         "TEXT": "Switch to Accountant Portal",
         "BADGE": "Switch"
+      },
+      "LOGOUT": {
+        "TEXT": "Logout"
       }
     }
   }

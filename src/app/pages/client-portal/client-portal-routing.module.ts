@@ -5,20 +5,14 @@ import { IntakeComponent } from './intake/intake.component';
 import { ChatComponent } from './chat/chat.component';
 
 const routes: Routes = [
-  {
-    path: '',
-    loadComponent: () => import('./client-portal-layout/client-portal-layout.component').then(c => c.ClientPortalLayoutComponent),
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { 
-        path: 'dashboard', 
-        loadComponent: () => import('./dashboard/dashboard.component').then(c => c.ClientDashboardComponent)
-      },
-      { path: 'documents', component: DocumentsComponent },
-      { path: 'intake', component: IntakeComponent },
-      { path: 'chat', component: ChatComponent }
-    ]
-  }
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { 
+    path: 'dashboard', 
+    loadComponent: () => import('./dashboard/dashboard.component').then(c => c.ClientDashboardComponent)
+  },
+  { path: 'documents', component: DocumentsComponent },
+  { path: 'intake', component: IntakeComponent },
+  { path: 'chat', component: ChatComponent }
 ];
 
 @NgModule({
