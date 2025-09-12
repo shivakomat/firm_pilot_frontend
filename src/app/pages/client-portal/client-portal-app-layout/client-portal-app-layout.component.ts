@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { CLIENT_PORTAL_MENU } from '../../../layouts/sidebar/client-portal-menu';
 import { MenuItem } from '../../../layouts/sidebar/menu.model';
@@ -242,9 +242,13 @@ export class ClientPortalAppLayoutComponent implements OnInit {
   userDisplayName: string = 'Client';
   isMenuOpen: boolean = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private translate: TranslateService) {}
 
   ngOnInit(): void {
+    // Initialize translation service
+    this.translate.setDefaultLang('en');
+    this.translate.use('en');
+    
     this.menuItems = CLIENT_PORTAL_MENU;
     this.loadUserInfo();
   }
