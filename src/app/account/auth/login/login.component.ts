@@ -94,10 +94,20 @@ export class LoginComponent implements OnInit {
         // Store user information if provided
         if (response.user) {
           localStorage.setItem('currentUser', JSON.stringify(response.user));
+          
+          // Check user role and redirect accordingly
+          const userRole = response.user.role?.toLowerCase();
+          if (userRole === 'client') {
+            // Redirect CLIENT users to client portal
+            this.router.navigate(['/client-portal']);
+          } else {
+            // Redirect other users to return url or dashboard
+            this.router.navigate([this.returnUrl === '/' ? '/dashboards/default' : this.returnUrl]);
+          }
+        } else {
+          // Fallback if no user data
+          this.router.navigate([this.returnUrl === '/' ? '/dashboards/default' : this.returnUrl]);
         }
-        
-        // Redirect to return url or dashboard
-        this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
         this.loading = false;
