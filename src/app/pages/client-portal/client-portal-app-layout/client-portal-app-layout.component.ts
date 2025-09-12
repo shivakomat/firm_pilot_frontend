@@ -5,6 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { CLIENT_PORTAL_MENU } from '../../../layouts/sidebar/client-portal-menu';
 import { MenuItem } from '../../../layouts/sidebar/menu.model';
+import { ClientPortalTopbarComponent } from '../client-portal-topbar/client-portal-topbar.component';
 
 @Component({
   selector: 'app-client-portal-app-layout',
@@ -21,60 +22,7 @@ import { MenuItem } from '../../../layouts/sidebar/menu.model';
     <body data-sidebar="dark" data-layout-mode="light">
         <div id="layout-wrapper">
             <!-- Header -->
-            <header id="page-topbar">
-                <div class="navbar-header">
-                    <div class="d-flex">
-                        <!-- Logo -->
-                        <div class="navbar-brand-box">
-                            <a href="#" class="logo logo-dark">
-                                <span class="logo-sm">
-                                    <img src="assets/images/logo.svg" alt="" height="22">
-                                </span>
-                                <span class="logo-lg">
-                                    <img src="assets/images/logo-dark.png" alt="" height="17">
-                                </span>
-                            </a>
-                            <a href="#" class="logo logo-light">
-                                <span class="logo-sm">
-                                    <img src="assets/images/logo-light.svg" alt="" height="22">
-                                </span>
-                                <span class="logo-lg">
-                                    <img src="assets/images/logo-light.png" alt="" height="19">
-                                </span>
-                            </a>
-                        </div>
-
-                        <!-- Menu Toggle Button -->
-                        <button type="button" class="btn btn-sm px-3 font-size-16 header-item waves-effect" 
-                                id="vertical-menu-btn" (click)="toggleMenu()">
-                            <i class="fa fa-fw fa-bars"></i>
-                        </button>
-                    </div>
-
-                    <div class="d-flex">
-                        <!-- User Profile Dropdown -->
-                        <div class="dropdown d-inline-block">
-                            <button type="button" class="btn header-item waves-effect" 
-                                    id="page-header-user-dropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    aria-haspopup="true" 
-                                    aria-expanded="false">
-                                <img class="rounded-circle header-profile-user" 
-                                     src="assets/images/users/avatar-1.jpg" 
-                                     alt="Header Avatar">
-                                <span class="d-none d-xl-inline-block ms-1" key="t-henry">{{userDisplayName}}</span>
-                                <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="#" (click)="logout()">
-                                    <i class="bx bx-power-off font-size-16 align-middle me-1 text-danger"></i> 
-                                    <span key="t-logout">{{ 'MENUITEMS.PORTAL.LOGOUT.TEXT' | translate }}</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <app-client-portal-topbar></app-client-portal-topbar>
 
             <!-- Sidebar -->
             <div class="vertical-menu">
@@ -234,7 +182,7 @@ import { MenuItem } from '../../../layouts/sidebar/menu.model';
     }
   `],
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslateModule]
+  imports: [CommonModule, RouterModule, TranslateModule, ClientPortalTopbarComponent]
 })
 export class ClientPortalAppLayoutComponent implements OnInit {
   menuItems: MenuItem[] = [];
