@@ -1,9 +1,14 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { ClientPortalSidebarComponent } from './client-portal-sidebar.component';
 
 @Component({
   selector: 'app-client-portal-layout',
   templateUrl: './client-portal-layout.component.html',
-  styleUrls: ['./client-portal-layout.component.scss']
+  styleUrls: ['./client-portal-layout.component.scss'],
+  standalone: true,
+  imports: [CommonModule, RouterModule, ClientPortalSidebarComponent]
 })
 export class ClientPortalLayoutComponent implements OnInit {
   userEmail: string = 'client@example.com';

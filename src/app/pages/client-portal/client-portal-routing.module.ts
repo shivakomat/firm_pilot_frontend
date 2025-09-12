@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ClientPortalLayoutComponent } from './client-portal-layout/client-portal-layout.component';
 import { DocumentsComponent } from './documents/documents.component';
 import { IntakeComponent } from './intake/intake.component';
 import { ChatComponent } from './chat/chat.component';
@@ -8,9 +7,13 @@ import { ChatComponent } from './chat/chat.component';
 const routes: Routes = [
   {
     path: '',
-    component: ClientPortalLayoutComponent,
+    loadComponent: () => import('./client-portal-layout/client-portal-layout.component').then(c => c.ClientPortalLayoutComponent),
     children: [
-      { path: '', redirectTo: 'documents', pathMatch: 'full' },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { 
+        path: 'dashboard', 
+        loadComponent: () => import('./dashboard/dashboard.component').then(c => c.ClientDashboardComponent)
+      },
       { path: 'documents', component: DocumentsComponent },
       { path: 'intake', component: IntakeComponent },
       { path: 'chat', component: ChatComponent }

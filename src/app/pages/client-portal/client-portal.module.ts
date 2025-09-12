@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { ClientPortalRoutingModule } from './client-portal-routing.module';
-import { ClientPortalLayoutComponent } from './client-portal-layout/client-portal-layout.component';
 import { DocumentsComponent } from './documents/documents.component';
 import { IntakeComponent } from './intake/intake.component';
 import { ChatComponent } from './chat/chat.component';
@@ -19,7 +18,6 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
 
 @NgModule({
   declarations: [
-    ClientPortalLayoutComponent,
     DocumentsComponent,
     IntakeComponent,
     ChatComponent

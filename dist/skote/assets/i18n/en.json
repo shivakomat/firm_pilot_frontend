@@ -347,6 +347,27 @@
           }
         }
       }
+    },
+    "PORTAL": {
+      "NAVIGATION": {
+        "TEXT": "Navigation"
+      },
+      "DASHBOARD": {
+        "TEXT": "Dashboard"
+      },
+      "DOCUMENTS": {
+        "TEXT": "Documents"
+      },
+      "INTAKE": {
+        "TEXT": "Intake Forms"
+      },
+      "CHAT": {
+        "TEXT": "Chat"
+      },
+      "SWITCH_TO_ACCOUNTANT": {
+        "TEXT": "Switch to Accountant Portal",
+        "BADGE": "Switch"
+      }
     }
   }
 }
