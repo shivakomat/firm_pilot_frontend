@@ -1,7 +1,9 @@
 import { Component, OnInit, Inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule, DOCUMENT } from '@angular/common';
+import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { CookieService } from 'ngx-cookie-service';
 import { LanguageService } from '../../../core/services/language.service';
 import { ApiService } from '../../../core/services/api.service';
@@ -12,28 +14,27 @@ import { ApiService } from '../../../core/services/api.service';
     <header id="page-topbar">
       <div class="navbar-header">
         <div class="d-flex">
-          <!-- Logo -->
-          <div class="navbar-brand-box">
-            <a href="#" class="logo logo-dark">
+          <!-- LOGO -->
+          <div class="navbar-brand-box" style="padding-top: 25px;">
+            <a routerLink="/client-portal" class="logo logo-dark">
               <span class="logo-sm">
-                <img src="assets/images/logo.svg" alt="" height="22">
+                <h6 class="mb-0 text-dark font-weight-bold">FP</h6>
               </span>
               <span class="logo-lg">
-                <img src="assets/images/logo-dark.png" alt="" height="17">
+                <h5 class="mb-0 text-dark font-weight-bold">Firm Pilot</h5>
               </span>
             </a>
-            <a href="#" class="logo logo-light">
+            <a routerLink="/client-portal" class="logo logo-light">
               <span class="logo-sm">
-                <img src="assets/images/logo-light.svg" alt="" height="22">
+                <h6 class="mb-0 text-light font-weight-bold">FP</h6>
               </span>
               <span class="logo-lg">
-                <img src="assets/images/logo-light.png" alt="" height="19">
+                <h5 class="mb-0 text-light font-weight-bold">Firm Pilot</h5>
               </span>
             </a>
           </div>
 
-          <!-- Menu Toggle Button -->
-          <button type="button" class="btn btn-sm px-3 font-size-16 header-item waves-effect" 
+          <button type="button" class="btn btn-sm px-3 font-size-16 header-item" 
                   id="vertical-menu-btn" (click)="toggleMenu()">
             <i class="fa fa-fw fa-bars"></i>
           </button>
@@ -41,17 +42,15 @@ import { ApiService } from '../../../core/services/api.service';
 
         <div class="d-flex">
           <!-- Language Dropdown -->
-          <div class="dropdown d-inline-block">
-            <button type="button" class="btn header-item waves-effect" 
-                    data-bs-toggle="dropdown" 
-                    aria-haspopup="true" 
-                    aria-expanded="false">
+          <div class="dropdown d-inline-block" dropdown>
+            <button type="button" class="btn header-item" id="page-header-lang-dropdown" dropdownToggle>
               <img [src]="flagvalue" alt="Header Language" height="16">
             </button>
-            <div class="dropdown-menu dropdown-menu-end">
+            <div class="dropdown-menu dropdown-menu-end" *dropdownMenu>
               <a *ngFor="let lang of listLang" 
                  class="dropdown-item notify-item" 
-                 (click)="setLanguage(lang.text, lang.lang, lang.flag)">
+                 (click)="setLanguage(lang.text, lang.lang, lang.flag)"
+                 [ngClass]="{'active': selectedLang === lang.lang}">
                 <img [src]="lang.flag" alt="user-image" class="me-1" height="12">
                 <span class="align-middle">{{ lang.text }}</span>
               </a>
@@ -59,30 +58,23 @@ import { ApiService } from '../../../core/services/api.service';
           </div>
 
           <!-- Fullscreen -->
-          <div class="dropdown d-inline-block">
+          <div class="dropdown d-none d-lg-inline-block ms-1">
             <button type="button" class="btn header-item noti-icon waves-effect" 
-                    (click)="fullscreen()">
+                    data-bs-toggle="fullscreen" (click)="fullscreen()">
               <i class="bx bx-fullscreen"></i>
             </button>
           </div>
 
           <!-- User Profile Dropdown -->
-          <div class="dropdown d-inline-block">
-            <button type="button" class="btn header-item waves-effect" 
-                    id="page-header-user-dropdown" 
-                    data-bs-toggle="dropdown" 
-                    aria-haspopup="true" 
-                    aria-expanded="false">
-              <img class="rounded-circle header-profile-user" 
-                   src="assets/images/users/avatar-1.jpg" 
-                   alt="Header Avatar">
+          <div class="dropdown d-inline-block" dropdown>
+            <button type="button" class="btn header-item" dropdownToggle id="page-header-user-dropdown">
               <span class="d-none d-xl-inline-block ms-1">{{userDisplayName}}</span>
               <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-end">
-              <a class="dropdown-item" href="#" (click)="logout()">
-                <i class="bx bx-power-off font-size-16 align-middle me-1 text-danger"></i> 
-                <span>{{ 'MENUITEMS.PORTAL.LOGOUT.TEXT' | translate }}</span>
+            <div class="dropdown-menu dropdown-menu-end" *dropdownMenu>
+              <a class="dropdown-item text-danger" href="javascript: void(0);" (click)="logout()">
+                <i class="bx bx-power-off font-size-16 align-middle me-1 text-danger"></i>
+                {{ 'HEADER.LOGIN.LOGOUT' | translate}}
               </a>
             </div>
           </div>
@@ -141,7 +133,7 @@ import { ApiService } from '../../../core/services/api.service';
     }
   `],
   standalone: true,
-  imports: [CommonModule, TranslateModule]
+  imports: [CommonModule, RouterModule, TranslateModule, BsDropdownModule],
 })
 export class ClientPortalTopbarComponent implements OnInit {
   element: any;
