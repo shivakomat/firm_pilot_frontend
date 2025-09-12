@@ -345,6 +345,30 @@
           }
         }
       }
+    },
+    "PORTAL": {
+      "NAVIGATION": {
+        "TEXT": "Navigation"
+      },
+      "DASHBOARD": {
+        "TEXT": "Dashboard"
+      },
+      "DOCUMENTS": {
+        "TEXT": "Dokumente"
+      },
+      "INTAKE": {
+        "TEXT": "Aufnahmeformulare"
+      },
+      "CHAT": {
+        "TEXT": "Chat"
+      },
+      "SWITCH_TO_ACCOUNTANT": {
+        "TEXT": "Zum Buchhalter-Portal wechseln",
+        "BADGE": "Wechseln"
+      },
+      "LOGOUT": {
+        "TEXT": "Abmelden"
+      }
     }
   }
 }
