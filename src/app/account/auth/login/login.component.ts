@@ -97,11 +97,17 @@ export class LoginComponent implements OnInit {
           
           // Check user role and redirect accordingly
           const userRole = response.user.role?.toLowerCase();
-          if (userRole === 'client') {
+          const userType = response.user.userType?.toLowerCase();
+          const roleType = response.user.roleType?.toLowerCase();
+          console.log('Login successful. User role:', userRole, 'userType:', userType, 'roleType:', roleType, 'Full user:', response.user);
+          
+          if (userRole === 'client' || userType === 'client' || roleType === 'client') {
             // Redirect CLIENT users to client portal
+            console.log('Redirecting CLIENT user to client portal');
             this.router.navigate(['/client-portal']);
           } else {
             // Redirect other users to return url or dashboard
+            console.log('Redirecting non-CLIENT user to dashboard');
             this.router.navigate([this.returnUrl === '/' ? '/dashboards/default' : this.returnUrl]);
           }
         } else {
