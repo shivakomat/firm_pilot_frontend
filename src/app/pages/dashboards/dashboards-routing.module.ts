@@ -6,11 +6,14 @@ import { SaasComponent } from './saas/saas.component';
 import { CryptoComponent } from './crypto/crypto.component';
 import { BlogComponent } from './blog/blog.component';
 import { JobsComponent } from "./jobs/jobs.component";
+import { RoleGuard } from '../../core/guards/role.guard';
 
 const routes: Routes = [
     {
         path: 'default',
-        component: DefaultComponent
+        component: DefaultComponent,
+        canActivate: [RoleGuard],
+        data: { role: 'ACCOUNTANT' }
     },
     {
         path: 'saas',

@@ -23,7 +23,7 @@ export class RoleGuard implements CanActivate {
                 if (userRole === 'client') {
                     this.router.navigate(['/client-portal']);
                 } else {
-                    this.router.navigate(['/dashboard']);
+                    this.router.navigate(['/dashboards/default']);
                 }
                 return false;
             }
