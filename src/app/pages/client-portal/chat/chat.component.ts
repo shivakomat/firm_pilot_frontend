@@ -42,10 +42,19 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.isLoading = true;
     const clientId = this.currentUser?.id || 1;
     
+    // First try to load from localStorage
+    const savedMessages = this.loadMessagesFromStorage(clientId);
+    if (savedMessages.length > 0) {
+      this.messages = savedMessages;
+      this.isLoading = false;
+      return;
+    }
+    
     const sub = this.chatService.getThread(clientId).subscribe({
       next: (response) => {
         this.currentThread = response.thread;
         this.messages = response.messages;
+        this.saveMessagesToStorage(clientId, this.messages);
         this.isLoading = false;
       },
       error: (error) => {
@@ -53,6 +62,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.isLoading = false;
         // Fallback to mock data for demo
         this.loadMockMessages();
+        this.saveMessagesToStorage(clientId, this.messages);
       }
     });
     this.subscriptions.push(sub);
@@ -87,6 +97,33 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     ];
   }
 
+  private loadMessagesFromStorage(clientId: number): ChatMessage[] {
+    try {
+      const storageKey = `chat_messages_client_${clientId}`;
+      const savedData = localStorage.getItem(storageKey);
+      if (savedData) {
+        const messages = JSON.parse(savedData);
+        // Convert timestamp strings back to Date objects
+        return messages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading messages from storage:', error);
+    }
+    return [];
+  }
+
+  private saveMessagesToStorage(clientId: number, messages: ChatMessage[]): void {
+    try {
+      const storageKey = `chat_messages_client_${clientId}`;
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    } catch (error) {
+      console.error('Error saving messages to storage:', error);
+    }
+  }
+
   sendMessage(): void {
     if (this.newMessage.trim() && this.currentThread) {
       const messageRequest: SendMessageRequest = {
@@ -97,20 +134,44 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       const clientId = this.currentUser?.id || 1;
       
       const sub = this.chatService.sendMessage(clientId, messageRequest).subscribe({
-        next: (newMessage) => {
+        next: (response) => {
+          // Add the sent message to the UI
+          const newMessage: ChatMessage = {
+            content: this.newMessage,
+            senderId: this.currentUser?.id || 2,
+            senderName: 'You',
+            senderType: 'CLIENT',
+            timestamp: new Date(),
+            threadId: this.currentThread?.id || 1
+          };
           this.messages.push(newMessage);
+          this.saveMessagesToStorage(clientId, this.messages);
           this.newMessage = '';
-          this.scrollToBottom();
           
-          // Check if message mentions AI agent
-          if (messageRequest.content.toLowerCase().includes('@ai')) {
-            this.triggerAIResponse(messageRequest.content);
+          // Handle AI response if message contains @ai
+          if (newMessage.content.toLowerCase().includes('@ai')) {
+            this.handleAIResponse(newMessage.content);
           }
         },
         error: (error) => {
           console.error('Error sending message:', error);
-          // Fallback to local message for demo
-          this.addLocalMessage();
+          // Still add message to UI for demo purposes
+          const newMessage: ChatMessage = {
+            content: this.newMessage,
+            senderId: this.currentUser?.id || 2,
+            senderName: 'You',
+            senderType: 'CLIENT',
+            timestamp: new Date(),
+            threadId: this.currentThread?.id || 1
+          };
+          this.messages.push(newMessage);
+          this.saveMessagesToStorage(clientId, this.messages);
+          this.newMessage = '';
+          
+          // Handle AI response if message contains @ai
+          if (newMessage.content.toLowerCase().includes('@ai')) {
+            this.handleAIResponse(newMessage.content);
+          }
         }
       });
       this.subscriptions.push(sub);
@@ -156,6 +217,35 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     };
     
     this.messages.push(response);
+    const clientId = this.currentUser?.id || 1;
+    this.saveMessagesToStorage(clientId, this.messages);
+  }
+
+  private handleAIResponse(userMessage: string): void {
+    setTimeout(() => {
+      const aiResponses = [
+        "I understand you're asking about tax matters. Based on current tax regulations, here's what I can tell you: For quarterly payments, you should calculate 25% of your expected annual tax liability and submit by the quarterly deadlines.",
+        "That's a great tax question! Here's some guidance: Business expenses must be ordinary and necessary for your trade or business. Keep detailed records and receipts for all deductions.",
+        "I can help with that tax inquiry. Here's what you should know: The standard deduction for 2024 is $14,600 for single filers and $29,200 for married filing jointly.",
+        "Thank you for your tax question. Here's some helpful information: Self-employment tax is 15.3% of your net self-employment earnings, covering Social Security and Medicare taxes."
+      ];
+      
+      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+      
+      const aiMessage: ChatMessage = {
+        content: randomResponse,
+        senderId: 0,
+        senderName: 'Tax AI Agent',
+        senderType: 'AI_AGENT',
+        timestamp: new Date(),
+        threadId: this.currentThread?.id || 1
+      };
+      
+      this.messages.push(aiMessage);
+      const clientId = this.currentUser?.id || 1;
+      this.saveMessagesToStorage(clientId, this.messages);
+      this.scrollToBottom();
+    }, 1500);
   }
 
   private triggerAIResponse(userMessage: string): void {
@@ -171,10 +261,14 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         };
         
         this.messages.push(aiMessage);
+        const clientId = this.currentUser?.id || 1;
+        this.saveMessagesToStorage(clientId, this.messages);
         this.scrollToBottom();
       },
       error: (error) => {
         console.error('Error getting AI response:', error);
+        // Fallback to local AI response
+        this.handleAIResponse(userMessage);
       }
     });
     this.subscriptions.push(sub);
