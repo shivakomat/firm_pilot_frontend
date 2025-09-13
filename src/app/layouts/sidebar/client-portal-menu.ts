@@ -33,6 +33,7 @@ export const CLIENT_PORTAL_MENU: MenuItem[] = [
         id: 6,
         label: 'MENUITEMS.PORTAL.LOGOUT.TEXT',
         icon: 'bx-log-out',
-        link: '/auth/login'
+        link: 'logout',
+        isLogout: true
     }
 ];

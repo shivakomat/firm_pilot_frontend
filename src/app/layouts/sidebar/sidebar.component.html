@@ -25,6 +25,18 @@
             }
           </a>}
           @else{
+          @if(item.isLogout){
+          <a href="javascript:void(0);" class="side-nav-link-ref" (click)="handleLogout()">
+            @if(item.icon){
+            <i class="bx {{ item.icon }}"></i>
+            }
+            <span> {{ item.label | translate }}</span>
+            @if(item.badge){
+            <span class="badge rounded-pill bg-{{item.badge.variant}} float-end">{{item.badge.text |
+              translate}}</span>
+            }
+          </a>
+          }@else{
           <a routerLink="{{item.link}}" class="side-nav-link-ref" routerLinkActive="active">
             @if(item.icon){
             <i class="bx {{ item.icon }}"></i>
@@ -35,6 +47,7 @@
               translate}}</span>
             }
           </a>
+          }
           }
           @if(hasItems(item)){
           <ul class="sub-menu" aria-expanded="false">

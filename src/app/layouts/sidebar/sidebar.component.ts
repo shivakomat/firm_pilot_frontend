@@ -11,6 +11,7 @@ import { MenuItem } from './menu.model';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SimplebarAngularModule } from 'simplebar-angular';
 import { CommonModule } from '@angular/common';
+import { ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -33,7 +34,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
 
   @ViewChild('sideMenu') sideMenu: ElementRef;
 
-  constructor(private eventService: EventService, private router: Router, public translate: TranslateService, private http: HttpClient) {
+  constructor(private eventService: EventService, private router: Router, public translate: TranslateService, private http: HttpClient, private apiService: ApiService) {
     router.events.forEach((event) => {
       if (event instanceof NavigationEnd) {
         this._activateMenuDropdown();
@@ -159,5 +160,29 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
    */
   hasItems(item: MenuItem) {
     return item.subItems !== undefined ? item.subItems.length > 0 : false;
+  }
+
+  /**
+   * Handle logout from sidebar
+   */
+  handleLogout(): void {
+    // Call backend logout API
+    this.apiService.logout().subscribe({
+      next: (response) => {
+        // Clear local storage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        
+        // Redirect to login page
+        this.router.navigate(['/auth/login']);
+      },
+      error: (error) => {
+        // Even if logout API fails, clear local storage and redirect
+        console.error('Logout API error:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        this.router.navigate(['/auth/login']);
+      }
+    });
   }
 }
