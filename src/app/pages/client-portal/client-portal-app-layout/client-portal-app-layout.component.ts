@@ -57,6 +57,10 @@ export class ClientPortalAppLayoutComponent implements OnInit {
     // Initialize translation service
     this.translate.setDefaultLang('en');
     this.translate.use('en');
+    
+    // Apply dark sidebar theme to match accountant portal
+    document.body.setAttribute('data-sidebar', 'dark');
+    document.body.setAttribute('data-layout', 'vertical');
   }
 
   onSettingsButtonClicked(): void {
