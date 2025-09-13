@@ -6,6 +6,7 @@ import { Router, NavigationEnd, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
 import { MENU } from './menu';
+import { CLIENT_PORTAL_MENU } from './client-portal-menu';
 import { MenuItem } from './menu.model';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SimplebarAngularModule } from 'simplebar-angular';
@@ -143,7 +144,13 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
    * Initialize
    */
   initialize(): void {
-    this.menuItems = MENU;
+    // Check if user is in client portal
+    const currentUrl = this.router.url;
+    if (currentUrl.includes('/client-portal')) {
+      this.menuItems = CLIENT_PORTAL_MENU;
+    } else {
+      this.menuItems = MENU;
+    }
   }
 
   /**
