@@ -10,95 +10,79 @@ import { ClientPortalTopbarComponent } from '../client-portal-topbar/client-port
 @Component({
   selector: 'app-client-portal-app-layout',
   template: `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>Client Portal - Firm Pilot</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta content="Client Portal for Firm Pilot" name="description" />
-        <meta content="Firm Pilot" name="author" />
-    </head>
-    <body data-sidebar="dark" data-layout-mode="light">
-        <div id="layout-wrapper">
-            <!-- Header -->
-            <app-client-portal-topbar></app-client-portal-topbar>
+    <div id="layout-wrapper">
+        <!-- Header -->
+        <app-client-portal-topbar></app-client-portal-topbar>
 
-            <!-- Sidebar -->
-            <div class="vertical-menu">
-                <div data-simplebar class="h-100">
-                    <div id="sidebar-menu">
-                        <ul class="metismenu list-unstyled" id="side-menu">
-                            <li class="menu-title" key="t-menu">{{ 'MENUITEMS.PORTAL.NAVIGATION.TEXT' | translate }}</li>
+        <!-- Sidebar -->
+        <div class="vertical-menu">
+            <div data-simplebar class="h-100">
+                <div id="sidebar-menu">
+                    <ul class="metismenu list-unstyled" id="side-menu">
+                        <li class="menu-title" key="t-menu">{{ 'MENUITEMS.PORTAL.NAVIGATION.TEXT' | translate }}</li>
+                        
+                        <ng-container *ngFor="let item of menuItems">
+                            <!-- Layout separator -->
+                            <li *ngIf="item.isLayout" class="menu-title"></li>
                             
-                            <ng-container *ngFor="let item of menuItems">
-                                <!-- Layout separator -->
-                                <li *ngIf="item.isLayout" class="menu-title"></li>
-                                
-                                <!-- Regular menu items -->
-                                <li *ngIf="!item.isLayout && item.link">
-                                    <a [routerLink]="item.link" 
-                                       routerLinkActive="mm-active"
-                                       class="waves-effect">
-                                        <i [class]="'bx ' + item.icon"></i>
-                                        <span key="t-dashboard">{{ item.label | translate }}</span>
-                                    </a>
-                                </li>
-                            </ng-container>
-                        </ul>
-                    </div>
+                            <!-- Regular menu items -->
+                            <li *ngIf="!item.isLayout && item.link">
+                                <a [routerLink]="item.link" 
+                                   routerLinkActive="mm-active"
+                                   class="waves-effect">
+                                    <i [class]="'bx ' + item.icon"></i>
+                                    <span key="t-dashboard">{{ item.label | translate }}</span>
+                                </a>
+                            </li>
+                        </ng-container>
+                    </ul>
                 </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="main-content">
-                <div class="page-content">
-                    <div class="container-fluid">
-                        <!-- Welcome Header -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                                    <h4 class="mb-sm-0 font-size-18">Client Portal</h4>
-                                    <div class="page-title-right">
-                                        <ol class="breadcrumb m-0">
-                                            <li class="breadcrumb-item active">Welcome, {{userDisplayName}}</li>
-                                        </ol>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Router Outlet for Client Portal Content -->
-                        <router-outlet></router-outlet>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <footer class="footer">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <script>document.write(new Date().getFullYear())</script> © Firm Pilot.
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="text-sm-end d-none d-sm-block">
-                                    Client Portal
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </footer>
             </div>
         </div>
-    </body>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    <!-- Welcome Header -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                                <h4 class="mb-sm-0 font-size-18">Client Portal</h4>
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item active">Welcome, {{userDisplayName}}</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Router Outlet for Client Portal Content -->
+                    <router-outlet></router-outlet>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <script>document.write(new Date().getFullYear())</script> © Firm Pilot.
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="text-sm-end d-none d-sm-block">
+                                Client Portal
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
   `,
   styles: [`
-    /* Client Portal Specific Styles */
-    .navbar-brand-box {
-        width: 250px;
-        text-align: center;
-    }
-    
+    /* Client Portal Layout Styles */
     .vertical-menu {
         width: 250px;
         z-index: 1001;
@@ -107,6 +91,7 @@ import { ClientPortalTopbarComponent } from '../client-portal-topbar/client-port
         top: 70px;
         bottom: 0;
         left: 0;
+        transition: all 0.3s ease;
     }
     
     .main-content {
@@ -115,55 +100,20 @@ import { ClientPortalTopbarComponent } from '../client-portal-topbar/client-port
         min-height: calc(100vh - 70px);
     }
     
-    #page-topbar {
-        position: fixed;
-        top: 0;
-        right: 0;
-        left: 0;
-        z-index: 1002;
-        background: #fff;
-        box-shadow: 0 2px 4px rgba(15,34,58,.12);
-        height: 70px;
-    }
-    
-    .navbar-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 1.5rem;
-        height: 70px;
-    }
-    
-    #sidebar-menu .metismenu li a {
-        color: #a6b0cf;
-        display: block;
-        padding: 0.625rem 1.5rem;
-        position: relative;
-        transition: all 0.4s;
-        text-decoration: none;
-    }
-    
-    #sidebar-menu .metismenu li a:hover,
-    #sidebar-menu .metismenu li a.mm-active {
-        color: #74788d;
-        background-color: rgba(255,255,255,0.06);
-    }
-    
-    .menu-title {
-        padding: 12px 20px !important;
-        letter-spacing: .05em;
-        pointer-events: none;
-        cursor: default;
-        font-size: 11px;
-        text-transform: uppercase;
-        color: #6c757d;
-        font-weight: 600;
-    }
-    
     .footer {
-        background: #f8f9fa;
-        padding: 20px 0;
-        border-top: 1px solid #e9ecef;
+        padding: 24px 0;
+        border-top: 1px solid #eff2f7;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .vertical-menu {
+            margin-left: -250px;
+        }
+        
+        .main-content {
+            margin-left: 0;
+        }
     }
     
     @media (max-width: 992px) {

@@ -35,7 +35,7 @@ import { ApiService } from '../../../core/services/api.service';
           </div>
 
           <button type="button" class="btn btn-sm px-3 font-size-16 header-item" 
-                  id="vertical-menu-btn" (click)="toggleMenu()">
+                  id="vertical-menu-btn" (click)="toggleMobileMenu($event)">
             <i class="fa fa-fw fa-bars"></i>
           </button>
         </div>
@@ -43,17 +43,22 @@ import { ApiService } from '../../../core/services/api.service';
         <div class="d-flex">
           <!-- Language Dropdown -->
           <div class="dropdown d-inline-block" dropdown>
-            <button type="button" class="btn header-item" id="page-header-lang-dropdown" dropdownToggle>
-              <img [src]="flagvalue" alt="Header Language" height="16">
+            <button type="button" class="btn header-item" id="page-header-user-dropdown" dropdownToggle>
+              @if(flagvalue === undefined){
+              <img src="{{valueset}}" alt="Header Language" height="16">
+              }@else{
+              <img src="{{flagvalue}}" alt="Header Language" height="16">
+              }
             </button>
             <div class="dropdown-menu dropdown-menu-end" *dropdownMenu>
-              <a *ngFor="let lang of listLang" 
-                 class="dropdown-item notify-item" 
-                 (click)="setLanguage(lang.text, lang.lang, lang.flag)"
-                 [ngClass]="{'active': selectedLang === lang.lang}">
-                <img [src]="lang.flag" alt="user-image" class="me-1" height="12">
-                <span class="align-middle">{{ lang.text }}</span>
+              @for (item of listLang; track $index) {
+              <a href="javascript:void(0);" class="dropdown-item notify-item" 
+                 (click)="setLanguage(item.text, item.lang, item.flag)" 
+                 [ngClass]="{'active': cookieValue === item.lang}">
+                <img src="{{item.flag}}" alt="user-image" class="me-1" height="12"> 
+                <span class="align-middle">{{item.text}}</span>
               </a>
+              }
             </div>
           </div>
 
@@ -68,7 +73,7 @@ import { ApiService } from '../../../core/services/api.service';
           <!-- User Profile Dropdown -->
           <div class="dropdown d-inline-block" dropdown>
             <button type="button" class="btn header-item" dropdownToggle id="page-header-user-dropdown">
-              <span class="d-none d-xl-inline-block ms-1">{{userDisplayName}}</span>
+              <span class="d-none d-xl-inline-block ms-1">{{userEmail}}</span>
               <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
             </button>
             <div class="dropdown-menu dropdown-menu-end" *dropdownMenu>
@@ -83,64 +88,18 @@ import { ApiService } from '../../../core/services/api.service';
     </header>
   `,
   styles: [`
-    #page-topbar {
-      position: fixed;
-      top: 0;
-      right: 0;
-      left: 0;
-      z-index: 1002;
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(15,34,58,.12);
-      height: 70px;
-    }
-    
-    .navbar-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.5rem;
-      height: 70px;
-    }
-    
-    .navbar-brand-box {
-      width: 250px;
-      text-align: center;
-    }
-    
-    .header-item {
-      color: #74788d;
-      border: none;
-      background: transparent;
-      padding: 0.5rem;
-    }
-    
-    .header-item:hover {
-      color: #495057;
-    }
-    
-    .header-profile-user {
-      width: 36px;
-      height: 36px;
-    }
-    
-    .dropdown-menu {
-      border: 1px solid #e9ecef;
-      box-shadow: 0 0.75rem 1.5rem rgba(18,38,63,.03);
-    }
-    
-    .dropdown-item:hover {
-      background-color: #f8f9fa;
-    }
+    /* Remove custom styles to use global theme styles */
   `],
   standalone: true,
   imports: [CommonModule, RouterModule, TranslateModule, BsDropdownModule],
 })
 export class ClientPortalTopbarComponent implements OnInit {
   element: any;
+  cookieValue: any;
+  flagvalue: any;
+  countryName: any;
+  valueset: any;
   userEmail: string = 'client@example.com';
-  userDisplayName: string = 'Client';
-  flagvalue: string = 'assets/images/flags/us.jpg';
-  countryName: string = 'English';
 
   listLang: any = [
     { text: 'English', flag: 'assets/images/flags/us.jpg', lang: 'en' },
@@ -153,56 +112,53 @@ export class ClientPortalTopbarComponent implements OnInit {
   constructor(
     @Inject(DOCUMENT) private document: any,
     private router: Router,
-    private translate: TranslateService,
-    private languageService: LanguageService,
-    private cookieService: CookieService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    public languageService: LanguageService,
+    public translate: TranslateService,
+    public _cookiesService: CookieService
   ) {}
 
   ngOnInit(): void {
     this.element = document.documentElement;
-    this.loadUserInfo();
-    this.initializeLanguage();
-  }
+    this.loadUserEmail();
 
-  loadUserInfo(): void {
-    const currentUser = localStorage.getItem('currentUser');
-    
-    if (currentUser) {
-      try {
-        const user = JSON.parse(currentUser);
-        this.userEmail = user.email || user.emailAddress || user.username || 'client@example.com';
-        this.userDisplayName = this.userEmail.split('@')[0];
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        this.userEmail = 'client@example.com';
-        this.userDisplayName = 'Client';
-      }
+    this.cookieValue = this._cookiesService.get('lang');
+    const val = this.listLang.filter(x => x.lang === this.cookieValue);
+    this.countryName = val.map(element => element.text);
+    if (val.length === 0) {
+      if (this.flagvalue === undefined) { this.valueset = 'assets/images/flags/us.jpg'; }
+    } else {
+      this.flagvalue = val.map(element => element.flag);
     }
   }
 
-  initializeLanguage(): void {
-    const cookieValue = this.cookieService.get('lang') || 'en';
-    const val = this.listLang.filter(x => x.lang === cookieValue);
-    
-    if (val.length > 0) {
-      this.countryName = val[0].text;
-      this.flagvalue = val[0].flag;
+  loadUserEmail(): void {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        this.userEmail = user.email || user.emailAddress || user.username || 'client@firmpilot.com';
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        this.userEmail = 'client@firmpilot.com';
+      }
+    } else {
+      this.userEmail = 'client@firmpilot.com';
     }
   }
 
   setLanguage(text: string, lang: string, flag: string): void {
     this.countryName = text;
     this.flagvalue = flag;
+    this.cookieValue = lang;
     this.languageService.setLanguage(lang);
-    this.translate.use(lang);
   }
 
-  toggleMenu(): void {
-    const verticalMenu = document.querySelector('.vertical-menu');
-    if (verticalMenu) {
-      verticalMenu.classList.toggle('show');
-    }
+  toggleMobileMenu(event: any): void {
+    event.preventDefault();
+    // Emit event to parent component
+    const toggleEvent = new CustomEvent('mobileMenuToggle');
+    document.dispatchEvent(toggleEvent);
   }
 
   fullscreen(): void {
