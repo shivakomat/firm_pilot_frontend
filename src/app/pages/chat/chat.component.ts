@@ -1,59 +1,120 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, Validators, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
-
-import { Store } from '@ngrx/store';
-import { fetchchatMessageData, fetchchatdata } from 'src/app/store/Chat/chat.action';
-import { selectData, selectchatData } from 'src/app/store/Chat/chat-selector';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { SimplebarAngularModule } from 'simplebar-angular';
-import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
+import { PagetitleComponent } from '../../shared/ui/pagetitle/pagetitle.component';
+import { ChatService } from '../../core/services/chat.service';
+import { ChatMessage, ChatThread, SendMessageRequest } from '../../core/models/chat.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   standalone:true,
-  imports:[PagetitleComponent,CommonModule,TabsModule,SimplebarAngularModule,ReactiveFormsModule]
+  imports:[PagetitleComponent,CommonModule,TabsModule,SimplebarAngularModule,ReactiveFormsModule,FormsModule]
 })
-export class ChatComponent implements OnInit, AfterViewInit {
+export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('scrollEle') scrollEle;
   @ViewChild('scrollRef') scrollRef;
 
-  username = 'Steven Franklin';
-
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
-  chatData: any
-  chatMessagesData: any
+  // Chat system properties
+  threads: ChatThread[] = [];
+  currentThread: ChatThread | null = null;
+  messages: ChatMessage[] = [];
+  currentUser: any;
+  isClient: boolean;
+  isLoading = false;
+  
+  // Add trackByIndex method
+  trackByIndex(index: number, item: any): number {
+    return index;
+  }
+  showEmojiPicker = false;
+  chatSubmit = false;
+  emoji: string = '';
+  newMessageText: string = '';
   formData: UntypedFormGroup;
-  // Form submit
-  chatSubmit: boolean;
-  usermessage: string;
-  emoji: any = '';
+  private subscriptions: Subscription[] = [];
+  
+  // Breadcrumb
+  breadCrumbItems: Array<{}>;
 
-  constructor(public formBuilder: UntypedFormBuilder, public store: Store) {
+  constructor(
+    public formBuilder: UntypedFormBuilder, 
+    private chatService: ChatService
+  ) {
+    this.currentUser = this.chatService.getCurrentUser();
+    this.isClient = this.chatService.isClient();
   }
 
   ngOnInit() {
-    this.breadCrumbItems = [{ label: 'Skote' }, { label: 'Chat', active: true }];
+    this.breadCrumbItems = [{ label: 'Firm Pilot' }, { label: 'Chat', active: true }];
 
     this.formData = this.formBuilder.group({
       message: ['', [Validators.required]],
     });
 
-    /**
-    * fetches data
-    */
-    this.store.dispatch(fetchchatdata());
-    this.store.select(selectData).subscribe(data => {
-      this.chatData = data;
-    })
-    this.store.dispatch(fetchchatMessageData());
-    this.store.select(selectchatData).subscribe(data => {
-      this.chatMessagesData = data;
-    })
+    this.initializeChat();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  private initializeChat() {
+    if (this.isClient) {
+      // Client portal: Load single thread with accountant
+      this.loadClientThread();
+    } else {
+      // Accountant portal: Load all client threads
+      this.loadAllThreads();
+    }
+  }
+
+  private loadAllThreads() {
+    this.isLoading = true;
+    const sub = this.chatService.getAllThreads().subscribe({
+      next: (threads) => {
+        this.threads = threads;
+        this.isLoading = false;
+        if (threads.length > 0) {
+          this.selectThread(threads[0]);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading threads:', error);
+        this.isLoading = false;
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  private loadClientThread() {
+    this.isLoading = true;
+    const clientId = this.currentUser?.id || 1; // Fallback for testing
+    const sub = this.chatService.getThread(clientId).subscribe({
+      next: (response) => {
+        this.currentThread = response.thread;
+        this.messages = response.messages;
+        this.isLoading = false;
+        this.scrollToBottom();
+      },
+      error: (error) => {
+        console.error('Error loading client thread:', error);
+        this.isLoading = false;
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  selectThread(thread: ChatThread) {
+    this.currentThread = thread;
+    this.messages = thread.messages || [];
+    this.scrollToBottom();
   }
 
   ngAfterViewInit() {
@@ -69,7 +130,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
   }
 
 
-  onListScroll() {
+  scrollToBottom() {
     if (this.scrollRef !== undefined) {
       setTimeout(() => {
         this.scrollRef.SimpleBar.getScrollElement().scrollTop =
@@ -78,43 +139,65 @@ export class ChatComponent implements OnInit, AfterViewInit {
     }
   }
 
-  chatUsername(name) {
-    this.username = name;
-    this.usermessage = 'Hello';
-    this.chatMessagesData = [];
-    const currentDate = new Date();
+  /**
+   * Send message in chat
+   */
+  sendMessage() {
+    const messageContent = this.newMessageText?.trim();
+    if (!messageContent || !this.currentThread) {
+      return;
+    }
 
-    this.chatMessagesData.push({
-      name: this.username,
-      message: this.usermessage,
-      time: currentDate.getHours() + ':' + currentDate.getMinutes()
+    const messageRequest: SendMessageRequest = {
+      content: messageContent,
+      senderType: this.isClient ? 'CLIENT' : 'ACCOUNTANT'
+    };
+
+    const clientId = this.isClient ? this.currentUser?.id : this.currentThread.clientId;
+    
+    const sub = this.chatService.sendMessage(clientId, messageRequest).subscribe({
+      next: (newMessage) => {
+        this.messages.push(newMessage);
+        this.scrollToBottom();
+        this.newMessageText = '';
+        
+        // Check if we should trigger AI response
+        if (!this.isClient && messageContent.toLowerCase().includes('@ai')) {
+          this.triggerAIResponse(messageContent);
+        }
+      },
+      error: (error) => {
+        console.error('Error sending message:', error);
+      }
     });
-
+    this.subscriptions.push(sub);
   }
 
   /**
-   * Save the message in chat
+   * Trigger AI Tax Agent response
    */
-  messageSave() {
-    const message = this.formData.get('message').value;
-    const currentDate = new Date();
-    if (this.formData.valid && message) {
-      // Message Push in Chat
-      this.chatMessagesData.push({
-        align: 'right',
-        name: 'Henry Wells',
-        message,
-        time: currentDate.getHours() + ':' + currentDate.getMinutes()
-      });
-      this.onListScroll();
+  private triggerAIResponse(userMessage: string) {
+    if (!this.currentThread) return;
 
-      // Set Form Data Reset
-      this.formData = this.formBuilder.group({
-        message: null
-      });
-    }
-
-    this.chatSubmit = true;
+    const sub = this.chatService.getAIResponse(userMessage).subscribe({
+      next: (aiResponse) => {
+        const aiMessage: ChatMessage = {
+          content: aiResponse.message,
+          senderId: 0, // AI agent ID
+          senderName: 'Tax AI Agent',
+          senderType: 'AI_AGENT',
+          timestamp: new Date(),
+          threadId: this.currentThread!.id
+        };
+        
+        this.messages.push(aiMessage);
+        this.scrollToBottom();
+      },
+      error: (error) => {
+        console.error('Error getting AI response:', error);
+      }
+    });
+    this.subscriptions.push(sub);
   }
 
   // Delete Message
@@ -136,7 +219,6 @@ export class ChatComponent implements OnInit, AfterViewInit {
   }
 
   // Emoji Picker
-  showEmojiPicker = false;
   sets: any = [
     'native',
     'google',
@@ -147,20 +229,22 @@ export class ChatComponent implements OnInit, AfterViewInit {
     'messenger'
   ]
   set: any = 'twitter';
+  
   toggleEmojiPicker() {
     this.showEmojiPicker = !this.showEmojiPicker;
   }
 
   addEmoji(event: any) {
-
-    const { emoji } = this;
-    if (this.formData.get('message').value) {
-      var text = `${emoji}${event.emoji.native}`;
-    } else {
-      text = event.emoji.native;
-    }
-    this.emoji = text;
+    const currentMessage = this.newMessageText || '';
+    this.newMessageText = currentMessage + event.emoji.native;
     this.showEmojiPicker = false;
+  }
+
+  onKeyPress(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage();
+    }
   }
 
   onFocus() {

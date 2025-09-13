@@ -14,31 +14,36 @@
         </div>
         
         <!-- Message -->
-        <div class="d-flex mb-3" [class.justify-content-end]="message.sender === 'client'">
-          <div class="message-wrapper" [class.client-message]="message.sender === 'client'" 
-               [class.accountant-message]="message.sender === 'accountant'">
+        <div class="d-flex mb-3" [class.justify-content-end]="isMyMessage(message)">
+          <div class="message-wrapper" [class.client-message]="isMyMessage(message)" 
+               [class.accountant-message]="message.senderType === 'ACCOUNTANT'"
+               [class.ai-message]="isAIMessage(message)">
             
-            <!-- Accountant Avatar -->
-            <div *ngIf="message.sender === 'accountant'" class="avatar-sm me-2 flex-shrink-0">
-              <div class="avatar-title bg-primary text-white rounded-circle">
-                <i class="ri-user-line"></i>
+            <!-- Accountant/AI Avatar -->
+            <div *ngIf="!isMyMessage(message)" class="avatar-sm me-2 flex-shrink-0">
+              <div class="avatar-title text-white rounded-circle" 
+                   [class.bg-primary]="message.senderType === 'ACCOUNTANT'"
+                   [class.bg-info]="isAIMessage(message)">
+                <i class="ri-user-line" *ngIf="message.senderType === 'ACCOUNTANT'"></i>
+                <i class="ri-robot-line" *ngIf="isAIMessage(message)"></i>
               </div>
             </div>
             
             <!-- Message Content -->
-            <div class="message-content" [class.client-content]="message.sender === 'client'" 
-                 [class.accountant-content]="message.sender === 'accountant'">
+            <div class="message-content" [class.client-content]="isMyMessage(message)" 
+                 [class.accountant-content]="message.senderType === 'ACCOUNTANT'"
+                 [class.ai-content]="isAIMessage(message)">
               <div class="message-header mb-1">
                 <small class="text-muted">{{message.senderName}}</small>
                 <small class="text-muted ms-2">{{formatTime(message.timestamp)}}</small>
               </div>
               <div class="message-body">
-                {{message.message}}
+                {{message.content}}
               </div>
             </div>
             
             <!-- Client Avatar -->
-            <div *ngIf="message.sender === 'client'" class="avatar-sm ms-2 flex-shrink-0">
+            <div *ngIf="isMyMessage(message)" class="avatar-sm ms-2 flex-shrink-0">
               <div class="avatar-title bg-success text-white rounded-circle">
                 <i class="ri-user-line"></i>
               </div>
@@ -48,22 +53,30 @@
       </div>
     </div>
     
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading" class="text-center p-3">
+      <div class="spinner-border spinner-border-sm text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <small class="text-muted ms-2">Loading messages...</small>
+    </div>
+
     <!-- Message Input -->
     <div class="border-top p-3">
       <div class="row g-2">
         <div class="col">
-          <textarea class="form-control" rows="2" placeholder="Type your message..." 
+          <textarea class="form-control" rows="2" placeholder="Type your message... (Use @ai to get help from Tax AI Agent)" 
                     [(ngModel)]="newMessage" (keypress)="onKeyPress($event)"
-                    [disabled]="false"></textarea>
+                    [disabled]="isLoading"></textarea>
         </div>
         <div class="col-auto align-self-end">
           <button type="button" class="btn btn-primary" (click)="sendMessage()" 
-                  [disabled]="!newMessage.trim()">
+                  [disabled]="!newMessage.trim() || isLoading">
             <i class="ri-send-plane-line"></i>
           </button>
         </div>
       </div>
-      <small class="text-muted mt-1 d-block">Press Enter to send, Shift+Enter for new line</small>
+      <small class="text-muted mt-1 d-block">Press Enter to send, Shift+Enter for new line. Type &#64;ai to get AI assistance.</small>
     </div>
   </div>
 </div>
