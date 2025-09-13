@@ -1,82 +1,108 @@
-<div class="card h-100">
-  <div class="card-header">
-    <h4 class="card-title mb-0">Chat with Your Accountant</h4>
-    <p class="text-muted mb-0">Get real-time support from your dedicated accounting team</p>
+<div class="chat-container">
+  <!-- Chat Header -->
+  <div class="chat-header">
+    <div class="d-flex align-items-center">
+      <div class="avatar-container me-3">
+        <div class="avatar-circle bg-primary">
+          <i class="ri-user-line text-white"></i>
+        </div>
+        <div class="status-indicator"></div>
+      </div>
+      <div>
+        <h5 class="mb-0 chat-title">Sarah Johnson, CPA</h5>
+        <small class="text-muted">Active now</small>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="btn btn-light btn-sm me-2">
+        <i class="ri-search-line"></i>
+      </button>
+      <button class="btn btn-light btn-sm me-2">
+        <i class="ri-settings-3-line"></i>
+      </button>
+      <button class="btn btn-light btn-sm">
+        <i class="ri-more-2-line"></i>
+      </button>
+    </div>
   </div>
   
-  <div class="card-body d-flex flex-column p-0" style="height: 600px;">
-    <!-- Messages Area -->
-    <div class="flex-grow-1 overflow-auto p-3" #messagesContainer>
-      <div *ngFor="let message of messages; let i = index">
-        <!-- Date Separator -->
-        <div *ngIf="shouldShowDateSeparator(i)" class="text-center my-3">
-          <small class="text-muted bg-light px-2 py-1 rounded">{{formatDate(message.timestamp)}}</small>
+  <!-- Messages Area -->
+  <div class="chat-messages" #messagesContainer>
+    <!-- Date Separator -->
+    <div class="date-separator">
+      <span class="date-label">Today</span>
+    </div>
+    
+    <div *ngFor="let message of messages; let i = index" class="message-container">
+      <!-- Date Separator -->
+      <div *ngIf="shouldShowDateSeparator(i)" class="date-separator">
+        <span class="date-label">{{formatDate(message.timestamp)}}</span>
+      </div>
+      
+      <!-- Message Bubble -->
+      <div class="message-row" [class.message-sent]="isMyMessage(message)" [class.message-received]="!isMyMessage(message)">
+        <!-- Avatar for received messages -->
+        <div *ngIf="!isMyMessage(message)" class="message-avatar">
+          <div class="avatar-circle" [class.bg-primary]="message.senderType === 'ACCOUNTANT'" [class.bg-info]="isAIMessage(message)">
+            <i class="ri-user-line text-white" *ngIf="message.senderType === 'ACCOUNTANT'"></i>
+            <i class="ri-robot-line text-white" *ngIf="isAIMessage(message)"></i>
+          </div>
         </div>
         
-        <!-- Message -->
-        <div class="d-flex mb-3" [class.justify-content-end]="isMyMessage(message)">
-          <div class="message-wrapper" [class.client-message]="isMyMessage(message)" 
-               [class.accountant-message]="message.senderType === 'ACCOUNTANT'"
-               [class.ai-message]="isAIMessage(message)">
-            
-            <!-- Accountant/AI Avatar -->
-            <div *ngIf="!isMyMessage(message)" class="avatar-sm me-2 flex-shrink-0">
-              <div class="avatar-title text-white rounded-circle" 
-                   [class.bg-primary]="message.senderType === 'ACCOUNTANT'"
-                   [class.bg-info]="isAIMessage(message)">
-                <i class="ri-user-line" *ngIf="message.senderType === 'ACCOUNTANT'"></i>
-                <i class="ri-robot-line" *ngIf="isAIMessage(message)"></i>
-              </div>
-            </div>
-            
-            <!-- Message Content -->
-            <div class="message-content" [class.client-content]="isMyMessage(message)" 
-                 [class.accountant-content]="message.senderType === 'ACCOUNTANT'"
-                 [class.ai-content]="isAIMessage(message)">
-              <div class="message-header mb-1">
-                <small class="text-muted">{{message.senderName}}</small>
-                <small class="text-muted ms-2">{{formatTime(message.timestamp)}}</small>
-              </div>
-              <div class="message-body">
-                {{message.content}}
-              </div>
-            </div>
-            
-            <!-- Client Avatar -->
-            <div *ngIf="isMyMessage(message)" class="avatar-sm ms-2 flex-shrink-0">
-              <div class="avatar-title bg-success text-white rounded-circle">
-                <i class="ri-user-line"></i>
-              </div>
-            </div>
-          </div>
+        <!-- Message Bubble -->
+        <div class="message-bubble" 
+             [class.bubble-sent]="isMyMessage(message)"
+             [class.bubble-received]="message.senderType === 'ACCOUNTANT'"
+             [class.bubble-ai]="isAIMessage(message)">
+          <div class="message-sender" *ngIf="!isMyMessage(message)">{{message.senderName}}</div>
+          <div class="message-text">{{message.content}}</div>
+          <div class="message-time">{{formatTime(message.timestamp)}}</div>
+        </div>
+        
+        <!-- Message options -->
+        <div class="message-options" *ngIf="!isMyMessage(message)">
+          <button class="btn btn-sm btn-light">
+            <i class="ri-more-2-fill"></i>
+          </button>
         </div>
       </div>
     </div>
     
     <!-- Loading indicator -->
-    <div *ngIf="isLoading" class="text-center p-3">
+    <div *ngIf="isLoading" class="loading-container">
       <div class="spinner-border spinner-border-sm text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
       <small class="text-muted ms-2">Loading messages...</small>
     </div>
+  </div>
 
-    <!-- Message Input -->
-    <div class="border-top p-3">
-      <div class="row g-2">
-        <div class="col">
-          <textarea class="form-control" rows="2" placeholder="Type your message... (Use @ai to get help from Tax AI Agent)" 
-                    [(ngModel)]="newMessage" (keypress)="onKeyPress($event)"
-                    [disabled]="isLoading"></textarea>
-        </div>
-        <div class="col-auto align-self-end">
-          <button type="button" class="btn btn-primary" (click)="sendMessage()" 
-                  [disabled]="!newMessage.trim() || isLoading">
-            <i class="ri-send-plane-line"></i>
-          </button>
-        </div>
+  <!-- Message Input -->
+  <div class="chat-input">
+    <div class="input-container">
+      <button class="btn btn-light attachment-btn">
+        <i class="ri-emotion-line"></i>
+      </button>
+      <button class="btn btn-light attachment-btn">
+        <i class="ri-attachment-2"></i>
+      </button>
+      <button class="btn btn-light attachment-btn">
+        <i class="ri-file-line"></i>
+      </button>
+      <div class="input-wrapper">
+        <textarea class="message-input" 
+                  placeholder="Enter Message..." 
+                  [(ngModel)]="newMessage" 
+                  (keypress)="onKeyPress($event)"
+                  [disabled]="isLoading"
+                  rows="1"></textarea>
       </div>
-      <small class="text-muted mt-1 d-block">Press Enter to send, Shift+Enter for new line. Type &#64;ai to get AI assistance.</small>
+      <button type="button" 
+              class="btn send-btn" 
+              (click)="sendMessage()" 
+              [disabled]="!newMessage.trim() || isLoading">
+        <i class="ri-send-plane-fill"></i>
+      </button>
     </div>
   </div>
 </div>
