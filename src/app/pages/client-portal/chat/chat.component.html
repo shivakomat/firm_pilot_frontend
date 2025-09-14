@@ -43,9 +43,11 @@
       <div class="message-row" [class.message-sent]="isMyMessage(message)" [class.message-received]="!isMyMessage(message)">
         <!-- Avatar for received messages -->
         <div *ngIf="!isMyMessage(message)" class="message-avatar">
-          <div class="avatar-circle" [class.bg-primary]="message.senderType === 'ACCOUNTANT'" [class.bg-info]="isAIMessage(message)">
-            <i class="ri-user-line text-white" *ngIf="message.senderType === 'ACCOUNTANT'"></i>
-            <i class="ri-robot-line text-white" *ngIf="isAIMessage(message)"></i>
+          <div class="avatar-circle" 
+               [class.bg-primary]="message.senderType === 'ACCOUNTANT'" 
+               [class.bg-gradient-ai]="isAIMessage(message)">
+            <i class="ri-user-3-line text-white" *ngIf="message.senderType === 'ACCOUNTANT'"></i>
+            <i class="ri-robot-2-line text-white" *ngIf="isAIMessage(message)"></i>
           </div>
         </div>
         

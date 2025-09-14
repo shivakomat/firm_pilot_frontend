@@ -37,6 +37,10 @@
   font-size: 16px;
 }
 
+.bg-gradient-ai {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
 .status-indicator {
   position: absolute;
   bottom: 2px;
@@ -124,6 +128,15 @@
   width: 32px;
   height: 32px;
   font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.message-avatar .bg-primary {
+  background: #6366f1 !important;
+}
+
+.message-avatar .bg-gradient-ai {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 }
 
 .message-bubble {
