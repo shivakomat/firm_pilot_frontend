@@ -45,7 +45,12 @@
             
             <!-- Section A: Personal Information -->
             <div *ngIf="currentSection === 0">
-              <h5 class="mb-4">🔐 Section A. Personal Information</h5>
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">🔐 Section A. Personal Information</h5>
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearSection(0)">
+                  <i class="ri-delete-bin-line me-1"></i>Clear Section
+                </button>
+              </div>
               <div formGroupName="personalInformation">
                 <div class="row">
                   <div class="col-md-6 mb-3">
@@ -178,9 +183,14 @@
             <div *ngIf="currentSection === 1">
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0">👨‍👩‍👧 Section B. Dependents</h5>
-                <button type="button" class="btn btn-info btn-sm" (click)="addDependent()">
-                  <i class="ri-add-line me-1"></i>Add Dependent
-                </button>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearSection(1)">
+                    <i class="ri-delete-bin-line me-1"></i>Clear Section
+                  </button>
+                  <button type="button" class="btn btn-info btn-sm" (click)="addDependent()">
+                    <i class="ri-add-line me-1"></i>Add Dependent
+                  </button>
+                </div>
               </div>
               
               <div *ngIf="dependentsArray.length === 0" class="text-center text-muted py-4">
@@ -269,9 +279,14 @@
             <div *ngIf="currentSection === 2">
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0">💼 Section C. Income</h5>
-                <button type="button" class="btn btn-info btn-sm" (click)="addIncomeSource()">
-                  <i class="ri-add-line me-1"></i>Add Income Source
-                </button>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearSection(2)">
+                    <i class="ri-delete-bin-line me-1"></i>Clear Section
+                  </button>
+                  <button type="button" class="btn btn-info btn-sm" (click)="addIncomeSource()">
+                    <i class="ri-add-line me-1"></i>Add Income Source
+                  </button>
+                </div>
               </div>
               
               <div *ngIf="incomeArray.length === 0" class="text-center text-muted py-4">
@@ -326,7 +341,12 @@
             
             <!-- Section D: Deductions & Adjustments -->
             <div *ngIf="currentSection === 3">
-              <h5 class="mb-4">💸 Section D. Deductions & Adjustments</h5>
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">💸 Section D. Deductions & Adjustments</h5>
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearSection(3)">
+                  <i class="ri-delete-bin-line me-1"></i>Clear Section
+                </button>
+              </div>
               <div formGroupName="deductionsAdjustments">
                 <div class="row">
                   <div class="col-md-6 mb-3">
@@ -402,7 +422,12 @@
             
             <!-- Section E: Health Coverage -->
             <div *ngIf="currentSection === 4">
-              <h5 class="mb-4">🏥 Section E. Health Coverage</h5>
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">🏥 Section E. Health Coverage</h5>
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearSection(4)">
+                  <i class="ri-delete-bin-line me-1"></i>Clear Section
+                </button>
+              </div>
               <div formGroupName="healthCoverage">
                 <div class="mb-4">
                   <label class="form-label">Did you have health insurance all year? *</label>
@@ -456,7 +481,12 @@
             
             <!-- Section F: Credits -->
             <div *ngIf="currentSection === 5">
-              <h5 class="mb-4">🎓 Section F. Credits</h5>
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">🎓 Section F. Credits</h5>
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearSection(5)">
+                  <i class="ri-delete-bin-line me-1"></i>Clear Section
+                </button>
+              </div>
               <div formGroupName="credits">
                 <div class="row">
                   <div class="col-md-6 mb-3">
@@ -504,7 +534,12 @@
             
             <!-- Section G: Prior Year & IRS Notices -->
             <div *ngIf="currentSection === 6">
-              <h5 class="mb-4">📂 Section G. Prior Year & IRS Notices</h5>
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">📂 Section G. Prior Year & IRS Notices</h5>
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearSection(6)">
+                  <i class="ri-delete-bin-line me-1"></i>Clear Section
+                </button>
+              </div>
               <div formGroupName="priorYearInfo">
                 <div class="mb-4">
                   <label class="form-label">Did you file taxes last year?</label>

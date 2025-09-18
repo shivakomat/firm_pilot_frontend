@@ -554,6 +554,75 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
     this.intakeForm.get(controlPath)?.setValue(formatted);
   }
 
+  // Clear section method
+  clearSection(sectionIndex: number): void {
+    Swal.fire({
+      title: 'Clear Section',
+      text: `Are you sure you want to clear all data in the "${this.sections[sectionIndex].title}" section?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, Clear Section',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.performClearSection(sectionIndex);
+      }
+    });
+  }
+
+  performClearSection(sectionIndex: number): void {
+    switch (sectionIndex) {
+      case 0: // Personal Information
+        this.intakeForm.get('personalInformation')?.reset();
+        break;
+      case 1: // Dependents
+        const dependentsArray = this.intakeForm.get('dependents') as FormArray;
+        while (dependentsArray.length !== 0) {
+          dependentsArray.removeAt(0);
+        }
+        break;
+      case 2: // Income
+        const incomeArray = this.intakeForm.get('incomeSource') as FormArray;
+        while (incomeArray.length !== 0) {
+          incomeArray.removeAt(0);
+        }
+        break;
+      case 3: // Deductions & Adjustments
+        this.intakeForm.get('deductionsAdjustments')?.reset();
+        break;
+      case 4: // Health Coverage
+        this.intakeForm.get('healthCoverage')?.reset();
+        break;
+      case 5: // Credits
+        this.intakeForm.get('credits')?.reset();
+        break;
+      case 6: // Prior Year & IRS Notices
+        this.intakeForm.get('priorYearInfo')?.reset();
+        // Also clear estimated tax payments array
+        const estimatedTaxArray = this.intakeForm.get('priorYearInfo.estimatedTaxPayments') as FormArray;
+        if (estimatedTaxArray) {
+          while (estimatedTaxArray.length !== 0) {
+            estimatedTaxArray.removeAt(0);
+          }
+        }
+        break;
+    }
+    
+    // Update progress after clearing
+    this.updateProgress();
+    
+    // Show success message
+    Swal.fire({
+      title: 'Section Cleared',
+      text: `The "${this.sections[sectionIndex].title}" section has been cleared.`,
+      icon: 'success',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  }
+
   // Submit form
   submitForm(): void {
     if (this.intakeForm.valid) {
