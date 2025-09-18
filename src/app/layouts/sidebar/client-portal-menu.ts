@@ -21,16 +21,22 @@ export const CLIENT_PORTAL_MENU: MenuItem[] = [
     },
     {
         id: 4,
+        label: 'MENUITEMS.PORTAL.TAXINTAKE.TEXT',
+        icon: 'bx-receipt',
+        link: '/client-portal/tax-intake',
+    },
+    {
+        id: 5,
         label: 'MENUITEMS.PORTAL.CHAT.TEXT',
         icon: 'bx-chat',
         link: '/client-portal/chat',
     },
     {
-        id: 5,
+        id: 6,
         isLayout: true
     },
     {
-        id: 6,
+        id: 7,
         label: 'MENUITEMS.PORTAL.LOGOUT.TEXT',
         icon: 'bx-log-out',
         link: 'logout',

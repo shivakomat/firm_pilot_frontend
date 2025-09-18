@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "Deploy pre-built Angular app to Heroku with dist files"
+git commit -m "✨ Add comprehensive tax intake form with 7 sections, auto-save, SSN masking, and progress tracking"
 
 # Deploy to Heroku
 git push heroku main

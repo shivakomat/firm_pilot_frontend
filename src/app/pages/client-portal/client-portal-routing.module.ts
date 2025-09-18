@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { DocumentsComponent } from './documents/documents.component';
 import { IntakeComponent } from './intake/intake.component';
+import { TaxIntakeComponent } from './tax-intake/tax-intake.component';
 import { ChatComponent } from './chat/chat.component';
 
 const routes: Routes = [
@@ -12,6 +13,7 @@ const routes: Routes = [
   },
   { path: 'documents', component: DocumentsComponent },
   { path: 'intake', component: IntakeComponent },
+  { path: 'tax-intake', component: TaxIntakeComponent },
   { path: 'chat', component: ChatComponent }
 ];
 
