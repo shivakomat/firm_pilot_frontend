@@ -140,6 +140,38 @@ export interface GetInvitationByTokenResponse {
   client?: Client;
 }
 
+export interface IntakeResponse {
+  id?: number;
+  clientId: number;
+  personalInfo?: any;
+  incomeInfo?: any;
+  deductionsInfo?: any;
+  documentsInfo?: any;
+  status?: string;
+  submittedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GetIntakeResponsesResponse {
+  success: boolean;
+  responses?: IntakeResponse;
+  message?: string;
+}
+
+export interface SubmitIntakeRequest {
+  personalInfo?: any;
+  incomeInfo?: any;
+  deductionsInfo?: any;
+  documentsInfo?: any;
+}
+
+export interface SubmitIntakeResponse {
+  success: boolean;
+  message?: string;
+  response?: IntakeResponse;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -338,5 +370,34 @@ export class ApiService {
     });
 
     return this.http.delete<{ success: boolean; message?: string }>(`${this.baseUrl}/invitations/${invitationId}`, { headers });
+  }
+
+  /**
+   * Get client intake responses
+   * @param clientId - ID of the client
+   */
+  getClientIntakeResponses(clientId: number): Observable<GetIntakeResponsesResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<GetIntakeResponsesResponse>(`${this.baseUrl}/clients/${clientId}/intake`, { headers });
+  }
+
+  /**
+   * Submit client intake response
+   * @param clientId - ID of the client
+   * @param intakeData - Intake form data
+   */
+  submitClientIntakeResponse(clientId: number, intakeData: SubmitIntakeRequest): Observable<SubmitIntakeResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/clients/${clientId}/intake/submit`, intakeData, { headers });
   }
 }

@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "✨ Add tax consultant pages: intake forms & client documents overview with filtering and status management"
+git commit -m "🔌 Connect client intake form to real API endpoints: GET /clients/:id/intake & POST /clients/:id/intake/submit"
 
 # Deploy to Heroku
 git push heroku main

@@ -4,7 +4,7 @@ import { Subject, interval } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { TaxIntakeForm, IntakeFormSection, PersonalInformation, Dependent, IncomeSource } from '../../../models/intake-form.model';
-import { IntakeFormService } from '../../../services/intake-form.service';
+import { ApiService, IntakeResponse, SubmitIntakeRequest } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-tax-intake',
@@ -19,7 +19,8 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   progress = 0;
   isLoading = false;
   isSaving = false;
-  clientId = 1; // This should come from auth service
+  clientId: number;
+  currentUser: any;
   
   ssnMasked: { [key: string]: boolean } = {};
   
@@ -84,9 +85,15 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private intakeService: IntakeFormService
+    private apiService: ApiService
   ) {
     this.initializeForm();
+    // Get current user and client ID from localStorage
+    const userStr = localStorage.getItem('currentUser');
+    if (userStr) {
+      this.currentUser = JSON.parse(userStr);
+      this.clientId = this.currentUser.id;
+    }
   }
 
   ngOnInit(): void {
@@ -165,60 +172,68 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   }
 
   loadExistingData(): void {
+    if (!this.clientId) {
+      console.error('No client ID available');
+      return;
+    }
+    
     this.isLoading = true;
-    this.intakeService.getClientIntakeForm(this.clientId)
+    this.apiService.getClientIntakeResponses(this.clientId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => {
-          if (data) {
-            this.populateForm(data);
-            this.currentSection = data.currentSection || 0;
-            this.updateProgress();
+        next: (response) => {
+          if (response.success && response.responses) {
+            this.populateFormFromAPI(response.responses);
           }
           this.isLoading = false;
         },
         error: (error) => {
           console.error('Error loading intake form:', error);
+          // Don't show error for 404 - just means no existing data
+          if (error.status !== 404) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Failed to load existing form data.',
+              icon: 'error'
+            });
+          }
           this.isLoading = false;
         }
       });
   }
 
-  populateForm(data: TaxIntakeForm): void {
+  populateFormFromAPI(data: IntakeResponse): void {
     // Populate personal information
-    if (data.personalInformation) {
-      this.intakeForm.get('personalInformation')?.patchValue(data.personalInformation);
+    if (data.personalInfo) {
+      this.intakeForm.get('personalInformation')?.patchValue(data.personalInfo);
     }
 
-    // Populate dependents
-    if (data.dependents && data.dependents.length > 0) {
-      const dependentsArray = this.intakeForm.get('dependents') as FormArray;
-      data.dependents.forEach(dependent => {
-        dependentsArray.push(this.createDependentGroup(dependent));
-      });
+    // Populate income information
+    if (data.incomeInfo) {
+      // Handle income sources array
+      if (data.incomeInfo.sources && data.incomeInfo.sources.length > 0) {
+        const incomeArray = this.intakeForm.get('incomeSource') as FormArray;
+        data.incomeInfo.sources.forEach((income: any) => {
+          incomeArray.push(this.createIncomeGroup(income));
+        });
+      }
+      
+      // Handle dependents if they're in income info
+      if (data.incomeInfo.dependents && data.incomeInfo.dependents.length > 0) {
+        const dependentsArray = this.intakeForm.get('dependents') as FormArray;
+        data.incomeInfo.dependents.forEach((dependent: any) => {
+          dependentsArray.push(this.createDependentGroup(dependent));
+        });
+      }
     }
 
-    // Populate income sources
-    if (data.incomeSource && data.incomeSource.length > 0) {
-      const incomeArray = this.intakeForm.get('incomeSource') as FormArray;
-      data.incomeSource.forEach(income => {
-        incomeArray.push(this.createIncomeGroup(income));
-      });
+    // Populate deductions information
+    if (data.deductionsInfo) {
+      this.intakeForm.get('deductionsAdjustments')?.patchValue(data.deductionsInfo);
     }
 
-    // Populate other sections
-    if (data.deductionsAdjustments) {
-      this.intakeForm.get('deductionsAdjustments')?.patchValue(data.deductionsAdjustments);
-    }
-    if (data.healthCoverage) {
-      this.intakeForm.get('healthCoverage')?.patchValue(data.healthCoverage);
-    }
-    if (data.credits) {
-      this.intakeForm.get('credits')?.patchValue(data.credits);
-    }
-    if (data.priorYearInfo) {
-      this.intakeForm.get('priorYearInfo')?.patchValue(data.priorYearInfo);
-    }
+    // Update progress after populating
+    this.updateProgress();
   }
 
   setupAutoSave(): void {
@@ -234,11 +249,11 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   }
 
   autoSave(): void {
-    if (this.intakeForm.valid && !this.isSaving) {
+    if (!this.isSaving && this.clientId) {
       this.isSaving = true;
-      const formData = this.prepareFormData();
+      const formData = this.prepareAPIFormData();
       
-      this.intakeService.autoSaveForm(this.clientId, formData)
+      this.apiService.submitClientIntakeResponse(this.clientId, formData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
@@ -253,32 +268,41 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
     }
   }
 
-  prepareFormData(): Partial<TaxIntakeForm> {
+  prepareAPIFormData(): SubmitIntakeRequest {
     const formValue = this.intakeForm.value;
     return {
-      clientId: this.clientId,
-      personalInformation: formValue.personalInformation,
-      dependents: formValue.dependents,
-      incomeSource: formValue.incomeSource,
-      deductionsAdjustments: formValue.deductionsAdjustments,
-      healthCoverage: formValue.healthCoverage,
-      credits: formValue.credits,
-      priorYearInfo: formValue.priorYearInfo,
-      currentSection: this.currentSection,
-      progress: this.progress,
-      lastSaved: new Date().toISOString(),
-      status: 'draft'
+      personalInfo: formValue.personalInformation,
+      incomeInfo: {
+        sources: formValue.incomeSource,
+        dependents: formValue.dependents
+      },
+      deductionsInfo: {
+        ...formValue.deductionsAdjustments,
+        healthCoverage: formValue.healthCoverage,
+        credits: formValue.credits,
+        priorYearInfo: formValue.priorYearInfo
+      },
+      documentsInfo: {
+        currentSection: this.currentSection,
+        progress: this.progress,
+        lastSaved: new Date().toISOString()
+      }
     };
   }
 
   updateProgress(): void {
-    const formData = this.prepareFormData();
-    this.progress = this.intakeService.calculateProgress(formData);
+    this.progress = this.calculateProgress();
     
     // Update section completion status
     this.sections.forEach((section, index) => {
       section.completed = this.isSectionCompleted(index);
     });
+  }
+
+  calculateProgress(): number {
+    const totalSections = this.sections.length;
+    const completedSections = this.sections.filter(section => this.isSectionCompleted(section.id)).length;
+    return Math.round((completedSections / totalSections) * 100);
   }
 
   isSectionCompleted(sectionIndex: number): boolean {
@@ -333,7 +357,7 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   createDependentGroup(dependent?: Dependent): FormGroup {
     return this.fb.group({
-      id: [dependent?.id || this.intakeService.generateId()],
+      id: [dependent?.id || this.generateId()],
       name: [dependent?.name || '', Validators.required],
       ssn: [dependent?.ssn || '', [Validators.required, Validators.pattern(/^\d{3}-\d{2}-\d{4}$/)]],
       dateOfBirth: [dependent?.dateOfBirth || '', Validators.required],
@@ -347,7 +371,7 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   createIncomeGroup(income?: IncomeSource): FormGroup {
     return this.fb.group({
-      id: [income?.id || this.intakeService.generateId()],
+      id: [income?.id || this.generateId()],
       type: [income?.type || '', Validators.required],
       description: [income?.description || '', Validators.required],
       amount: [income?.amount || 0, [Validators.required, Validators.min(0)]],
@@ -383,15 +407,40 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   getDisplaySSN(ssn: string, field: string): string {
     if (this.isSSNMasked(field)) {
-      return this.intakeService.maskSSN(ssn);
+      return this.maskSSN(ssn);
+    }
+    return ssn;
+  }
+
+  maskSSN(ssn: string): string {
+    if (!ssn) return '';
+    const cleaned = ssn.replace(/\D/g, '');
+    if (cleaned.length >= 9) {
+      return `***-**-${cleaned.slice(-4)}`;
     }
     return ssn;
   }
 
   formatSSNInput(event: any, controlPath: string): void {
     const input = event.target.value;
-    const formatted = this.intakeService.formatSSN(input);
+    const formatted = this.formatSSN(input);
     this.intakeForm.get(controlPath)?.setValue(formatted);
+  }
+
+  formatSSN(input: string): string {
+    const cleaned = input.replace(/\D/g, '');
+    if (cleaned.length >= 9) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 5)}-${cleaned.slice(5, 9)}`;
+    } else if (cleaned.length >= 5) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 5)}-${cleaned.slice(5)}`;
+    } else if (cleaned.length >= 3) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+    }
+    return cleaned;
+  }
+
+  generateId(): string {
+    return Math.random().toString(36).substr(2, 9);
   }
 
   formatPhoneInput(event: any, controlPath: string): void {
@@ -437,21 +486,42 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   }
 
   performSubmit(): void {
-    this.isLoading = true;
-    const formData = this.prepareFormData();
-    formData.status = 'submitted';
-    formData.submittedAt = new Date().toISOString();
+    if (!this.clientId) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Unable to identify client. Please log in again.',
+        icon: 'error'
+      });
+      return;
+    }
 
-    this.intakeService.submitIntakeForm(this.clientId, formData as TaxIntakeForm)
+    this.isLoading = true;
+    const formData = this.prepareAPIFormData();
+    // Add submission metadata
+    formData.documentsInfo = {
+      ...formData.documentsInfo,
+      status: 'submitted',
+      submittedAt: new Date().toISOString()
+    };
+
+    this.apiService.submitClientIntakeResponse(this.clientId, formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
+        next: (response) => {
           this.isLoading = false;
-          Swal.fire({
-            title: 'Success!',
-            text: 'Your tax intake form has been submitted successfully.',
-            icon: 'success'
-          });
+          if (response.success) {
+            Swal.fire({
+              title: 'Success!',
+              text: 'Your tax intake form has been submitted successfully.',
+              icon: 'success'
+            });
+          } else {
+            Swal.fire({
+              title: 'Error',
+              text: response.message || 'There was an error submitting your form.',
+              icon: 'error'
+            });
+          }
         },
         error: (error) => {
           this.isLoading = false;
