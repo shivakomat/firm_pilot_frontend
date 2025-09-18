@@ -1,0 +1,239 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <h4 class="mb-sm-0 font-size-18">Client Documents</h4>
+        <div class="page-title-right">
+          <button type="button" class="btn btn-success btn-sm" (click)="exportDocuments()">
+            <i class="ri-download-line me-1"></i>Export Documents
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row">
+    <div class="col-xl-3 col-md-6">
+      <div class="card card-h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <span class="text-muted mb-3 lh-1 d-block text-truncate">Total Documents</span>
+              <h4 class="mb-3">{{stats.total}}</h4>
+            </div>
+            <div class="flex-shrink-0">
+              <div class="avatar-sm rounded-circle bg-primary-subtle">
+                <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
+                  <i class="ri-file-text-line font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card card-h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <span class="text-muted mb-3 lh-1 d-block text-truncate">Pending Review</span>
+              <h4 class="mb-3">{{stats.pending}}</h4>
+            </div>
+            <div class="flex-shrink-0">
+              <div class="avatar-sm rounded-circle bg-warning-subtle">
+                <span class="avatar-title rounded-circle bg-warning-subtle text-warning">
+                  <i class="ri-time-line font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card card-h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <span class="text-muted mb-3 lh-1 d-block text-truncate">Approved</span>
+              <h4 class="mb-3">{{stats.approved}}</h4>
+            </div>
+            <div class="flex-shrink-0">
+              <div class="avatar-sm rounded-circle bg-success-subtle">
+                <span class="avatar-title rounded-circle bg-success-subtle text-success">
+                  <i class="ri-check-line font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card card-h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <span class="text-muted mb-3 lh-1 d-block text-truncate">Rejected</span>
+              <h4 class="mb-3">{{stats.rejected}}</h4>
+            </div>
+            <div class="flex-shrink-0">
+              <div class="avatar-sm rounded-circle bg-danger-subtle">
+                <span class="avatar-title rounded-circle bg-danger-subtle text-danger">
+                  <i class="ri-close-line font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row mb-4">
+            <div class="col-md-2">
+              <label for="statusFilter" class="form-label">Status</label>
+              <select id="statusFilter" class="form-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="categoryFilter" class="form-label">Category</label>
+              <select id="categoryFilter" class="form-select" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
+                <option value="all">All Categories</option>
+                <option value="tax-documents">Tax Documents</option>
+                <option value="financial-statements">Financial Statements</option>
+                <option value="receipts">Receipts</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="clientFilter" class="form-label">Client</label>
+              <select id="clientFilter" class="form-select" [(ngModel)]="selectedClient" (change)="onClientChange()">
+                <option value="all">All Clients</option>
+                <option *ngFor="let client of clients" [value]="client.id">{{client.name}}</option>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label for="searchInput" class="form-label">Search Documents</label>
+              <input type="text" id="searchInput" class="form-control" placeholder="Search by document name, client name, or email..." 
+                     [(ngModel)]="searchTerm" (input)="onSearchChange()">
+            </div>
+          </div>
+
+          <!-- Documents Table -->
+          <div class="table-responsive">
+            <table class="table table-nowrap table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>Document</th>
+                  <th>Client</th>
+                  <th>Category</th>
+                  <th>Type & Size</th>
+                  <th>Upload Date</th>
+                  <th>Status</th>
+                  <th>Reviewed By</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let doc of filteredDocuments">
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <i class="ri-file-text-line me-2 text-muted"></i>
+                      <div>
+                        <h6 class="mb-1">{{doc.documentName}}</h6>
+                        <p class="text-muted mb-0 font-size-12" *ngIf="doc.notes">
+                          <i class="ri-sticky-note-line me-1"></i>{{doc.notes | slice:0:50}}...
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>
+                      <h6 class="mb-1">{{doc.clientName}}</h6>
+                      <p class="text-muted mb-0 font-size-12">{{doc.clientEmail}}</p>
+                    </div>
+                  </td>
+                  <td>
+                    <span [class]="getCategoryClass(doc.category)">
+                      {{getCategoryDisplay(doc.category)}}
+                    </span>
+                  </td>
+                  <td>
+                    <div>
+                      <span class="badge bg-light text-dark">{{doc.documentType}}</span>
+                      <p class="text-muted mb-0 font-size-12">{{doc.size}}</p>
+                    </div>
+                  </td>
+                  <td>{{doc.uploadDate | date:'short'}}</td>
+                  <td>
+                    <div class="dropdown">
+                      <span [class]="getStatusClass(doc.status)" class="dropdown-toggle" 
+                            data-bs-toggle="dropdown" style="cursor: pointer;">
+                        {{doc.status | titlecase}}
+                      </span>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" (click)="updateStatus(doc, 'pending')">Pending</a></li>
+                        <li><a class="dropdown-item" (click)="updateStatus(doc, 'reviewed')">Reviewed</a></li>
+                        <li><a class="dropdown-item" (click)="updateStatus(doc, 'approved')">Approved</a></li>
+                        <li><a class="dropdown-item" (click)="updateStatus(doc, 'rejected')">Rejected</a></li>
+                      </ul>
+                    </div>
+                  </td>
+                  <td>
+                    <div *ngIf="doc.reviewedBy">
+                      <span class="font-size-12">{{doc.reviewedBy}}</span>
+                      <p class="text-muted mb-0 font-size-11">{{doc.reviewDate | date:'short'}}</p>
+                    </div>
+                    <span *ngIf="!doc.reviewedBy" class="text-muted font-size-12">Not reviewed</span>
+                  </td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewDocument(doc)" title="View Document">
+                        <i class="ri-eye-line"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-info" (click)="downloadDocument(doc)" title="Download">
+                        <i class="ri-download-line"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="addNotes(doc)" title="Add Notes">
+                        <i class="ri-sticky-note-line"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-success" 
+                              *ngIf="doc.status === 'pending'" (click)="updateStatus(doc, 'approved')" title="Approve">
+                        <i class="ri-check-line"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" 
+                              *ngIf="doc.status === 'pending' || doc.status === 'reviewed'" (click)="updateStatus(doc, 'rejected')" title="Reject">
+                        <i class="ri-close-line"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="filteredDocuments.length === 0">
+                  <td colspan="8" class="text-center text-muted py-4">
+                    No documents found matching your criteria.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

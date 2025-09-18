@@ -348,6 +348,13 @@
         }
       }
     },
+    "TAXCONSULTANT": {
+      "TEXT": "Tax Consultant",
+      "LIST": {
+        "INTAKEFORMS": "Intake Forms",
+        "CLIENTDOCUMENTS": "Client Documents"
+      }
+    },
     "PORTAL": {
       "NAVIGATION": {
         "TEXT": "Navigation"

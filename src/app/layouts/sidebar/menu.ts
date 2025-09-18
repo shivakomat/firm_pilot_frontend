@@ -162,6 +162,25 @@ export const MENU: MenuItem[] = [
         link: '/invitations',
     },
     {
+        id: 60,
+        label: 'MENUITEMS.TAXCONSULTANT.TEXT',
+        icon: 'bx-calculator',
+        subItems: [
+            {
+                id: 61,
+                label: 'MENUITEMS.TAXCONSULTANT.LIST.INTAKEFORMS',
+                link: '/tax-consultant/intake-forms',
+                parentId: 60
+            },
+            {
+                id: 62,
+                label: 'MENUITEMS.TAXCONSULTANT.LIST.CLIENTDOCUMENTS',
+                link: '/tax-consultant/client-documents',
+                parentId: 60
+            }
+        ]
+    },
+    {
         id: 37,
         label: 'MENUITEMS.INVOICES.TEXT',
         icon: 'bx-receipt',

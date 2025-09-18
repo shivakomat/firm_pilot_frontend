@@ -26,6 +26,7 @@ const routes: Routes = [
   { path: 'contacts', loadChildren: () => import('./contacts/contacts.module').then(m => m.ContactsModule) },
   { path: 'clients', loadChildren: () => import('./clients/clients.module').then(m => m.ClientsModule) },
   { path: 'invitations', loadChildren: () => import('./invitations/invitations.module').then(m => m.InvitationsModule) },
+  { path: 'tax-consultant', loadChildren: () => import('./tax-consultant/tax-consultant.module').then(m => m.TaxConsultantModule) },
   { path: 'blog', loadChildren: () => import('./blog/blog.module').then(m => m.BlogModule) },
   { path: 'pages', loadChildren: () => import('./utility/utility.module').then(m => m.UtilityModule) },
   { path: 'ui', loadChildren: () => import('./ui/ui.module').then(m => m.UiModule) },

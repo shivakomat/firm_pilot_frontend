@@ -1,0 +1,207 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <h4 class="mb-sm-0 font-size-18">Client Intake Forms</h4>
+        <div class="page-title-right">
+          <button type="button" class="btn btn-success btn-sm" (click)="exportForms()">
+            <i class="ri-download-line me-1"></i>Export Forms
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row">
+    <div class="col-xl-3 col-md-6">
+      <div class="card card-h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <span class="text-muted mb-3 lh-1 d-block text-truncate">Total Forms</span>
+              <h4 class="mb-3">{{stats.total}}</h4>
+            </div>
+            <div class="flex-shrink-0">
+              <div id="mini-chart1" data-colors='["#5156be"]'></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card card-h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <span class="text-muted mb-3 lh-1 d-block text-truncate">Pending Review</span>
+              <h4 class="mb-3">
+                <span class="counter-value">{{stats.pending}}</span>
+              </h4>
+            </div>
+            <div class="flex-shrink-0">
+              <div class="avatar-sm rounded-circle bg-warning-subtle">
+                <span class="avatar-title rounded-circle bg-warning-subtle text-warning">
+                  <i class="ri-time-line font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card card-h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <span class="text-muted mb-3 lh-1 d-block text-truncate">Approved</span>
+              <h4 class="mb-3">{{stats.approved}}</h4>
+            </div>
+            <div class="flex-shrink-0">
+              <div class="avatar-sm rounded-circle bg-success-subtle">
+                <span class="avatar-title rounded-circle bg-success-subtle text-success">
+                  <i class="ri-check-line font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+      <div class="card card-h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <span class="text-muted mb-3 lh-1 d-block text-truncate">Needs Revision</span>
+              <h4 class="mb-3">{{stats.needsRevision}}</h4>
+            </div>
+            <div class="flex-shrink-0">
+              <div class="avatar-sm rounded-circle bg-danger-subtle">
+                <span class="avatar-title rounded-circle bg-danger-subtle text-danger">
+                  <i class="ri-error-warning-line font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <label for="statusFilter" class="form-label">Filter by Status</label>
+              <select id="statusFilter" class="form-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="approved">Approved</option>
+                <option value="needs-revision">Needs Revision</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="formTypeFilter" class="form-label">Filter by Form Type</label>
+              <select id="formTypeFilter" class="form-select" [(ngModel)]="selectedFormType" (change)="onFormTypeChange()">
+                <option value="all">All Types</option>
+                <option value="tax-intake">Tax Intake</option>
+                <option value="business-intake">Business Intake</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="searchInput" class="form-label">Search Forms</label>
+              <input type="text" id="searchInput" class="form-control" placeholder="Search by client name or email..." 
+                     [(ngModel)]="searchTerm" (input)="onSearchChange()">
+            </div>
+          </div>
+
+          <!-- Forms Table -->
+          <div class="table-responsive">
+            <table class="table table-nowrap table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>Client</th>
+                  <th>Form Type</th>
+                  <th>Submission Date</th>
+                  <th>Status</th>
+                  <th>Completion</th>
+                  <th>Last Modified</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let form of filteredForms">
+                  <td>
+                    <div>
+                      <h6 class="mb-1">{{form.clientName}}</h6>
+                      <p class="text-muted mb-0 font-size-12">{{form.clientEmail}}</p>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-primary-subtle text-primary">
+                      {{getFormTypeDisplay(form.formType)}}
+                    </span>
+                  </td>
+                  <td>{{form.submissionDate | date:'short'}}</td>
+                  <td>
+                    <div class="dropdown">
+                      <span [class]="getStatusClass(form.status)" class="dropdown-toggle" 
+                            data-bs-toggle="dropdown" style="cursor: pointer;">
+                        {{form.status | titlecase}}
+                      </span>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" (click)="updateStatus(form, 'pending')">Pending</a></li>
+                        <li><a class="dropdown-item" (click)="updateStatus(form, 'reviewed')">Reviewed</a></li>
+                        <li><a class="dropdown-item" (click)="updateStatus(form, 'approved')">Approved</a></li>
+                        <li><a class="dropdown-item" (click)="updateStatus(form, 'needs-revision')">Needs Revision</a></li>
+                      </ul>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                        <div class="progress-bar" [style.width.%]="form.completionPercentage" 
+                             [class]="form.completionPercentage === 100 ? 'bg-success' : 'bg-warning'"></div>
+                      </div>
+                      <span class="text-muted font-size-12">{{form.completionPercentage}}%</span>
+                    </div>
+                  </td>
+                  <td>{{form.lastModified | date:'short'}}</td>
+                  <td>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewForm(form)">
+                        <i class="ri-eye-line"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-success" 
+                              *ngIf="form.status === 'pending'" (click)="updateStatus(form, 'reviewed')">
+                        <i class="ri-check-line"></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-warning" 
+                              *ngIf="form.status === 'reviewed'" (click)="updateStatus(form, 'needs-revision')">
+                        <i class="ri-edit-line"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="filteredForms.length === 0">
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No intake forms found matching your criteria.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

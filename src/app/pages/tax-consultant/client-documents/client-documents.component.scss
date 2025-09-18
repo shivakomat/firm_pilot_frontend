@@ -1,0 +1,65 @@
+.card-h-100 {
+  height: 100%;
+}
+
+.avatar-sm {
+  height: 2rem;
+  width: 2rem;
+}
+
+.avatar-title {
+  align-items: center;
+  background-color: #556ee6;
+  color: #fff;
+  display: flex;
+  font-weight: 500;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.bg-primary-subtle {
+  background-color: rgba(85, 110, 230, 0.1) !important;
+}
+
+.bg-success-subtle {
+  background-color: rgba(52, 195, 143, 0.1) !important;
+}
+
+.bg-warning-subtle {
+  background-color: rgba(252, 185, 44, 0.1) !important;
+}
+
+.bg-danger-subtle {
+  background-color: rgba(244, 106, 106, 0.1) !important;
+}
+
+.bg-info-subtle {
+  background-color: rgba(80, 165, 241, 0.1) !important;
+}
+
+.table th {
+  font-weight: 600;
+  border-top: none;
+}
+
+.dropdown-toggle::after {
+  display: none;
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+
+.font-size-11 {
+  font-size: 0.6875rem;
+}
+
+.font-size-12 {
+  font-size: 0.75rem;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
