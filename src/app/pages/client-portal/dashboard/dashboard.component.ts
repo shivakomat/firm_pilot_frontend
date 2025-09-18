@@ -70,9 +70,6 @@ import { RouterModule } from '@angular/router';
                   <div>
                     <h5 class="font-size-16 mb-1">Intake Forms</h5>
                     <p class="text-muted mb-2">Complete required forms</p>
-                    <a routerLink="/client-portal/intake" class="btn btn-success btn-sm me-2">
-                      <i class="bx bx-edit me-1"></i> Business Forms
-                    </a>
                     <a routerLink="/client-portal/tax-intake" class="btn btn-primary btn-sm">
                       <i class="bx bx-receipt me-1"></i> Tax Intake
                     </a>
