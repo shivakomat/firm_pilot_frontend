@@ -99,6 +99,8 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadExistingData();
     this.setupAutoSave();
+    // Initialize progress to 0 until data is loaded
+    this.progress = 0;
   }
 
   ngOnDestroy(): void {
@@ -229,10 +231,30 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
     // Populate deductions information
     if (data.deductionsInfo) {
-      this.intakeForm.get('deductionsAdjustments')?.patchValue(data.deductionsInfo);
+      // Extract nested form data
+      const deductionsData = { ...data.deductionsInfo };
+      
+      // Handle nested objects separately
+      if (deductionsData.healthCoverage) {
+        this.intakeForm.get('healthCoverage')?.patchValue(deductionsData.healthCoverage);
+        delete deductionsData.healthCoverage;
+      }
+      
+      if (deductionsData.credits) {
+        this.intakeForm.get('credits')?.patchValue(deductionsData.credits);
+        delete deductionsData.credits;
+      }
+      
+      if (deductionsData.priorYearInfo) {
+        this.intakeForm.get('priorYearInfo')?.patchValue(deductionsData.priorYearInfo);
+        delete deductionsData.priorYearInfo;
+      }
+      
+      // Set remaining deductions data
+      this.intakeForm.get('deductionsAdjustments')?.patchValue(deductionsData);
     }
 
-    // Update progress after populating
+    // Update progress after populating - this will now calculate correctly
     this.updateProgress();
   }
 
@@ -256,13 +278,35 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
       this.apiService.submitClientIntakeResponse(this.clientId, formData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: () => {
+          next: (response) => {
             this.isSaving = false;
             this.updateProgress();
+            if (response.success) {
+              // Show brief success message
+              const toast = document.createElement('div');
+              toast.className = 'toast-container position-fixed top-0 end-0 p-3';
+              toast.innerHTML = `
+                <div class="toast show" role="alert">
+                  <div class="toast-body bg-success text-white">
+                    <i class="ri-check-line me-1"></i>Draft saved successfully
+                  </div>
+                </div>
+              `;
+              document.body.appendChild(toast);
+              setTimeout(() => document.body.removeChild(toast), 3000);
+            }
           },
           error: (error) => {
             console.error('Auto-save failed:', error);
             this.isSaving = false;
+            // Show error message
+            Swal.fire({
+              title: 'Save Failed',
+              text: 'Unable to save draft. Please try again.',
+              icon: 'error',
+              timer: 3000,
+              showConfirmButton: false
+            });
           }
         });
     }
@@ -292,16 +336,16 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   updateProgress(): void {
     this.progress = this.calculateProgress();
-    
-    // Update section completion status
-    this.sections.forEach((section, index) => {
-      section.completed = this.isSectionCompleted(index);
-    });
   }
 
   calculateProgress(): number {
+    // First update section completion status
+    this.sections.forEach((section, index) => {
+      section.completed = this.isSectionCompleted(index);
+    });
+    
     const totalSections = this.sections.length;
-    const completedSections = this.sections.filter(section => this.isSectionCompleted(section.id)).length;
+    const completedSections = this.sections.filter(section => section.completed).length;
     return Math.round((completedSections / totalSections) * 100);
   }
 
