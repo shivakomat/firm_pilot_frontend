@@ -205,57 +205,81 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   }
 
   populateFormFromAPI(data: IntakeResponse): void {
-    // Populate personal information
-    if (data.personalInfo) {
-      this.intakeForm.get('personalInformation')?.patchValue(data.personalInfo);
-    }
+    try {
+      // Parse the responseJson if it exists and is a string
+      let parsedData: any;
+      if (data.personalInfo && typeof data.personalInfo === 'string') {
+        // If personalInfo is a JSON string, parse it
+        parsedData = JSON.parse(data.personalInfo);
+      } else if (data.personalInfo && typeof data.personalInfo === 'object') {
+        // If it's already an object, use it directly
+        parsedData = data.personalInfo;
+      } else {
+        // Try to find the data in other fields or use the data object itself
+        parsedData = data;
+      }
 
-    // Populate income information
-    if (data.incomeInfo) {
-      // Handle income sources array
-      if (data.incomeInfo.sources && data.incomeInfo.sources.length > 0) {
-        const incomeArray = this.intakeForm.get('incomeSource') as FormArray;
-        data.incomeInfo.sources.forEach((income: any) => {
-          incomeArray.push(this.createIncomeGroup(income));
-        });
+      // Populate personal information
+      if (parsedData.personalInfo) {
+        // Convert firstName/lastName back to fullName if needed
+        const personalInfo = { ...parsedData.personalInfo };
+        if (personalInfo.firstName && personalInfo.lastName && !personalInfo.fullName) {
+          personalInfo.fullName = `${personalInfo.firstName} ${personalInfo.lastName}`;
+        }
+        this.intakeForm.get('personalInformation')?.patchValue(personalInfo);
       }
-      
-      // Handle dependents if they're in income info
-      if (data.incomeInfo.dependents && data.incomeInfo.dependents.length > 0) {
-        const dependentsArray = this.intakeForm.get('dependents') as FormArray;
-        data.incomeInfo.dependents.forEach((dependent: any) => {
-          dependentsArray.push(this.createDependentGroup(dependent));
-        });
-      }
-    }
 
-    // Populate deductions information
-    if (data.deductionsInfo) {
-      // Extract nested form data
-      const deductionsData = { ...data.deductionsInfo };
-      
-      // Handle nested objects separately
-      if (deductionsData.healthCoverage) {
-        this.intakeForm.get('healthCoverage')?.patchValue(deductionsData.healthCoverage);
-        delete deductionsData.healthCoverage;
+      // Populate income information
+      if (parsedData.incomeInfo) {
+        // Handle income sources array
+        if (parsedData.incomeInfo.sources && parsedData.incomeInfo.sources.length > 0) {
+          const incomeArray = this.intakeForm.get('incomeSource') as FormArray;
+          parsedData.incomeInfo.sources.forEach((income: any) => {
+            incomeArray.push(this.createIncomeGroup(income));
+          });
+        }
+        
+        // Handle dependents if they're in income info
+        if (parsedData.incomeInfo.dependents && parsedData.incomeInfo.dependents.length > 0) {
+          const dependentsArray = this.intakeForm.get('dependents') as FormArray;
+          parsedData.incomeInfo.dependents.forEach((dependent: any) => {
+            dependentsArray.push(this.createDependentGroup(dependent));
+          });
+        }
       }
-      
-      if (deductionsData.credits) {
-        this.intakeForm.get('credits')?.patchValue(deductionsData.credits);
-        delete deductionsData.credits;
-      }
-      
-      if (deductionsData.priorYearInfo) {
-        this.intakeForm.get('priorYearInfo')?.patchValue(deductionsData.priorYearInfo);
-        delete deductionsData.priorYearInfo;
-      }
-      
-      // Set remaining deductions data
-      this.intakeForm.get('deductionsAdjustments')?.patchValue(deductionsData);
-    }
 
-    // Update progress after populating - this will now calculate correctly
-    this.updateProgress();
+      // Populate deductions information
+      if (parsedData.deductionsInfo) {
+        // Extract nested form data
+        const deductionsData = { ...parsedData.deductionsInfo };
+        
+        // Handle nested objects separately
+        if (deductionsData.healthCoverage) {
+          this.intakeForm.get('healthCoverage')?.patchValue(deductionsData.healthCoverage);
+          delete deductionsData.healthCoverage;
+        }
+        
+        if (deductionsData.credits) {
+          this.intakeForm.get('credits')?.patchValue(deductionsData.credits);
+          delete deductionsData.credits;
+        }
+        
+        if (deductionsData.priorYearInfo) {
+          this.intakeForm.get('priorYearInfo')?.patchValue(deductionsData.priorYearInfo);
+          delete deductionsData.priorYearInfo;
+        }
+        
+        // Set remaining deductions data
+        this.intakeForm.get('deductionsAdjustments')?.patchValue(deductionsData);
+      }
+
+      // Update progress after populating - this will now calculate correctly
+      this.updateProgress();
+    } catch (error) {
+      console.error('Error parsing intake form data:', error);
+      // Still update progress even if parsing fails
+      this.updateProgress();
+    }
   }
 
   setupAutoSave(): void {
@@ -314,11 +338,23 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   prepareAPIFormData(): SubmitIntakeRequest {
     const formValue = this.intakeForm.value;
-    return {
-      personalInfo: formValue.personalInformation,
+    
+    // Prepare the response data structure matching the sample format
+    const responseData = {
+      personalInfo: {
+        firstName: formValue.personalInformation?.fullName?.split(' ')[0] || '',
+        lastName: formValue.personalInformation?.fullName?.split(' ').slice(1).join(' ') || '',
+        email: formValue.personalInformation?.email || '',
+        phone: formValue.personalInformation?.phone || '',
+        dateOfBirth: formValue.personalInformation?.dateOfBirth || '',
+        ssn: formValue.personalInformation?.ssn || '',
+        maritalStatus: formValue.personalInformation?.maritalStatus || '',
+        address: formValue.personalInformation?.address || {}
+      },
       incomeInfo: {
-        sources: formValue.incomeSource,
-        dependents: formValue.dependents
+        sources: formValue.incomeSource || [],
+        dependents: formValue.dependents || [],
+        estimatedIncome: this.calculateTotalIncome(formValue.incomeSource || [])
       },
       deductionsInfo: {
         ...formValue.deductionsAdjustments,
@@ -329,9 +365,23 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
       documentsInfo: {
         currentSection: this.currentSection,
         progress: this.progress,
-        lastSaved: new Date().toISOString()
+        lastSaved: new Date().toISOString(),
+        completedSections: this.sections.filter(s => s.completed).length
+      },
+      additionalInfo: {
+        formVersion: '1.0',
+        submissionSource: 'client-portal'
       }
     };
+
+    return {
+      formId: 1, // Default tax intake form ID
+      responseJson: JSON.stringify(responseData)
+    };
+  }
+
+  private calculateTotalIncome(incomeSources: any[]): number {
+    return incomeSources.reduce((total, source) => total + (source.amount || 0), 0);
   }
 
   updateProgress(): void {
@@ -541,14 +591,22 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     const formData = this.prepareAPIFormData();
-    // Add submission metadata
-    formData.documentsInfo = {
-      ...formData.documentsInfo,
+    
+    // Parse the responseJson to add submission metadata, then stringify again
+    const responseData = JSON.parse(formData.responseJson);
+    responseData.documentsInfo = {
+      ...responseData.documentsInfo,
       status: 'submitted',
       submittedAt: new Date().toISOString()
     };
+    
+    // Update the formData with modified responseJson
+    const finalFormData: SubmitIntakeRequest = {
+      formId: formData.formId,
+      responseJson: JSON.stringify(responseData)
+    };
 
-    this.apiService.submitClientIntakeResponse(this.clientId, formData)
+    this.apiService.submitClientIntakeResponse(this.clientId, finalFormData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

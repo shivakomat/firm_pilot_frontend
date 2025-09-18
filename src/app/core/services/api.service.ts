@@ -160,10 +160,8 @@ export interface GetIntakeResponsesResponse {
 }
 
 export interface SubmitIntakeRequest {
-  personalInfo?: any;
-  incomeInfo?: any;
-  deductionsInfo?: any;
-  documentsInfo?: any;
+  formId: number;
+  responseJson: string;
 }
 
 export interface SubmitIntakeResponse {

@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "🔧 Fix client intake form: btn-info styling, save draft persistence, progress bar calculation"
+git commit -m "🔄 Update intake form API to match backend schema: formId + responseJson structure"
 
 # Deploy to Heroku
 git push heroku main
