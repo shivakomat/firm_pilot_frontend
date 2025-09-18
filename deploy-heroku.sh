@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "🎨 Simplify section navigation button styling logic"
+git commit -m "🎨 Use btn-info for all section navigation buttons"
 
 # Deploy to Heroku
 git push heroku main

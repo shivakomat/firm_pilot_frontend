@@ -24,10 +24,7 @@
             <button 
               *ngFor="let section of sections; let i = index"
               type="button" 
-              class="btn btn-sm"
-              [class.btn-info]="section.completed"
-              [class.btn-outline-info]="i === currentSection && !section.completed"
-              [class.btn-outline-info]="i !== currentSection && !section.completed"
+              class="btn btn-sm btn-info"
               (click)="goToSection(i)">
               <i [class]="section.icon" class="me-1"></i>
               {{section.title}}
