@@ -15,6 +15,7 @@ import { LoaderComponent } from '../../shared/ui/loader/loader.component';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { TabsModule } from 'ngx-bootstrap/tabs';
+import { DropzoneModule } from 'ngx-dropzone-wrapper';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
     LoaderComponent,
     BsDropdownModule,
     ModalModule,
-    TabsModule
+    TabsModule,
+    DropzoneModule
   ]
 })
 export class ClientPortalModule { }

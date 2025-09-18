@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import Swal from 'sweetalert2';
-
-declare var bootstrap: any;
+import { DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 
 interface Document {
   id: number;
@@ -19,6 +18,8 @@ interface Document {
   styleUrls: ['./documents.component.scss']
 })
 export class DocumentsComponent implements OnInit {
+  @ViewChild('uploadModal') uploadModal!: ElementRef;
+  
   documents: Document[] = [];
   filteredDocuments: Document[] = [];
   selectedCategory: string = 'all';
@@ -27,9 +28,21 @@ export class DocumentsComponent implements OnInit {
   // Upload form properties
   selectedFile: File | null = null;
   isUploading: boolean = false;
+  showUploadModal: boolean = false;
+  uploadedFiles: any[] = [];
   uploadForm = {
     category: '',
     description: ''
+  };
+  
+  // Dropzone configuration
+  public dropzoneConfig: DropzoneConfigInterface = {
+    clickable: true,
+    addRemoveLinks: false,
+    previewsContainer: false,
+    acceptedFiles: '.pdf,.jpg,.jpeg,.png,.doc,.docx',
+    maxFilesize: 10, // 10MB
+    maxFiles: 10
   };
 
   constructor() { }
@@ -117,38 +130,22 @@ export class DocumentsComponent implements OnInit {
       description: ''
     };
     
-    // Open modal
-    const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
-    modal.show();
+    // Show modal
+    this.showUploadModal = true;
   }
   
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      // Check file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        Swal.fire({
-          title: 'File Too Large',
-          text: 'Please select a file smaller than 10MB.',
-          icon: 'error'
-        });
-        return;
-      }
-      
-      // Check file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 
-                           'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(file.type)) {
-        Swal.fire({
-          title: 'Invalid File Type',
-          text: 'Please select a PDF, JPG, PNG, DOC, or DOCX file.',
-          icon: 'error'
-        });
-        return;
-      }
-      
-      this.selectedFile = file;
-    }
+  closeUploadModal(): void {
+    this.showUploadModal = false;
+  }
+  
+  onUploadSuccess(event: any): void {
+    setTimeout(() => {
+      this.uploadedFiles.push(event[0]);
+    }, 0);
+  }
+  
+  removeUploadedFile(index: number): void {
+    this.uploadedFiles.splice(index, 1);
   }
   
   formatFileSize(bytes: number): string {
@@ -168,26 +165,31 @@ export class DocumentsComponent implements OnInit {
     
     // Simulate upload process
     setTimeout(() => {
-      // Create new document entry
-      const newDoc: Document = {
-        id: this.documents.length + 1,
-        name: this.selectedFile!.name,
-        type: this.getFileTypeDisplay(this.selectedFile!.type),
-        size: this.formatFileSize(this.selectedFile!.size),
-        uploadDate: new Date().toISOString(),
-        status: 'pending',
-        category: this.uploadForm.category as any
-      };
+      // Create new document entries for each uploaded file
+      this.uploadedFiles.forEach(file => {
+        const newDoc: Document = {
+          id: this.documents.length + 1,
+          name: file.name,
+          type: this.getFileTypeDisplay(file.type),
+          size: this.formatFileSize(file.size),
+          uploadDate: new Date().toISOString(),
+          status: 'pending',
+          category: this.uploadForm.category as any
+        };
+        
+        // Add to documents list
+        this.documents.unshift(newDoc);
+      });
       
-      // Add to documents list
-      this.documents.unshift(newDoc);
       this.filterDocuments();
+      
+      // Clear uploaded files
+      this.uploadedFiles = [];
       
       this.isUploading = false;
       
       // Close modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
-      modal.hide();
+      this.showUploadModal = false;
       
       // Show success message
       Swal.fire({
