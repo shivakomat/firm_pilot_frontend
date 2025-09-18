@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "✨ Add comprehensive tax intake form with 7 sections, auto-save, SSN masking, and progress tracking"
+git commit -m "🎨 Polish intake form: btn-info styling, btn-success for income, improved progress bar"
 
 # Deploy to Heroku
 git push heroku main

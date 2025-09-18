@@ -13,8 +13,10 @@
           </div>
           
           <!-- Progress Bar -->
-          <div class="progress mb-3" style="height: 8px;">
-            <div class="progress-bar" [style.width.%]="progress" role="progressbar"></div>
+          <div class="progress mb-3" style="height: 12px;">
+            <div class="progress-bar bg-info" [style.width.%]="progress" role="progressbar" [attr.aria-valuenow]="progress" aria-valuemin="0" aria-valuemax="100">
+              <span class="visually-hidden">{{progress}}% Complete</span>
+            </div>
           </div>
           
           <!-- Section Navigation -->
@@ -179,7 +181,7 @@
             <div *ngIf="currentSection === 1">
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0">👨‍👩‍👧 Section B. Dependents</h5>
-                <button type="button" class="btn btn-primary btn-sm" (click)="addDependent()">
+                <button type="button" class="btn btn-info btn-sm" (click)="addDependent()">
                   <i class="ri-add-line me-1"></i>Add Dependent
                 </button>
               </div>
@@ -270,7 +272,7 @@
             <div *ngIf="currentSection === 2">
               <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0">💼 Section C. Income</h5>
-                <button type="button" class="btn btn-primary btn-sm" (click)="addIncomeSource()">
+                <button type="button" class="btn btn-success btn-sm" (click)="addIncomeSource()">
                   <i class="ri-add-line me-1"></i>Add Income Source
                 </button>
               </div>
@@ -546,7 +548,7 @@
               <div>
                 <button 
                   type="button" 
-                  class="btn btn-outline-primary me-2"
+                  class="btn btn-info me-2"
                   (click)="autoSave()"
                   [disabled]="isSaving">
                   <i class="ri-save-line me-1"></i>Save Draft
@@ -564,7 +566,7 @@
                 <button 
                   *ngIf="currentSection < sections.length - 1"
                   type="button" 
-                  class="btn btn-primary"
+                  class="btn btn-info"
                   (click)="nextSection()">
                   Next<i class="ri-arrow-right-line ms-1"></i>
                 </button>
