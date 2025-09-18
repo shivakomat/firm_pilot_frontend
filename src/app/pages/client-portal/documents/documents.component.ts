@@ -37,12 +37,14 @@ export class DocumentsComponent implements OnInit {
   
   // Dropzone configuration
   public dropzoneConfig: DropzoneConfigInterface = {
+    url: '/upload', // Mock URL for client-side handling
     clickable: true,
     addRemoveLinks: false,
     previewsContainer: false,
     acceptedFiles: '.pdf,.jpg,.jpeg,.png,.doc,.docx',
     maxFilesize: 10, // 10MB
-    maxFiles: 10
+    maxFiles: 10,
+    autoProcessQueue: false // Prevent automatic upload
   };
 
   constructor() { }
