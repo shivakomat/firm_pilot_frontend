@@ -26,8 +26,8 @@
               type="button" 
               class="btn btn-sm"
               [class.btn-success]="section.completed"
-              [class.btn-primary]="i === currentSection && !section.completed"
-              [class.btn-outline-secondary]="i !== currentSection && !section.completed"
+              [class.btn-info]="i === currentSection && !section.completed"
+              [class.btn-outline-info]="i !== currentSection && !section.completed"
               (click)="goToSection(i)">
               <i [class]="section.icon" class="me-1"></i>
               {{section.title}}
@@ -148,7 +148,7 @@
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Phone *</label>
-                    <input type="tel" class="form-control" formControlName="phone" placeholder="(555) 123-4567">
+                    <input type="tel" class="form-control" formControlName="phone" placeholder="(555) 123-4567" (input)="formatPhoneInput($event, 'personalInformation.phone')">
                   </div>
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Email *</label>

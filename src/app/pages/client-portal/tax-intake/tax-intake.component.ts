@@ -394,6 +394,23 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
     this.intakeForm.get(controlPath)?.setValue(formatted);
   }
 
+  formatPhoneInput(event: any, controlPath: string): void {
+    const input = event.target.value.replace(/\D/g, '');
+    let formatted = '';
+    
+    if (input.length >= 10) {
+      formatted = `(${input.slice(0, 3)}) ${input.slice(3, 6)}-${input.slice(6, 10)}`;
+    } else if (input.length >= 6) {
+      formatted = `(${input.slice(0, 3)}) ${input.slice(3, 6)}-${input.slice(6)}`;
+    } else if (input.length >= 3) {
+      formatted = `(${input.slice(0, 3)}) ${input.slice(3)}`;
+    } else {
+      formatted = input;
+    }
+    
+    this.intakeForm.get(controlPath)?.setValue(formatted);
+  }
+
   // Submit form
   submitForm(): void {
     if (this.intakeForm.valid) {
