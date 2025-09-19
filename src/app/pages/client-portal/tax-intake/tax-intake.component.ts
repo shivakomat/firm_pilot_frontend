@@ -334,7 +334,7 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
     const formValue = this.intakeForm.value;
     
     // Prepare the response data structure for new API endpoints
-    return {
+    const responseData = {
       personalInfo: {
         firstName: formValue.personalInformation?.fullName?.split(' ')[0] || '',
         lastName: formValue.personalInformation?.fullName?.split(' ').slice(1).join(' ') || '',
@@ -366,6 +366,11 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
         formVersion: '1.0',
         submissionSource: 'client-portal'
       }
+    };
+
+    // Return simplified format with only responseJson
+    return {
+      responseJson: JSON.stringify(responseData)
     };
   }
 
@@ -649,14 +654,20 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const formData = this.prepareAPIFormData();
     
-    // Add submission metadata
-    formData.documentsInfo = {
-      ...formData.documentsInfo,
+    // Parse the responseJson to add submission metadata, then stringify again
+    const responseData = JSON.parse(formData.responseJson);
+    responseData.documentsInfo = {
+      ...responseData.documentsInfo,
       status: 'submitted',
       submittedAt: new Date().toISOString()
     };
+    
+    // Update the formData with modified responseJson
+    const finalFormData = {
+      responseJson: JSON.stringify(responseData)
+    };
 
-    this.apiService.submitMyIntakeResponse(this.formId, formData)
+    this.apiService.submitMyIntakeResponse(this.formId, finalFormData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
