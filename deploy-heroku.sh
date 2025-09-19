@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "🔧 Fix data loading to use correct API response structure (response.answersJson)"
+git commit -m "🔐 Add automatic redirect to /account/login when JWT token expires"
 
 # Deploy to Heroku
 git push heroku main

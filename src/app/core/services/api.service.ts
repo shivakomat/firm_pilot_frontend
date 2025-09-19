@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 export interface SignupRequest {
@@ -179,7 +180,32 @@ export interface SubmitIntakeResponse {
 export class ApiService {
   private baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private router: Router) { }
+
+  /**
+   * Check if JWT token is expired and redirect to login if needed
+   * @param token - JWT token to validate
+   * @returns boolean - true if token is valid, false if expired
+   */
+  private validateTokenAndRedirect(token: string): boolean {
+    try {
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      const isExpired = tokenPayload.exp && tokenPayload.exp < currentTime;
+      
+      if (isExpired) {
+        console.error('⏰ JWT token is EXPIRED - redirecting to login');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        this.router.navigate(['/account/login']);
+        return false;
+      }
+      return true;
+    } catch (parseError) {
+      console.error('🚨 Error parsing JWT token:', parseError);
+      return true; // Let backend handle invalid tokens
+    }
+  }
 
   /**
    * Debug method to check token status
@@ -421,47 +447,21 @@ export class ApiService {
   getMyIntakeResponse(formId: number): Observable<GetIntakeResponsesResponse> {
     const token = localStorage.getItem('authToken');
     
-    // Debug logging for data retrieval
-    console.log('🔐 Auth Debug - getMyIntakeResponse:');
-    console.log('Token exists:', !!token);
-    console.log('Token length:', token ? token.length : 0);
-    console.log('Token preview:', token ? `${token.substring(0, 20)}...` : 'null');
-    
     if (!token) {
       console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
       throw new Error('No authentication token found. Please log in again.');
     }
 
-    // Check if token is expired
-    try {
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      const isExpired = tokenPayload.exp && tokenPayload.exp < currentTime;
-      
-      console.log('🕐 Token expiration check:');
-      console.log('Token exp:', tokenPayload.exp ? new Date(tokenPayload.exp * 1000).toISOString() : 'No exp field');
-      console.log('Current time:', new Date(currentTime * 1000).toISOString());
-      console.log('Is expired:', isExpired);
-      
-      if (isExpired) {
-        console.error('⏰ JWT token is EXPIRED');
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('currentUser');
-        throw new Error('Authentication token has expired. Please log in again.');
-      }
-    } catch (parseError) {
-      console.error('🚨 Error parsing JWT token:', parseError);
-      console.error('Token may be malformed or invalid');
+    // Validate token and redirect if expired
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
     }
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
-
-    console.log('📤 Request headers:', headers.keys());
-    console.log('📤 Authorization header:', headers.get('Authorization')?.substring(0, 30) + '...');
-    console.log('📤 GET URL:', `${this.baseUrl}/my/intake/responses/${formId}`);
 
     return this.http.get<GetIntakeResponsesResponse>(`${this.baseUrl}/my/intake/responses/${formId}`, { headers });
   }
@@ -474,46 +474,21 @@ export class ApiService {
   saveMyIntakeDraft(formId: number, intakeData: any): Observable<SubmitIntakeResponse> {
     const token = localStorage.getItem('authToken');
     
-    // Debug logging
-    console.log('🔐 Auth Debug - saveMyIntakeDraft:');
-    console.log('Token exists:', !!token);
-    console.log('Token length:', token ? token.length : 0);
-    console.log('Token preview:', token ? `${token.substring(0, 20)}...` : 'null');
-    
     if (!token) {
       console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
       throw new Error('No authentication token found. Please log in again.');
     }
 
-    // Check if token is expired
-    try {
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      const isExpired = tokenPayload.exp && tokenPayload.exp < currentTime;
-      
-      console.log('🕐 Token expiration check:');
-      console.log('Token exp:', tokenPayload.exp ? new Date(tokenPayload.exp * 1000).toISOString() : 'No exp field');
-      console.log('Current time:', new Date(currentTime * 1000).toISOString());
-      console.log('Is expired:', isExpired);
-      
-      if (isExpired) {
-        console.error('⏰ JWT token is EXPIRED');
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('currentUser');
-        throw new Error('Authentication token has expired. Please log in again.');
-      }
-    } catch (parseError) {
-      console.error('🚨 Error parsing JWT token:', parseError);
-      console.error('Token may be malformed or invalid');
+    // Validate token and redirect if expired
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
     }
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
-
-    console.log('📤 Request headers:', headers.keys());
-    console.log('📤 Authorization header:', headers.get('Authorization')?.substring(0, 30) + '...');
 
     return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/my/intake/responses/${formId}/draft`, intakeData, { headers });
   }
@@ -526,46 +501,21 @@ export class ApiService {
   submitMyIntakeResponse(formId: number, intakeData: any): Observable<SubmitIntakeResponse> {
     const token = localStorage.getItem('authToken');
     
-    // Debug logging
-    console.log('🔐 Auth Debug - submitMyIntakeResponse:');
-    console.log('Token exists:', !!token);
-    console.log('Token length:', token ? token.length : 0);
-    console.log('Token preview:', token ? `${token.substring(0, 20)}...` : 'null');
-    
     if (!token) {
       console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
       throw new Error('No authentication token found. Please log in again.');
     }
 
-    // Check if token is expired
-    try {
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      const isExpired = tokenPayload.exp && tokenPayload.exp < currentTime;
-      
-      console.log('🕐 Token expiration check:');
-      console.log('Token exp:', tokenPayload.exp ? new Date(tokenPayload.exp * 1000).toISOString() : 'No exp field');
-      console.log('Current time:', new Date(currentTime * 1000).toISOString());
-      console.log('Is expired:', isExpired);
-      
-      if (isExpired) {
-        console.error('⏰ JWT token is EXPIRED');
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('currentUser');
-        throw new Error('Authentication token has expired. Please log in again.');
-      }
-    } catch (parseError) {
-      console.error('🚨 Error parsing JWT token:', parseError);
-      console.error('Token may be malformed or invalid');
+    // Validate token and redirect if expired
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
     }
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
-
-    console.log('📤 Request headers:', headers.keys());
-    console.log('📤 Authorization header:', headers.get('Authorization')?.substring(0, 30) + '...');
 
     return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/my/intake/responses/${formId}/submit`, intakeData, { headers });
   }
