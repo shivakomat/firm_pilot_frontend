@@ -142,7 +142,10 @@ export interface GetInvitationByTokenResponse {
 
 export interface IntakeResponse {
   id?: number;
-  clientId: number;
+  clientId?: number;
+  formId?: number;
+  answersJson?: any;
+  responseJson?: string;
   personalInfo?: any;
   incomeInfo?: any;
   deductionsInfo?: any;
@@ -155,7 +158,7 @@ export interface IntakeResponse {
 
 export interface GetIntakeResponsesResponse {
   success: boolean;
-  responses?: IntakeResponse;
+  response?: IntakeResponse;
   message?: string;
 }
 

@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "🔍 Add debugging for intake form data loading after logout/login"
+git commit -m "🔧 Fix data loading to use correct API response structure (response.answersJson)"
 
 # Deploy to Heroku
 git push heroku main

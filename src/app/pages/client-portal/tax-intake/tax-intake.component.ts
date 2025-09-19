@@ -185,9 +185,10 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           console.log('✅ Load response received:', response);
-          if (response.success && response.responses) {
+          if (response.success && response.response) {
             console.log('📋 Populating form with existing data');
-            this.populateFormFromAPI(response.responses);
+            console.log('Raw response data:', response.response);
+            this.populateFormFromAPI(response.response);
           } else {
             console.log('ℹ️ No existing data found or response not successful');
           }
@@ -235,17 +236,27 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   populateFormFromAPI(data: IntakeResponse): void {
     try {
-      // Parse the responseJson if it exists and is a string
+      // Parse the answersJson if it exists and is a string
       let parsedData: any;
-      if (data.personalInfo && typeof data.personalInfo === 'string') {
-        // If personalInfo is a JSON string, parse it
-        parsedData = JSON.parse(data.personalInfo);
-      } else if (data.personalInfo && typeof data.personalInfo === 'object') {
-        // If it's already an object, use it directly
-        parsedData = data.personalInfo;
+      console.log('🔍 Parsing form data:', data);
+      
+      if (data.answersJson) {
+        if (typeof data.answersJson === 'string') {
+          parsedData = JSON.parse(data.answersJson);
+        } else {
+          parsedData = data.answersJson;
+        }
+        console.log('📊 Parsed answersJson:', parsedData);
+      } else if (data.responseJson && typeof data.responseJson === 'string') {
+        parsedData = JSON.parse(data.responseJson);
+        console.log('📊 Parsed responseJson (fallback):', parsedData);
+      } else if (data.responseJson && typeof data.responseJson === 'object') {
+        parsedData = data.responseJson;
+        console.log('📊 Using responseJson object (fallback):', parsedData);
       } else {
-        // Try to find the data in other fields or use the data object itself
+        // Use the data directly if no responseJson
         parsedData = data;
+        console.log('📊 Using data directly:', parsedData);
       }
 
       // Populate personal information
