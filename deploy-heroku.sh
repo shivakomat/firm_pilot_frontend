@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "🎯 Reorganize Tax Consultant menu - group client features under Clients dropdown"
+git commit -m "➕ Add Clients List to Clients dropdown menu for complete client management"
 
 # Deploy to Heroku
 git push heroku main

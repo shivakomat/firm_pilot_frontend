@@ -95,18 +95,24 @@ export const MENU: MenuItem[] = [
         subItems: [
             {
                 id: 51,
+                label: 'MENUITEMS.CLIENTS.TEXT',
+                link: '/clients/list',
+                parentId: 50
+            },
+            {
+                id: 52,
                 label: 'MENUITEMS.INVITATIONS.TEXT',
                 link: '/invitations',
                 parentId: 50
             },
             {
-                id: 52,
+                id: 53,
                 label: 'MENUITEMS.TAXCONSULTANT.LIST.INTAKEFORMS',
                 link: '/tax-consultant/intake-forms',
                 parentId: 50
             },
             {
-                id: 53,
+                id: 54,
                 label: 'MENUITEMS.TAXCONSULTANT.LIST.CLIENTDOCUMENTS',
                 link: '/tax-consultant/client-documents',
                 parentId: 50
