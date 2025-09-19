@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "🔐 Add automatic redirect to /account/login when JWT token expires"
+git commit -m "🎯 Reorganize Tax Consultant menu - group client features under Clients dropdown"
 
 # Deploy to Heroku
 git push heroku main

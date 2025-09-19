@@ -92,7 +92,26 @@ export const MENU: MenuItem[] = [
         id: 50,
         label: 'MENUITEMS.CLIENTS.TEXT',
         icon: 'bxs-user-detail',
-        link: '/clients/list',
+        subItems: [
+            {
+                id: 51,
+                label: 'MENUITEMS.INVITATIONS.TEXT',
+                link: '/invitations',
+                parentId: 50
+            },
+            {
+                id: 52,
+                label: 'MENUITEMS.TAXCONSULTANT.LIST.INTAKEFORMS',
+                link: '/tax-consultant/intake-forms',
+                parentId: 50
+            },
+            {
+                id: 53,
+                label: 'MENUITEMS.TAXCONSULTANT.LIST.CLIENTDOCUMENTS',
+                link: '/tax-consultant/client-documents',
+                parentId: 50
+            }
+        ]
     },
     {
         id: 10,
@@ -148,37 +167,6 @@ export const MENU: MenuItem[] = [
         //         ]
         //     }
         // ]
-    },
-    {
-        id: 12,
-        label: 'MENUITEMS.FILEMANAGER.TEXT',
-        icon: 'bx-file',
-        link: '/filemanager',
-    },
-    {
-        id: 50,
-        label: 'MENUITEMS.INVITATIONS.TEXT',
-        icon: 'bx-mail-send',
-        link: '/invitations',
-    },
-    {
-        id: 60,
-        label: 'MENUITEMS.TAXCONSULTANT.TEXT',
-        icon: 'bx-calculator',
-        subItems: [
-            {
-                id: 61,
-                label: 'MENUITEMS.TAXCONSULTANT.LIST.INTAKEFORMS',
-                link: '/tax-consultant/intake-forms',
-                parentId: 60
-            },
-            {
-                id: 62,
-                label: 'MENUITEMS.TAXCONSULTANT.LIST.CLIENTDOCUMENTS',
-                link: '/tax-consultant/client-documents',
-                parentId: 60
-            }
-        ]
     },
     {
         id: 37,
