@@ -293,12 +293,18 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
       this.isSaving = true;
       const formData = this.prepareAPIFormData();
       
+      // Debug logging for authentication
+      console.log('🔄 Auto-save triggered');
+      console.log('📋 Form data structure:', Object.keys(JSON.parse(formData.responseJson)));
+      console.log('🔑 Auth token check:', !!localStorage.getItem('authToken'));
+      
       this.apiService.saveMyIntakeDraft(this.formId, formData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
             this.isSaving = false;
             this.updateProgress();
+            console.log('✅ Auto-save successful:', response);
             if (response.success) {
               // Show brief success message
               const toast = document.createElement('div');
@@ -315,16 +321,42 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
-            console.error('Auto-save failed:', error);
             this.isSaving = false;
-            // Show error message
-            Swal.fire({
-              title: 'Save Failed',
-              text: 'Unable to save draft. Please try again.',
-              icon: 'error',
-              timer: 3000,
-              showConfirmButton: false
+            console.error('❌ Auto-save failed:', error);
+            console.error('Error details:', {
+              status: error.status,
+              statusText: error.statusText,
+              message: error.message,
+              error: error.error
             });
+            
+            // Check if it's an authentication error
+            if (error.status === 401 || error.status === 400) {
+              console.error('🚨 Authentication issue detected');
+              console.error('Current token:', localStorage.getItem('authToken') ? 'exists' : 'missing');
+              
+              Swal.fire({
+                title: 'Authentication Error',
+                text: 'Your session may have expired. Please log in again.',
+                icon: 'warning',
+                confirmButtonText: 'Login',
+                showCancelButton: true
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  // Redirect to login
+                  window.location.href = '/account/login';
+                }
+              });
+            } else {
+              // Show generic error message
+              Swal.fire({
+                title: 'Save Failed',
+                text: 'Unable to save draft. Please try again.',
+                icon: 'error',
+                timer: 3000,
+                showConfirmButton: false
+              });
+            }
           }
         });
     }

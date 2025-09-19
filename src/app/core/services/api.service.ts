@@ -432,10 +432,25 @@ export class ApiService {
    */
   saveMyIntakeDraft(formId: number, intakeData: any): Observable<SubmitIntakeResponse> {
     const token = localStorage.getItem('authToken');
+    
+    // Debug logging
+    console.log('🔐 Auth Debug - saveMyIntakeDraft:');
+    console.log('Token exists:', !!token);
+    console.log('Token length:', token ? token.length : 0);
+    console.log('Token preview:', token ? `${token.substring(0, 20)}...` : 'null');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
+
+    console.log('📤 Request headers:', headers.keys());
+    console.log('📤 Authorization header:', headers.get('Authorization')?.substring(0, 30) + '...');
 
     return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/my/intake/responses/${formId}/draft`, intakeData, { headers });
   }
@@ -447,10 +462,25 @@ export class ApiService {
    */
   submitMyIntakeResponse(formId: number, intakeData: any): Observable<SubmitIntakeResponse> {
     const token = localStorage.getItem('authToken');
+    
+    // Debug logging
+    console.log('🔐 Auth Debug - submitMyIntakeResponse:');
+    console.log('Token exists:', !!token);
+    console.log('Token length:', token ? token.length : 0);
+    console.log('Token preview:', token ? `${token.substring(0, 20)}...` : 'null');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
+
+    console.log('📤 Request headers:', headers.keys());
+    console.log('📤 Authorization header:', headers.get('Authorization')?.substring(0, 30) + '...');
 
     return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/my/intake/responses/${formId}/submit`, intakeData, { headers });
   }
