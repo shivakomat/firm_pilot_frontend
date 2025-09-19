@@ -444,6 +444,28 @@ export class ApiService {
       throw new Error('No authentication token found. Please log in again.');
     }
 
+    // Check if token is expired
+    try {
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      const isExpired = tokenPayload.exp && tokenPayload.exp < currentTime;
+      
+      console.log('🕐 Token expiration check:');
+      console.log('Token exp:', tokenPayload.exp ? new Date(tokenPayload.exp * 1000).toISOString() : 'No exp field');
+      console.log('Current time:', new Date(currentTime * 1000).toISOString());
+      console.log('Is expired:', isExpired);
+      
+      if (isExpired) {
+        console.error('⏰ JWT token is EXPIRED');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        throw new Error('Authentication token has expired. Please log in again.');
+      }
+    } catch (parseError) {
+      console.error('🚨 Error parsing JWT token:', parseError);
+      console.error('Token may be malformed or invalid');
+    }
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -472,6 +494,28 @@ export class ApiService {
     if (!token) {
       console.error('❌ No auth token found in localStorage');
       throw new Error('No authentication token found. Please log in again.');
+    }
+
+    // Check if token is expired
+    try {
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      const isExpired = tokenPayload.exp && tokenPayload.exp < currentTime;
+      
+      console.log('🕐 Token expiration check:');
+      console.log('Token exp:', tokenPayload.exp ? new Date(tokenPayload.exp * 1000).toISOString() : 'No exp field');
+      console.log('Current time:', new Date(currentTime * 1000).toISOString());
+      console.log('Is expired:', isExpired);
+      
+      if (isExpired) {
+        console.error('⏰ JWT token is EXPIRED');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        throw new Error('Authentication token has expired. Please log in again.');
+      }
+    } catch (parseError) {
+      console.error('🚨 Error parsing JWT token:', parseError);
+      console.error('Token may be malformed or invalid');
     }
 
     const headers = new HttpHeaders({

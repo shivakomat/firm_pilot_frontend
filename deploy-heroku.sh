@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "🔍 Add authentication debugging for JWT token validation"
+git commit -m "⏰ Add JWT token expiration validation and debugging"
 
 # Deploy to Heroku
 git push heroku main
