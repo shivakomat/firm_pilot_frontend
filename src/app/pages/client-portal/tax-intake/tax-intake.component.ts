@@ -174,24 +174,59 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   loadExistingData(): void {
     this.isLoading = true;
+    
+    // Debug logging for data loading
+    console.log('🔄 Loading existing intake data');
+    console.log('Form ID:', this.formId);
+    console.log('Auth token exists:', !!localStorage.getItem('authToken'));
+    
     this.apiService.getMyIntakeResponse(this.formId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('✅ Load response received:', response);
           if (response.success && response.responses) {
+            console.log('📋 Populating form with existing data');
             this.populateFormFromAPI(response.responses);
+          } else {
+            console.log('ℹ️ No existing data found or response not successful');
           }
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error loading intake form:', error);
+          console.error('❌ Error loading intake form:', error);
+          console.error('Error details:', {
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            error: error.error
+          });
+          
           // Don't show error for 404 - just means no existing data
           if (error.status !== 404) {
-            Swal.fire({
-              title: 'Error',
-              text: 'Failed to load existing form data.',
-              icon: 'error'
-            });
+            // Check if it's an authentication error
+            if (error.status === 401 || error.status === 400) {
+              console.error('🚨 Authentication issue while loading data');
+              Swal.fire({
+                title: 'Authentication Error',
+                text: 'Your session may have expired. Please log in again.',
+                icon: 'warning',
+                confirmButtonText: 'Login',
+                showCancelButton: true
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  window.location.href = '/account/login';
+                }
+              });
+            } else {
+              Swal.fire({
+                title: 'Error',
+                text: 'Failed to load existing form data.',
+                icon: 'error'
+              });
+            }
+          } else {
+            console.log('ℹ️ No existing data found (404)');
           }
           this.isLoading = false;
         }

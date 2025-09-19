@@ -417,10 +417,48 @@ export class ApiService {
    */
   getMyIntakeResponse(formId: number): Observable<GetIntakeResponsesResponse> {
     const token = localStorage.getItem('authToken');
+    
+    // Debug logging for data retrieval
+    console.log('🔐 Auth Debug - getMyIntakeResponse:');
+    console.log('Token exists:', !!token);
+    console.log('Token length:', token ? token.length : 0);
+    console.log('Token preview:', token ? `${token.substring(0, 20)}...` : 'null');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    // Check if token is expired
+    try {
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      const isExpired = tokenPayload.exp && tokenPayload.exp < currentTime;
+      
+      console.log('🕐 Token expiration check:');
+      console.log('Token exp:', tokenPayload.exp ? new Date(tokenPayload.exp * 1000).toISOString() : 'No exp field');
+      console.log('Current time:', new Date(currentTime * 1000).toISOString());
+      console.log('Is expired:', isExpired);
+      
+      if (isExpired) {
+        console.error('⏰ JWT token is EXPIRED');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUser');
+        throw new Error('Authentication token has expired. Please log in again.');
+      }
+    } catch (parseError) {
+      console.error('🚨 Error parsing JWT token:', parseError);
+      console.error('Token may be malformed or invalid');
+    }
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
+
+    console.log('📤 Request headers:', headers.keys());
+    console.log('📤 Authorization header:', headers.get('Authorization')?.substring(0, 30) + '...');
+    console.log('📤 GET URL:', `${this.baseUrl}/my/intake/responses/${formId}`);
 
     return this.http.get<GetIntakeResponsesResponse>(`${this.baseUrl}/my/intake/responses/${formId}`, { headers });
   }
