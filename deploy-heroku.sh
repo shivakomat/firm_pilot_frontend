@@ -22,7 +22,7 @@ sed -i '' '/^\/dist$/d' .gitignore
 
 # Add and commit changes (including dist folder)
 git add .
-git commit -m "🔄 Update client intake form to use new /my/intake API endpoints"
+git commit -m "🐛 Fix API request format for new /my/intake endpoints - remove wrapper structure"
 
 # Deploy to Heroku
 git push heroku main

@@ -430,7 +430,7 @@ export class ApiService {
    * @param formId - ID of the form
    * @param intakeData - Intake form data
    */
-  saveMyIntakeDraft(formId: number, intakeData: SubmitIntakeRequest): Observable<SubmitIntakeResponse> {
+  saveMyIntakeDraft(formId: number, intakeData: any): Observable<SubmitIntakeResponse> {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -445,7 +445,7 @@ export class ApiService {
    * @param formId - ID of the form
    * @param intakeData - Intake form data
    */
-  submitMyIntakeResponse(formId: number, intakeData: SubmitIntakeRequest): Observable<SubmitIntakeResponse> {
+  submitMyIntakeResponse(formId: number, intakeData: any): Observable<SubmitIntakeResponse> {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
