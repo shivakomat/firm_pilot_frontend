@@ -19,7 +19,7 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   progress = 0;
   isLoading = false;
   isSaving = false;
-  clientId: number;
+  formId = 1; // Default tax intake form ID
   currentUser: any;
   
   ssnMasked: { [key: string]: boolean } = {};
@@ -88,11 +88,10 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
     private apiService: ApiService
   ) {
     this.initializeForm();
-    // Get current user and client ID from localStorage
+    // Get current user from localStorage
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
       this.currentUser = JSON.parse(userStr);
-      this.clientId = this.currentUser.id;
     }
   }
 
@@ -174,13 +173,8 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   }
 
   loadExistingData(): void {
-    if (!this.clientId) {
-      console.error('No client ID available');
-      return;
-    }
-    
     this.isLoading = true;
-    this.apiService.getClientIntakeResponses(this.clientId)
+    this.apiService.getMyIntakeResponse(this.formId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -295,11 +289,11 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   }
 
   autoSave(): void {
-    if (!this.isSaving && this.clientId) {
+    if (!this.isSaving) {
       this.isSaving = true;
       const formData = this.prepareAPIFormData();
       
-      this.apiService.submitClientIntakeResponse(this.clientId, formData)
+      this.apiService.saveMyIntakeDraft(this.formId, formData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -649,15 +643,6 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   }
 
   performSubmit(): void {
-    if (!this.clientId) {
-      Swal.fire({
-        title: 'Error',
-        text: 'Unable to identify client. Please log in again.',
-        icon: 'error'
-      });
-      return;
-    }
-
     this.isLoading = true;
     const formData = this.prepareAPIFormData();
     
@@ -675,7 +660,7 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
       responseJson: JSON.stringify(responseData)
     };
 
-    this.apiService.submitClientIntakeResponse(this.clientId, finalFormData)
+    this.apiService.submitMyIntakeResponse(this.formId, finalFormData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

@@ -385,7 +385,78 @@ export class ApiService {
   }
 
   /**
-   * Submit client intake response
+   * Get assigned intake forms for logged-in client
+   */
+  getMyIntakeForms(): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<any>(`${this.baseUrl}/my/intake/forms`, { headers });
+  }
+
+  /**
+   * Get specific form details for logged-in client
+   * @param formId - ID of the form
+   */
+  getMyIntakeForm(formId: number): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<any>(`${this.baseUrl}/my/intake/forms/${formId}`, { headers });
+  }
+
+  /**
+   * Get client's response for a specific form
+   * @param formId - ID of the form
+   */
+  getMyIntakeResponse(formId: number): Observable<GetIntakeResponsesResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<GetIntakeResponsesResponse>(`${this.baseUrl}/my/intake/responses/${formId}`, { headers });
+  }
+
+  /**
+   * Save draft response for logged-in client
+   * @param formId - ID of the form
+   * @param intakeData - Intake form data
+   */
+  saveMyIntakeDraft(formId: number, intakeData: SubmitIntakeRequest): Observable<SubmitIntakeResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/my/intake/responses/${formId}/draft`, intakeData, { headers });
+  }
+
+  /**
+   * Submit final response for logged-in client
+   * @param formId - ID of the form
+   * @param intakeData - Intake form data
+   */
+  submitMyIntakeResponse(formId: number, intakeData: SubmitIntakeRequest): Observable<SubmitIntakeResponse> {
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/my/intake/responses/${formId}/submit`, intakeData, { headers });
+  }
+
+  /**
+   * Submit client intake response (legacy method - kept for backward compatibility)
    * @param clientId - ID of the client
    * @param intakeData - Intake form data
    */
