@@ -6,6 +6,7 @@ import { ClientPortalRoutingModule } from './client-portal-routing.module';
 import { DocumentsComponent } from './documents/documents.component';
 import { IntakeComponent } from './intake/intake.component';
 import { TaxIntakeComponent } from './tax-intake/tax-intake.component';
+import { ClientProjectsComponent } from './projects/projects.component';
 
 // UI Components
 import { PagetitleComponent } from '../../shared/ui/pagetitle/pagetitle.component';
@@ -21,7 +22,8 @@ import { DropzoneModule } from 'ngx-dropzone-wrapper';
   declarations: [
     DocumentsComponent,
     IntakeComponent,
-    TaxIntakeComponent
+    TaxIntakeComponent,
+    ClientProjectsComponent
   ],
   imports: [
     CommonModule,

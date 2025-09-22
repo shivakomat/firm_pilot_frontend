@@ -4,6 +4,7 @@ import { DocumentsComponent } from './documents/documents.component';
 import { IntakeComponent } from './intake/intake.component';
 import { TaxIntakeComponent } from './tax-intake/tax-intake.component';
 import { ChatComponent } from './chat/chat.component';
+import { ClientProjectsComponent } from './projects/projects.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -12,6 +13,7 @@ const routes: Routes = [
     loadComponent: () => import('./dashboard/dashboard.component').then(c => c.ClientDashboardComponent)
   },
   { path: 'documents', component: DocumentsComponent },
+  { path: 'projects', component: ClientProjectsComponent },
   { path: 'intake', component: IntakeComponent },
   { path: 'tax-intake', component: TaxIntakeComponent },
   { path: 'chat', component: ChatComponent }

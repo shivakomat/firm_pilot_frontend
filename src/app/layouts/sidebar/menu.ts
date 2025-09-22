@@ -120,6 +120,12 @@ export const MENU: MenuItem[] = [
         ]
     },
     {
+        id: 70,
+        label: 'MENUITEMS.PROJECTS.TEXT',
+        icon: 'bx-briefcase',
+        link: '/projects',
+    },
+    {
         id: 10,
         label: 'MENUITEMS.CALENDAR.TEXT',
         icon: 'bx-calendar',

@@ -6,6 +6,8 @@ interface ClientIntakeForm {
   clientId: number;
   clientName: string;
   clientEmail: string;
+  projectId?: number;
+  projectName?: string;
   submissionDate: string;
   status: 'pending' | 'reviewed' | 'approved' | 'needs-revision';
   formType: 'tax-intake' | 'business-intake';
@@ -49,6 +51,8 @@ export class IntakeFormsComponent implements OnInit {
         clientId: 101,
         clientName: 'John Smith',
         clientEmail: 'john.smith@email.com',
+        projectId: 1,
+        projectName: '2024 Tax Return',
         submissionDate: '2024-02-15T10:30:00Z',
         status: 'pending',
         formType: 'tax-intake',
@@ -60,6 +64,8 @@ export class IntakeFormsComponent implements OnInit {
         clientId: 102,
         clientName: 'Sarah Johnson',
         clientEmail: 'sarah.johnson@email.com',
+        projectId: 2,
+        projectName: '2024 Business Tax',
         submissionDate: '2024-02-14T14:20:00Z',
         status: 'reviewed',
         formType: 'tax-intake',
@@ -71,6 +77,8 @@ export class IntakeFormsComponent implements OnInit {
         clientId: 103,
         clientName: 'Michael Brown',
         clientEmail: 'michael.brown@email.com',
+        projectId: 3,
+        projectName: '2024 Individual Return',
         submissionDate: '2024-02-13T16:45:00Z',
         status: 'approved',
         formType: 'tax-intake',
@@ -82,6 +90,8 @@ export class IntakeFormsComponent implements OnInit {
         clientId: 104,
         clientName: 'Emily Davis',
         clientEmail: 'emily.davis@email.com',
+        projectId: 4,
+        projectName: '2024 Amended Return',
         submissionDate: '2024-02-12T09:10:00Z',
         status: 'needs-revision',
         formType: 'tax-intake',
@@ -93,6 +103,8 @@ export class IntakeFormsComponent implements OnInit {
         clientId: 105,
         clientName: 'Robert Wilson',
         clientEmail: 'robert.wilson@email.com',
+        projectId: 5,
+        projectName: '2024 LLC Tax Filing',
         submissionDate: '2024-02-11T13:25:00Z',
         status: 'pending',
         formType: 'business-intake',

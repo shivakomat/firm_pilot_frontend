@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Subject, interval } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import Swal from 'sweetalert2';
@@ -20,6 +21,8 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   isLoading = false;
   isSaving = false;
   formId = 1; // Default tax intake form ID
+  projectId: number | null = null; // Project ID from query params
+  clientId: number | null = null; // Client ID from query params
   currentUser: any;
   
   ssnMasked: { [key: string]: boolean } = {};
@@ -85,7 +88,8 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private route: ActivatedRoute
   ) {
     this.initializeForm();
     // Get current user from localStorage
@@ -96,6 +100,12 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Get project and client IDs from query parameters
+    this.route.queryParams.subscribe(params => {
+      this.projectId = params['projectId'] ? +params['projectId'] : null;
+      this.clientId = params['clientId'] ? +params['clientId'] : null;
+    });
+    
     this.loadExistingData();
     this.setupAutoSave();
     // Initialize progress to 0 until data is loaded
@@ -344,7 +354,14 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
       console.log('📋 Form data structure:', Object.keys(JSON.parse(formData.responseJson)));
       console.log('🔑 Auth token check:', !!localStorage.getItem('authToken'));
       
-      this.apiService.saveMyIntakeDraft(this.formId, formData)
+      // Include project and client IDs in the form data if available
+      const enhancedFormData = {
+        ...formData,
+        projectId: this.projectId,
+        clientId: this.clientId
+      };
+      
+      this.apiService.saveMyIntakeDraft(this.formId, enhancedFormData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -745,7 +762,14 @@ export class TaxIntakeComponent implements OnInit, OnDestroy {
       responseJson: JSON.stringify(responseData)
     };
 
-    this.apiService.submitMyIntakeResponse(this.formId, finalFormData)
+    // Include project and client IDs in the final form data if available
+    const enhancedFinalFormData = {
+      ...finalFormData,
+      projectId: this.projectId,
+      clientId: this.clientId
+    };
+    
+    this.apiService.submitMyIntakeResponse(this.formId, enhancedFinalFormData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

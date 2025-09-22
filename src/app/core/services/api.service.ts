@@ -35,6 +35,40 @@ export interface LogoutResponse {
   message?: string;
 }
 
+export interface Project {
+  id: number;
+  clientId: number;
+  name: string;
+  type: 'tax_return' | 'quarterly_filing' | 'business_setup' | 'audit' | 'consultation' | 'other';
+  status: 'active' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
+  taxYear?: number;
+  dueDate?: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProjectRequest {
+  name: string;
+  type: 'tax_return' | 'quarterly_filing' | 'business_setup' | 'audit' | 'consultation' | 'other';
+  status?: 'active' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
+  taxYear?: number;
+  dueDate?: string;
+  description?: string;
+}
+
+export interface ProjectResponse {
+  success: boolean;
+  message?: string;
+  project?: Project;
+}
+
+export interface ProjectsResponse {
+  success: boolean;
+  message?: string;
+  projects?: Project[];
+}
+
 export interface CreateClientRequest {
   email: string;
   firstName: string;
@@ -518,6 +552,134 @@ export class ApiService {
     });
 
     return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/my/intake/responses/${formId}/submit`, intakeData, { headers });
+  }
+
+  // ===== PROJECT MANAGEMENT METHODS =====
+
+  /**
+   * Get all projects for a specific client (Accountant view)
+   * @param clientId - ID of the client
+   */
+  getClientProjects(clientId: number): Observable<ProjectsResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<ProjectsResponse>(`${this.baseUrl}/clients/${clientId}/projects`, { headers });
+  }
+
+  /**
+   * Create a new project for a client (Accountant)
+   * @param clientId - ID of the client
+   * @param projectData - Project creation data
+   */
+  createClientProject(clientId: number, projectData: CreateProjectRequest): Observable<ProjectResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<ProjectResponse>(`${this.baseUrl}/clients/${clientId}/projects`, projectData, { headers });
+  }
+
+  /**
+   * Get all projects for the logged-in client
+   */
+  getMyProjects(): Observable<ProjectsResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<ProjectsResponse>(`${this.baseUrl}/my/projects`, { headers });
+  }
+
+  /**
+   * Get project details by ID
+   * @param projectId - ID of the project
+   */
+  getProject(projectId: number): Observable<ProjectResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<ProjectResponse>(`${this.baseUrl}/projects/${projectId}`, { headers });
+  }
+
+  /**
+   * Update project details
+   * @param projectId - ID of the project
+   * @param projectData - Updated project data
+   */
+  updateProject(projectId: number, projectData: Partial<CreateProjectRequest>): Observable<ProjectResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.put<ProjectResponse>(`${this.baseUrl}/projects/${projectId}`, projectData, { headers });
   }
 
   /**

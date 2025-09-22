@@ -130,10 +130,11 @@
               <thead class="table-light">
                 <tr>
                   <th>Client</th>
+                  <th>Project</th>
                   <th>Form Type</th>
                   <th>Submission Date</th>
                   <th>Status</th>
-                  <th>Completion</th>
+                  <th>Progress</th>
                   <th>Last Modified</th>
                   <th>Actions</th>
                 </tr>
@@ -145,6 +146,13 @@
                       <h6 class="mb-1">{{form.clientName}}</h6>
                       <p class="text-muted mb-0 font-size-12">{{form.clientEmail}}</p>
                     </div>
+                  </td>
+                  <td>
+                    <div *ngIf="form.projectName">
+                      <h6 class="mb-1">{{form.projectName}}</h6>
+                      <span class="text-muted font-size-12">ID: {{form.projectId}}</span>
+                    </div>
+                    <span *ngIf="!form.projectName" class="text-muted">No Project</span>
                   </td>
                   <td>
                     <span class="badge bg-primary-subtle text-primary">
@@ -193,7 +201,7 @@
                   </td>
                 </tr>
                 <tr *ngIf="filteredForms.length === 0">
-                  <td colspan="7" class="text-center text-muted py-4">
+                  <td colspan="8" class="text-center text-muted py-4">
                     No intake forms found matching your criteria.
                   </td>
                 </tr>

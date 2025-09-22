@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { IntakeFormsComponent } from './intake-forms/intake-forms.component';
 import { ClientDocumentsComponent } from './client-documents/client-documents.component';
+import { ClientProjectsComponent } from './client-projects/client-projects.component';
 import { RoleGuard } from '../../core/guards/role.guard';
 
 const routes: Routes = [
@@ -14,6 +15,12 @@ const routes: Routes = [
   {
     path: 'client-documents',
     component: ClientDocumentsComponent,
+    canActivate: [RoleGuard],
+    data: { role: 'ACCOUNTANT' }
+  },
+  {
+    path: 'client-projects/:clientId',
+    component: ClientProjectsComponent,
     canActivate: [RoleGuard],
     data: { role: 'ACCOUNTANT' }
   }

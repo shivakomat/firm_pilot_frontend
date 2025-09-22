@@ -1,0 +1,180 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <h4 class="mb-sm-0 font-size-18">My Projects</h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p class="mt-2">Loading your projects...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Projects Overview -->
+  <div *ngIf="!isLoading && projects.length > 0" class="row">
+    <!-- Active Projects Summary -->
+    <div class="col-xl-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 ms-3">
+              <div>
+                <h5 class="font-size-16 mb-1">Active Projects</h5>
+                <p class="text-muted mb-2">{{ getActiveProjects().length }} projects in progress</p>
+              </div>
+            </div>
+            <div class="flex-shrink-0 align-self-center">
+              <div class="avatar-sm rounded-circle bg-primary-subtle">
+                <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
+                  <i class="bx bx-briefcase font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Projects -->
+    <div class="col-xl-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 ms-3">
+              <div>
+                <h5 class="font-size-16 mb-1">Completed</h5>
+                <p class="text-muted mb-2">{{ getCompletedProjects().length }} projects finished</p>
+              </div>
+            </div>
+            <div class="flex-shrink-0 align-self-center">
+              <div class="avatar-sm rounded-circle bg-success-subtle">
+                <span class="avatar-title rounded-circle bg-success-subtle text-success">
+                  <i class="bx bx-check-circle font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Projects -->
+    <div class="col-xl-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex">
+            <div class="flex-1 ms-3">
+              <div>
+                <h5 class="font-size-16 mb-1">Total Projects</h5>
+                <p class="text-muted mb-2">{{ projects.length }} projects overall</p>
+              </div>
+            </div>
+            <div class="flex-shrink-0 align-self-center">
+              <div class="avatar-sm rounded-circle bg-info-subtle">
+                <span class="avatar-title rounded-circle bg-info-subtle text-info">
+                  <i class="bx bx-folder font-size-24"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Projects List -->
+  <div *ngIf="!isLoading" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title mb-4">All Projects</h4>
+          
+          <div *ngIf="projects.length > 0">
+            <div class="row">
+              <div class="col-lg-6 col-xl-4 mb-4" *ngFor="let project of projects">
+                <div class="card project-card h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <div class="flex-1">
+                        <h5 class="font-size-15 mb-1">{{ project.name }}</h5>
+                        <p class="text-muted mb-0" *ngIf="project.description">{{ project.description }}</p>
+                      </div>
+                      <span class="{{ getStatusClass(project.status) }}">
+                        {{ getStatusLabel(project.status) }}
+                      </span>
+                    </div>
+
+                    <div class="project-details mb-3">
+                      <div class="d-flex align-items-center mb-2">
+                        <i class="{{ getTypeInfo(project.type).icon }} me-2 text-muted"></i>
+                        <span class="text-muted">{{ getTypeInfo(project.type).label }}</span>
+                      </div>
+                      
+                      <div class="d-flex align-items-center mb-2" *ngIf="project.taxYear">
+                        <i class="bx bx-calendar me-2 text-muted"></i>
+                        <span class="text-muted">Tax Year: {{ project.taxYear }}</span>
+                      </div>
+
+                      <div class="d-flex align-items-center mb-2" *ngIf="project.dueDate">
+                        <i class="bx bx-time me-2 text-muted"></i>
+                        <span [class]="isOverdue(project.dueDate) ? 'text-danger' : isDueSoon(project.dueDate) ? 'text-warning' : 'text-muted'">
+                          Due: {{ formatDate(project.dueDate) }}
+                          <span *ngIf="isOverdue(project.dueDate)" class="ms-1">(Overdue)</span>
+                          <span *ngIf="isDueSoon(project.dueDate) && !isOverdue(project.dueDate)" class="ms-1">(Due Soon)</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-3" *ngIf="project.status !== 'cancelled'">
+                      <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted small">Progress</span>
+                        <span class="text-muted small">{{ getProjectProgress(project) }}%</span>
+                      </div>
+                      <div class="progress" style="height: 6px;">
+                        <div class="progress-bar" 
+                             [class]="project.status === 'completed' ? 'bg-success' : 'bg-primary'"
+                             [style.width.%]="getProjectProgress(project)">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">
+                        Created: {{ formatDate(project.createdAt) }}
+                      </small>
+                      <button type="button" class="btn btn-sm btn-primary" 
+                              (click)="viewProjectDetails(project)">
+                        <i class="bx bx-show me-1"></i> View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="projects.length === 0" class="text-center py-5">
+            <div class="mb-4">
+              <i class="bx bx-folder-open display-4 text-muted"></i>
+            </div>
+            <h5>No Projects Found</h5>
+            <p class="text-muted">You don't have any projects yet. Your accountant will create projects for you as needed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
 import { ApiService, CreateClientRequest, Client } from 'src/app/core/services/api.service';
 import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
@@ -50,7 +51,7 @@ export class ClientlistComponent implements OnInit {
   @ViewChild('editClientModal', { static: false }) editClientModal?: ModalDirective;
   @ViewChild('inviteClientModal', { static: false }) inviteClientModal?: ModalDirective;
 
-  constructor(private apiService: ApiService, private formBuilder: UntypedFormBuilder) {}
+  constructor(private apiService: ApiService, private formBuilder: UntypedFormBuilder, private router: Router) {}
 
 
 
@@ -299,6 +300,11 @@ export class ClientlistComponent implements OnInit {
     }
     
     return phone;
+  }
+
+  // Navigate to client projects page
+  viewClientProjects(client: any) {
+    this.router.navigate(['/tax-consultant/client-projects', client.id]);
   }
 
   // Open edit modal and populate form with client data

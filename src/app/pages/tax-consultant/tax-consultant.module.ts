@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TaxConsultantRoutingModule } from './tax-consultant-routing.module';
 import { IntakeFormsComponent } from './intake-forms/intake-forms.component';
 import { ClientDocumentsComponent } from './client-documents/client-documents.component';
+import { ClientProjectsComponent } from './client-projects/client-projects.component';
 
 // UI Components
 import { PagetitleComponent } from '../../shared/ui/pagetitle/pagetitle.component';
@@ -18,7 +19,8 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
 @NgModule({
   declarations: [
     IntakeFormsComponent,
-    ClientDocumentsComponent
+    ClientDocumentsComponent,
+    ClientProjectsComponent
   ],
   imports: [
     CommonModule,

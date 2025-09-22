@@ -1,0 +1,81 @@
+.project-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid #e9ecef;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-sm {
+  height: 2rem;
+  width: 2rem;
+}
+
+.avatar-title {
+  align-items: center;
+  background-color: #556ee6;
+  color: #fff;
+  display: flex;
+  font-weight: 500;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.bg-primary-subtle {
+  background-color: rgba(85, 110, 230, 0.1) !important;
+}
+
+.bg-success-subtle {
+  background-color: rgba(52, 195, 143, 0.1) !important;
+}
+
+.bg-info-subtle {
+  background-color: rgba(80, 165, 241, 0.1) !important;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.progress {
+  border-radius: 0.25rem;
+}
+
+.progress-bar {
+  border-radius: 0.25rem;
+}
+
+.project-details {
+  font-size: 0.875rem;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.display-4 {
+  font-size: 3.5rem;
+}
+
+.card-title {
+  color: #495057;
+  font-weight: 600;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
