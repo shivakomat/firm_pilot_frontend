@@ -207,5 +207,11 @@ export const MENU: MenuItem[] = [
         icon: 'bx-chat',
         link: '/chat',
     },
+    {
+        id: 80,
+        label: 'MENUITEMS.SETTINGS.TEXT',
+        icon: 'bx-cog',
+        link: '/settings',
+    },
 ];
 

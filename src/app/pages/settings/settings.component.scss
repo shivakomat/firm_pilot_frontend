@@ -1,0 +1,27 @@
+// Settings component styles
+.integration-card {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.connected-account {
+  background-color: #f8f9fa;
+  border-left: 4px solid #28a745;
+}
+
+.provider-option {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #f8f9fa;
+  }
+}
+
+.coming-soon {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

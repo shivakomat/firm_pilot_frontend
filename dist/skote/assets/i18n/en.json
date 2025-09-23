@@ -381,6 +381,9 @@
       "LOGOUT": {
         "TEXT": "Logout"
       }
+    },
+    "SETTINGS": {
+      "TEXT": "Settings"
     }
   }
 }
