@@ -86,6 +86,13 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         this.loading = false;
         
+        // Check if 2FA is required
+        if (response.requires2FA) {
+          // Handle 2FA flow - for now, just show message
+          this.error = '2FA verification required. Please implement 2FA flow.';
+          return;
+        }
+        
         // Store authentication token if provided
         if (response.token) {
           localStorage.setItem('authToken', response.token);

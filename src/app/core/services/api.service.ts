@@ -5,11 +5,11 @@ import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 export interface SignupRequest {
-  role: string;
+  role: 'ACCOUNTANT' | 'CLIENT';
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface SignupResponse {
@@ -28,6 +28,12 @@ export interface LoginResponse {
   message?: string;
   token?: string;
   user?: any;
+  requires2FA?: boolean;
+}
+
+export interface TwoFactorRequest {
+  token: string;
+  totpCode: string;
 }
 
 export interface LogoutResponse {
@@ -231,7 +237,7 @@ export class ApiService {
         console.error('⏰ JWT token is EXPIRED - redirecting to login');
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
-        this.router.navigate(['/account/login']);
+        this.router.navigate(['/auth/auth/login']);
         return false;
       }
       return true;
@@ -277,6 +283,18 @@ export class ApiService {
     });
 
     return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, loginData, { headers });
+  }
+
+  /**
+   * Verify two-factor authentication code
+   * @param twoFactorData - Token and TOTP code
+   */
+  verify2FA(twoFactorData: TwoFactorRequest): Observable<LoginResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post<LoginResponse>(`${this.baseUrl}/auth/2fa/verify`, twoFactorData, { headers });
   }
 
   /**

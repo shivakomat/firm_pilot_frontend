@@ -97,14 +97,14 @@ export class HorizontaltopbarComponent implements OnInit, AfterViewInit {
         localStorage.removeItem('currentUser');
         
         // Redirect to login page
-        this.router.navigate(['/auth/login']);
+        this.router.navigate(['/auth/auth/login']);
       },
       error: (error) => {
         // Even if logout API fails, clear local storage and redirect
         console.error('Logout API error:', error);
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
-        this.router.navigate(['/auth/login']);
+        this.router.navigate(['/auth/auth/login']);
       }
     });
   }
