@@ -33,6 +33,7 @@ export class CalendarComponent implements OnInit {
 
   @ViewChild('modalShow') modalShow: TemplateRef<any>;
   @ViewChild('editmodalShow') editmodalShow: TemplateRef<any>;
+  @ViewChild('gmailIntegrationModal') gmailIntegrationModal: TemplateRef<any>;
 
   formEditData: UntypedFormGroup;
   submitted = false;
@@ -256,5 +257,27 @@ export class CalendarComponent implements OnInit {
       title: event.item.data,
       date: event.dateStr,
     });
+  }
+
+  /**
+   * Open Gmail integration modal
+   */
+  openGmailIntegrationModal() {
+    this.modalRef = this.modalService.show(this.gmailIntegrationModal);
+  }
+
+  /**
+   * Connect Gmail account
+   */
+  connectGmail() {
+    // This would integrate with Google OAuth2 API
+    // For now, show a success message
+    Swal.fire({
+      icon: 'info',
+      title: 'Gmail Integration',
+      text: 'Gmail integration will be implemented in the next phase. This will allow you to sync your Google Calendar events.',
+      confirmButtonColor: '#556ee6'
+    });
+    this.modalRef?.hide();
   }
 }

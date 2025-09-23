@@ -180,26 +180,27 @@ export const MENU: MenuItem[] = [
         //     }
         // ]
     },
-    {
-        id: 37,
-        label: 'MENUITEMS.INVOICES.TEXT',
-        icon: 'bx-receipt',
-        link: '/invoices/list',
-        // subItems: [
-        //     {
-        //         id: 38,
-        //         label: 'MENUITEMS.INVOICES.LIST.INVOICELIST',
-        //         link: '/invoices/list',
-        //         parentId: 37
-        //     },
-        //     {
-        //         id: 39,
-        //         label: 'MENUITEMS.INVOICES.LIST.INVOICEDETAIL',
-        //         link: '/invoices/detail',
-        //         parentId: 37
-        //     },
-        // ]
-    },
+    // Temporarily hidden - will be added back later
+    // {
+    //     id: 37,
+    //     label: 'MENUITEMS.INVOICES.TEXT',
+    //     icon: 'bx-receipt',
+    //     link: '/invoices/list',
+    //     // subItems: [
+    //     //     {
+    //     //         id: 38,
+    //     //         label: 'MENUITEMS.INVOICES.LIST.INVOICELIST',
+    //     //         link: '/invoices/list',
+    //     //         parentId: 37
+    //     //     },
+    //     //     {
+    //     //         id: 39,
+    //     //         label: 'MENUITEMS.INVOICES.LIST.INVOICEDETAIL',
+    //     //         link: '/invoices/detail',
+    //     //         parentId: 37
+    //     //     },
+    //     // ]
+    // },
     {
         id: 30,
         label: 'MENUITEMS.CHAT.TEXT',

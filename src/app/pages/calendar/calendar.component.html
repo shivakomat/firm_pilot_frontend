@@ -6,6 +6,12 @@
     <div class="col-xl-12">
       <div class="card">
         <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="card-title mb-0">Calendar</h4>
+            <button type="button" class="btn btn-primary" (click)="openGmailIntegrationModal()">
+              <i class="bx bxl-gmail me-1"></i> Connect Gmail Calendar
+            </button>
+          </div>
           <div class="app-calendar">
             <!-- calendar -->
             <full-calendar [options]="calendarOptions" cdkDropList (cdkDropListDropped)="handleDrop($event)"></full-calendar>
@@ -110,4 +116,38 @@
     </form>
   </div>
 
+</ng-template>
+
+<!-- Gmail Integration Modal -->
+<ng-template #gmailIntegrationModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Connect Gmail Calendar</h5>
+    <button type="button" class="btn-close" (click)="modalRef?.hide()"></button>
+  </div>
+  <div class="modal-body p-4">
+    <div class="text-center">
+      <div class="mb-4">
+        <i class="bx bxl-gmail text-danger" style="font-size: 4rem;"></i>
+      </div>
+      <h5 class="mb-3">Connect Your Gmail Account</h5>
+      <p class="text-muted mb-4">
+        Connect your Gmail account to sync your calendar events and manage appointments seamlessly within Firm Pilot.
+      </p>
+      <div class="d-grid gap-2">
+        <button type="button" class="btn btn-danger btn-lg" (click)="connectGmail()">
+          <i class="bx bxl-google me-2"></i>
+          Sign in with Google
+        </button>
+        <button type="button" class="btn btn-light" (click)="modalRef?.hide()">
+          Maybe Later
+        </button>
+      </div>
+      <div class="mt-3">
+        <small class="text-muted">
+          <i class="bx bx-shield-check me-1"></i>
+          Your data is secure and will only be used for calendar synchronization.
+        </small>
+      </div>
+    </div>
+  </div>
 </ng-template>

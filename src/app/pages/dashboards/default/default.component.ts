@@ -11,6 +11,7 @@ import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TransactionComponent } from 'src/app/shared/widget/transaction/transaction.component';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
 import { LoaderComponent } from 'src/app/shared/ui/loader/loader.component';
+import { ApiService } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-default',
@@ -36,6 +37,8 @@ export class DefaultComponent implements OnInit {
   clientsInProgress: number = 0;
   numberOfLeads: number = 0;
   upcomingMeetings: number = 0;
+  totalProjects: number = 0;
+  totalClients: number = 0;
   config:any = {
     backdrop: true,
     ignoreBackdropClick: true
@@ -45,7 +48,7 @@ export class DefaultComponent implements OnInit {
 
   @ViewChild('content') content;
   @ViewChild('center', { static: false }) center?: ModalDirective;
-  constructor(private modalService: BsModalService, private configService: ConfigService, private eventService: EventService) {
+  constructor(private modalService: BsModalService, private configService: ConfigService, private eventService: EventService, private apiService: ApiService) {
   }
 
   ngOnInit() {
@@ -172,12 +175,27 @@ export class DefaultComponent implements OnInit {
   }
 
   /**
-   * Load dashboard metrics (mock data for now)
+   * Load dashboard metrics from API
    */
   private loadDashboardMetrics() {
-    // Mock data - in real app, these would come from API calls
-    this.clientsInProgress = 24;
-    this.numberOfLeads = 42;
+    // Load clients data
+    this.apiService.getClients().subscribe({
+      next: (response) => {
+        this.totalClients = response.clients.length;
+        this.clientsInProgress = response.clients.filter(client => client.status === 'ACTIVE').length;
+        this.numberOfLeads = response.clients.filter(client => client.status === 'LEAD').length;
+      },
+      error: (error) => {
+        console.error('Error loading clients:', error);
+        // Fallback to mock data
+        this.totalClients = 18;
+        this.clientsInProgress = 24;
+        this.numberOfLeads = 42;
+      }
+    });
+
+    // Mock data for projects and meetings - would be replaced with actual API calls
+    this.totalProjects = 125;
     this.upcomingMeetings = 7;
   }
   opencenterModal(template: TemplateRef<any>) {

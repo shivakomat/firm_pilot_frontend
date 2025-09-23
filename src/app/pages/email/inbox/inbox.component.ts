@@ -1,4 +1,4 @@
-import { Component, NO_ERRORS_SCHEMA, OnInit } from '@angular/core';
+import { Component, NO_ERRORS_SCHEMA, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import Swal from 'sweetalert2';
 import { Store } from '@ngrx/store';
@@ -22,6 +22,7 @@ import { CommonModule } from '@angular/common';
 export class InboxComponent implements OnInit {
 
   modalRef?: BsModalRef;
+  @ViewChild('gmailIntegrationModal') gmailIntegrationModal: TemplateRef<any>;
 
   editor: Editor;
   html = '<p>Content of the editor.</p>';
@@ -143,6 +144,28 @@ export class InboxComponent implements OnInit {
         return email.category === name;
       });
     }
+  }
+
+  /**
+   * Open Gmail integration modal
+   */
+  openGmailIntegrationModal() {
+    this.modalRef = this.modalService.show(this.gmailIntegrationModal);
+  }
+
+  /**
+   * Connect Gmail account
+   */
+  connectGmail() {
+    // This would integrate with Google OAuth2 API
+    // For now, show a success message
+    Swal.fire({
+      icon: 'info',
+      title: 'Gmail Integration',
+      text: 'Gmail integration will be implemented in the next phase. This will allow you to sync your Gmail emails and manage client communications.',
+      confirmButtonColor: '#556ee6'
+    });
+    this.modalRef?.hide();
   }
 
 }
