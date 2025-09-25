@@ -38,7 +38,111 @@
 }
 
 .bg-gradient-ai {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+// Chat mode toggle styles
+.chat-mode-toggle {
+  .btn-group {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    
+    .btn {
+      border: none;
+      padding: 12px 20px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      &:focus {
+        box-shadow: none;
+      }
+      
+      i {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+// AI conversations sidebar
+.ai-conversations-sidebar {
+  position: fixed;
+  top: 0;
+  right: -350px;
+  width: 350px;
+  height: 100vh;
+  background: white;
+  border-left: 1px solid #e9ecef;
+  z-index: 1050;
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  
+  &.show {
+    right: 0;
+  }
+  
+  .conversations-header {
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    
+    h6 {
+      margin: 0;
+      font-weight: 600;
+      color: #495057;
+    }
+  }
+  
+  .conversations-list {
+    padding: 10px;
+    
+    .conversation-item {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      
+      &:hover {
+        background: #f8f9fa;
+        border-color: #e9ecef;
+      }
+      
+      &.active {
+        background: #e3f2fd;
+        border-color: #2196f3;
+      }
+      
+      .conversation-title {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 5px;
+        font-size: 14px;
+      }
+      
+      .conversation-meta {
+        font-size: 12px;
+        color: #6c757d;
+      }
+    }
+    
+    .no-conversations {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6c757d;
+      
+      i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        display: block;
+      }
+    }
+  }
 }
 
 .status-indicator {

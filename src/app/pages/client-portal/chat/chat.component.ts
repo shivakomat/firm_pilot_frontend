@@ -2,8 +2,10 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy }
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../../core/services/chat.service';
+import { AiChatService, AIConversation, AIMessage } from '../../../core/services/ai-chat.service';
 import { ChatMessage, ChatThread, SendMessageRequest } from '../../../core/models/chat.model';
 import { Subscription } from 'rxjs';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-chat',
@@ -15,19 +17,35 @@ import { Subscription } from 'rxjs';
 export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   
+  // Chat mode: 'accountant' or 'ai'
+  chatMode: 'accountant' | 'ai' = 'accountant';
+  
+  // Accountant chat
   messages: ChatMessage[] = [];
-  newMessage: string = '';
   currentThread: ChatThread | null = null;
+  
+  // AI chat
+  aiConversations: AIConversation[] = [];
+  currentAIConversation: AIConversation | null = null;
+  aiMessages: AIMessage[] = [];
+  showConversationsList = false;
+  
+  // Common
+  newMessage: string = '';
   currentUser: any;
   isLoading = false;
   private subscriptions: Subscription[] = [];
 
-  constructor(private chatService: ChatService) {
+  constructor(
+    private chatService: ChatService,
+    private aiChatService: AiChatService
+  ) {
     this.currentUser = this.chatService.getCurrentUser();
   }
 
   ngOnInit(): void {
     this.loadMessages();
+    this.loadAIConversations();
   }
 
   ngAfterViewChecked(): void {
@@ -125,56 +143,12 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   sendMessage(): void {
-    if (this.newMessage.trim() && this.currentThread) {
-      const messageRequest: SendMessageRequest = {
-        content: this.newMessage.trim(),
-        senderType: 'CLIENT'
-      };
-
-      const clientId = this.currentUser?.id || 1;
-      
-      const sub = this.chatService.sendMessage(clientId, messageRequest).subscribe({
-        next: (response) => {
-          // Add the sent message to the UI
-          const newMessage: ChatMessage = {
-            content: this.newMessage,
-            senderId: this.currentUser?.id || 2,
-            senderName: 'You',
-            senderType: 'CLIENT',
-            timestamp: new Date(),
-            threadId: this.currentThread?.id || 1
-          };
-          this.messages.push(newMessage);
-          this.saveMessagesToStorage(clientId, this.messages);
-          this.newMessage = '';
-          
-          // Handle AI response if message contains @ai
-          if (newMessage.content.toLowerCase().includes('@ai')) {
-            this.handleAIResponse(newMessage.content);
-          }
-        },
-        error: (error) => {
-          console.error('Error sending message:', error);
-          // Still add message to UI for demo purposes
-          const newMessage: ChatMessage = {
-            content: this.newMessage,
-            senderId: this.currentUser?.id || 2,
-            senderName: 'You',
-            senderType: 'CLIENT',
-            timestamp: new Date(),
-            threadId: this.currentThread?.id || 1
-          };
-          this.messages.push(newMessage);
-          this.saveMessagesToStorage(clientId, this.messages);
-          this.newMessage = '';
-          
-          // Handle AI response if message contains @ai
-          if (newMessage.content.toLowerCase().includes('@ai')) {
-            this.handleAIResponse(newMessage.content);
-          }
-        }
-      });
-      this.subscriptions.push(sub);
+    if (!this.newMessage.trim()) return;
+    
+    if (this.chatMode === 'accountant') {
+      this.sendAccountantMessage();
+    } else {
+      this.sendAIMessage();
     }
   }
 
@@ -332,5 +306,223 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   isAIMessage(message: ChatMessage): boolean {
     return message.senderType === 'AI_AGENT';
+  }
+
+  // === AI CHAT METHODS ===
+
+  switchChatMode(mode: 'accountant' | 'ai'): void {
+    this.chatMode = mode;
+    this.showConversationsList = false;
+    
+    if (mode === 'ai' && this.aiConversations.length === 0) {
+      this.loadAIConversations();
+    }
+  }
+
+  loadAIConversations(): void {
+    const sub = this.aiChatService.getConversations().subscribe({
+      next: (response) => {
+        this.aiConversations = response.conversations.map(conv => ({
+          ...conv,
+          createdAt: new Date(conv.createdAt),
+          updatedAt: new Date(conv.updatedAt)
+        }));
+        
+        // Auto-select the most recent conversation
+        if (this.aiConversations.length > 0 && !this.currentAIConversation) {
+          this.selectAIConversation(this.aiConversations[0]);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading AI conversations:', error);
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  startNewConversation(): void {
+    const sub = this.aiChatService.createConversation({ title: 'New Tax Question' }).subscribe({
+      next: (response) => {
+        const newConversation: AIConversation = {
+          id: response.id,
+          title: response.title,
+          createdAt: new Date(response.createdAt),
+          updatedAt: new Date(response.createdAt),
+          messageCount: 0
+        };
+        
+        this.aiConversations.unshift(newConversation);
+        this.selectAIConversation(newConversation);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'New Conversation Started',
+          text: 'You can now ask your tax questions to the AI assistant.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      error: (error) => {
+        console.error('Error creating conversation:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to create new conversation. Please try again.'
+        });
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  selectAIConversation(conversation: AIConversation): void {
+    this.currentAIConversation = conversation;
+    this.loadAIMessages(conversation.id);
+    this.showConversationsList = false;
+  }
+
+  loadAIMessages(conversationId: string): void {
+    this.isLoading = true;
+    const sub = this.aiChatService.getConversation(conversationId).subscribe({
+      next: (response) => {
+        this.aiMessages = response.messages.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading AI messages:', error);
+        this.aiMessages = [];
+        this.isLoading = false;
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  sendAIMessage(): void {
+    if (!this.currentAIConversation) {
+      // Create a new conversation first
+      this.startNewConversation();
+      return;
+    }
+
+    const messageContent = this.newMessage.trim();
+    this.isLoading = true;
+    
+    const sub = this.aiChatService.sendMessage(this.currentAIConversation.id, {
+      content: messageContent
+    }).subscribe({
+      next: (response) => {
+        // Add both user and AI messages
+        this.aiMessages.push({
+          ...response.userMessage,
+          timestamp: new Date(response.userMessage.timestamp)
+        });
+        
+        this.aiMessages.push({
+          ...response.assistantMessage,
+          timestamp: new Date(response.assistantMessage.timestamp)
+        });
+        
+        // Update conversation message count
+        if (this.currentAIConversation) {
+          this.currentAIConversation.messageCount += 2;
+          this.currentAIConversation.updatedAt = new Date();
+        }
+        
+        this.newMessage = '';
+        this.isLoading = false;
+        this.scrollToBottom();
+      },
+      error: (error) => {
+        console.error('Error sending AI message:', error);
+        this.isLoading = false;
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Message Failed',
+          text: 'Failed to send message to AI assistant. Please try again.'
+        });
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  sendAccountantMessage(): void {
+    if (!this.currentThread) {
+      this.addLocalMessage();
+      return;
+    }
+
+    const messageRequest: SendMessageRequest = {
+      content: this.newMessage.trim(),
+      senderType: 'CLIENT'
+    };
+
+    const clientId = this.currentUser?.id || 1;
+    
+    const sub = this.chatService.sendMessage(clientId, messageRequest).subscribe({
+      next: (response) => {
+        const newMessage: ChatMessage = {
+          content: this.newMessage,
+          senderId: this.currentUser?.id || 2,
+          senderName: 'You',
+          senderType: 'CLIENT',
+          timestamp: new Date(),
+          threadId: this.currentThread?.id || 1
+        };
+        this.messages.push(newMessage);
+        this.saveMessagesToStorage(clientId, this.messages);
+        this.newMessage = '';
+      },
+      error: (error) => {
+        console.error('Error sending message:', error);
+        const newMessage: ChatMessage = {
+          content: this.newMessage,
+          senderId: this.currentUser?.id || 2,
+          senderName: 'You',
+          senderType: 'CLIENT',
+          timestamp: new Date(),
+          threadId: this.currentThread?.id || 1
+        };
+        this.messages.push(newMessage);
+        this.saveMessagesToStorage(clientId, this.messages);
+        this.newMessage = '';
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  showConversations(): void {
+    this.showConversationsList = true;
+  }
+
+  hideConversations(): void {
+    this.showConversationsList = false;
+  }
+
+  // Get current messages based on chat mode
+  getCurrentMessages(): (ChatMessage | AIMessage)[] {
+    if (this.chatMode === 'ai') {
+      return this.aiMessages;
+    }
+    return this.messages;
+  }
+
+  // Check if message is from current user
+  isMyAIMessage(message: AIMessage): boolean {
+    return message.role === 'user';
+  }
+
+  // Format AI message for display
+  formatAIMessage(message: AIMessage): any {
+    return {
+      content: message.content,
+      senderId: message.role === 'user' ? this.currentUser?.id || 2 : 0,
+      senderName: message.role === 'user' ? 'You' : 'AI Tax Assistant',
+      senderType: message.role === 'user' ? 'CLIENT' : 'AI_AGENT',
+      timestamp: message.timestamp,
+      threadId: 1
+    };
   }
 }

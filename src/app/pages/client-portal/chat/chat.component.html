@@ -1,19 +1,59 @@
 <div class="chat-container">
+  <!-- Chat Mode Toggle -->
+  <div class="chat-mode-toggle mb-3">
+    <div class="btn-group w-100" role="group">
+      <button type="button" 
+              class="btn" 
+              [class.btn-primary]="chatMode === 'accountant'"
+              [class.btn-outline-primary]="chatMode !== 'accountant'"
+              (click)="switchChatMode('accountant')">
+        <i class="ri-user-3-line me-2"></i>Chat with Accountant
+      </button>
+      <button type="button" 
+              class="btn" 
+              [class.btn-success]="chatMode === 'ai'"
+              [class.btn-outline-success]="chatMode !== 'ai'"
+              (click)="switchChatMode('ai')">
+        <i class="ri-robot-2-line me-2"></i>AI Tax Assistant
+      </button>
+    </div>
+  </div>
+
   <!-- Chat Header -->
   <div class="chat-header">
     <div class="d-flex align-items-center">
       <div class="avatar-container me-3">
-        <div class="avatar-circle bg-primary">
-          <i class="ri-user-line text-white"></i>
+        <div class="avatar-circle" 
+             [class.bg-primary]="chatMode === 'accountant'"
+             [class.bg-gradient-ai]="chatMode === 'ai'">
+          <i class="ri-user-line text-white" *ngIf="chatMode === 'accountant'"></i>
+          <i class="ri-robot-2-line text-white" *ngIf="chatMode === 'ai'"></i>
         </div>
-        <div class="status-indicator"></div>
+        <div class="status-indicator" [class.active]="chatMode === 'accountant'"></div>
       </div>
       <div>
-        <h5 class="mb-0 chat-title">Sarah Johnson, CPA</h5>
-        <small class="text-muted">Active now</small>
+        <h5 class="mb-0 chat-title">
+          <span *ngIf="chatMode === 'accountant'">Sarah Johnson, CPA</span>
+          <span *ngIf="chatMode === 'ai'">AI Tax Assistant</span>
+        </h5>
+        <small class="text-muted">
+          <span *ngIf="chatMode === 'accountant'">Active now</span>
+          <span *ngIf="chatMode === 'ai'">Always available</span>
+        </small>
       </div>
     </div>
-    <div class="chat-actions">
+    <div class="chat-actions" *ngIf="chatMode === 'ai'">
+      <button class="btn btn-light btn-sm me-2" (click)="showConversations()">
+        <i class="ri-chat-history-line"></i>
+      </button>
+      <button class="btn btn-light btn-sm me-2" (click)="startNewConversation()">
+        <i class="ri-add-line"></i>
+      </button>
+      <button class="btn btn-light btn-sm">
+        <i class="ri-more-2-line"></i>
+      </button>
+    </div>
+    <div class="chat-actions" *ngIf="chatMode === 'accountant'">
       <button class="btn btn-light btn-sm me-2">
         <i class="ri-search-line"></i>
       </button>
@@ -33,36 +73,41 @@
       <span class="date-label">Today</span>
     </div>
     
-    <div *ngFor="let message of messages; let i = index" class="message-container">
+    <div *ngFor="let message of (chatMode === 'ai' ? aiMessages : messages); let i = index" class="message-container">
       <!-- Date Separator -->
       <div *ngIf="shouldShowDateSeparator(i)" class="date-separator">
         <span class="date-label">{{formatDate(message.timestamp)}}</span>
       </div>
       
       <!-- Message Bubble -->
-      <div class="message-row" [class.message-sent]="isMyMessage(message)" [class.message-received]="!isMyMessage(message)">
+      <div class="message-row" 
+           [class.message-sent]="chatMode === 'accountant' ? isMyMessage(message) : (message.role === 'user')"
+           [class.message-received]="chatMode === 'accountant' ? !isMyMessage(message) : (message.role === 'assistant')">
         <!-- Avatar for received messages -->
-        <div *ngIf="!isMyMessage(message)" class="message-avatar">
+        <div *ngIf="chatMode === 'accountant' ? !isMyMessage(message) : (message.role === 'assistant')" class="message-avatar">
           <div class="avatar-circle" 
-               [class.bg-primary]="message.senderType === 'ACCOUNTANT'" 
-               [class.bg-gradient-ai]="isAIMessage(message)">
-            <i class="ri-user-3-line text-white" *ngIf="message.senderType === 'ACCOUNTANT'"></i>
-            <i class="ri-robot-2-line text-white" *ngIf="isAIMessage(message)"></i>
+               [class.bg-primary]="chatMode === 'accountant' && message.senderType === 'ACCOUNTANT'" 
+               [class.bg-gradient-ai]="chatMode === 'ai' || (chatMode === 'accountant' && isAIMessage(message))">
+            <i class="ri-user-3-line text-white" *ngIf="chatMode === 'accountant' && message.senderType === 'ACCOUNTANT'"></i>
+            <i class="ri-robot-2-line text-white" *ngIf="chatMode === 'ai' || (chatMode === 'accountant' && isAIMessage(message))"></i>
           </div>
         </div>
         
         <!-- Message Bubble -->
         <div class="message-bubble" 
-             [class.bubble-sent]="isMyMessage(message)"
-             [class.bubble-received]="message.senderType === 'ACCOUNTANT'"
-             [class.bubble-ai]="isAIMessage(message)">
-          <div class="message-sender" *ngIf="!isMyMessage(message)">{{message.senderName}}</div>
+             [class.bubble-sent]="chatMode === 'accountant' ? isMyMessage(message) : (message.role === 'user')"
+             [class.bubble-received]="chatMode === 'accountant' && message.senderType === 'ACCOUNTANT'"
+             [class.bubble-ai]="chatMode === 'ai' || (chatMode === 'accountant' && isAIMessage(message))">
+          <div class="message-sender" *ngIf="chatMode === 'accountant' ? !isMyMessage(message) : (message.role === 'assistant')">
+            <span *ngIf="chatMode === 'accountant'">{{message.senderName}}</span>
+            <span *ngIf="chatMode === 'ai'">AI Tax Assistant</span>
+          </div>
           <div class="message-text">{{message.content}}</div>
           <div class="message-time">{{formatTime(message.timestamp)}}</div>
         </div>
         
         <!-- Message options -->
-        <div class="message-options" *ngIf="!isMyMessage(message)">
+        <div class="message-options" *ngIf="chatMode === 'accountant' ? !isMyMessage(message) : (message.role === 'assistant')">
           <button class="btn btn-sm btn-light">
             <i class="ri-more-2-fill"></i>
           </button>
@@ -109,15 +154,49 @@
   </div>
 </div>
 
+<!-- AI Conversations Sidebar -->
+<div class="ai-conversations-sidebar" [class.show]="showConversationsList && chatMode === 'ai'">
+  <div class="conversations-header">
+    <h6 class="mb-0">AI Conversations</h6>
+    <button class="btn btn-sm btn-light" (click)="hideConversations()">
+      <i class="ri-close-line"></i>
+    </button>
+  </div>
+  <div class="conversations-list">
+    <div *ngFor="let conversation of aiConversations" 
+         class="conversation-item" 
+         [class.active]="currentAIConversation?.id === conversation.id"
+         (click)="selectAIConversation(conversation)">
+      <div class="conversation-title">{{conversation.title}}</div>
+      <div class="conversation-meta">
+        <small class="text-muted">{{formatDate(conversation.updatedAt)}} • {{conversation.messageCount}} messages</small>
+      </div>
+    </div>
+    <div *ngIf="aiConversations.length === 0" class="no-conversations">
+      <i class="ri-chat-3-line text-muted"></i>
+      <p class="text-muted mb-0">No conversations yet</p>
+    </div>
+  </div>
+</div>
+
 <!-- Chat Guidelines -->
 <div class="card mt-3">
   <div class="card-body">
-    <h6 class="card-title">Chat Guidelines</h6>
-    <ul class="list-unstyled mb-0">
+    <h6 class="card-title">
+      <span *ngIf="chatMode === 'accountant'">Chat Guidelines</span>
+      <span *ngIf="chatMode === 'ai'">AI Assistant Guidelines</span>
+    </h6>
+    <ul class="list-unstyled mb-0" *ngIf="chatMode === 'accountant'">
       <li class="mb-2"><i class="ri-time-line text-primary me-2"></i>Response time: Usually within 2-4 hours during business hours</li>
       <li class="mb-2"><i class="ri-calendar-line text-primary me-2"></i>Business hours: Monday-Friday, 9 AM - 6 PM EST</li>
       <li class="mb-2"><i class="ri-file-line text-primary me-2"></i>For document sharing, please use the Documents section</li>
       <li><i class="ri-phone-line text-primary me-2"></i>For urgent matters, please call: (555) 123-4567</li>
+    </ul>
+    <ul class="list-unstyled mb-0" *ngIf="chatMode === 'ai'">
+      <li class="mb-2"><i class="ri-lightbulb-line text-success me-2"></i>Ask questions about tax regulations, deductions, and filing requirements</li>
+      <li class="mb-2"><i class="ri-time-line text-success me-2"></i>Get instant responses 24/7</li>
+      <li class="mb-2"><i class="ri-shield-check-line text-success me-2"></i>All conversations are private and secure</li>
+      <li><i class="ri-user-3-line text-success me-2"></i>For personalized advice, consult with your accountant</li>
     </ul>
   </div>
 </div>
