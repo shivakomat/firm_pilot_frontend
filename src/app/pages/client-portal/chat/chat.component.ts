@@ -314,8 +314,14 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.chatMode = mode;
     this.showConversationsList = false;
     
-    if (mode === 'ai' && this.aiConversations.length === 0) {
-      this.loadAIConversations();
+    if (mode === 'ai') {
+      if (this.aiConversations.length === 0) {
+        this.loadAIConversations();
+      }
+      // If no current conversation is selected, try to select the first one
+      if (!this.currentAIConversation && this.aiConversations.length > 0) {
+        this.selectAIConversation(this.aiConversations[0]);
+      }
     }
   }
 
@@ -401,14 +407,96 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   sendAIMessage(): void {
     if (!this.currentAIConversation) {
-      // Create a new conversation first
-      this.startNewConversation();
+      // Create a new conversation first, then send the message
+      this.createConversationAndSendMessage();
       return;
     }
 
     const messageContent = this.newMessage.trim();
     this.isLoading = true;
     
+    const sub = this.aiChatService.sendMessage(this.currentAIConversation.id, {
+      content: messageContent
+    }).subscribe({
+      next: (response) => {
+        // Add both user and AI messages
+        this.aiMessages.push({
+          ...response.userMessage,
+          timestamp: new Date(response.userMessage.timestamp)
+        });
+        
+        this.aiMessages.push({
+          ...response.assistantMessage,
+          timestamp: new Date(response.assistantMessage.timestamp)
+        });
+        
+        // Update conversation message count
+        if (this.currentAIConversation) {
+          this.currentAIConversation.messageCount += 2;
+          this.currentAIConversation.updatedAt = new Date();
+        }
+        
+        this.newMessage = '';
+        this.isLoading = false;
+        this.scrollToBottom();
+      },
+      error: (error) => {
+        console.error('Error sending AI message:', error);
+        this.isLoading = false;
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Message Failed',
+          text: 'Failed to send message to AI assistant. Please try again.'
+        });
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  private createConversationAndSendMessage(): void {
+    const messageContent = this.newMessage.trim();
+    this.isLoading = true;
+    
+    const sub = this.aiChatService.createConversation({ 
+      title: `Tax Question: ${messageContent.substring(0, 30)}...` 
+    }).subscribe({
+      next: (response) => {
+        const newConversation: AIConversation = {
+          id: response.id,
+          title: response.title,
+          createdAt: new Date(response.createdAt),
+          updatedAt: new Date(response.createdAt),
+          messageCount: 0
+        };
+        
+        this.aiConversations.unshift(newConversation);
+        this.currentAIConversation = newConversation;
+        this.aiMessages = [];
+        
+        // Now send the message
+        this.sendAIMessageToConversation(messageContent);
+      },
+      error: (error) => {
+        console.error('Error creating conversation:', error);
+        this.isLoading = false;
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to create new conversation. Please try again.'
+        });
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  private sendAIMessageToConversation(messageContent: string): void {
+    if (!this.currentAIConversation) {
+      this.isLoading = false;
+      return;
+    }
+
     const sub = this.aiChatService.sendMessage(this.currentAIConversation.id, {
       content: messageContent
     }).subscribe({

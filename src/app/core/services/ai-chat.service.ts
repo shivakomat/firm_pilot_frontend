@@ -67,6 +67,10 @@ export class AiChatService {
    * Create a new AI conversation
    */
   createConversation(request: CreateConversationRequest = {}): Observable<CreateConversationResponse> {
+    if (!this.validateTokenAndRedirect()) {
+      throw new Error('Authentication required');
+    }
+    
     return this.http.post<CreateConversationResponse>(
       `${this.baseUrl}/api/ai/conversations`,
       request,
@@ -78,6 +82,10 @@ export class AiChatService {
    * Get all AI conversations for the current user
    */
   getConversations(): Observable<GetConversationsResponse> {
+    if (!this.validateTokenAndRedirect()) {
+      throw new Error('Authentication required');
+    }
+    
     return this.http.get<GetConversationsResponse>(
       `${this.baseUrl}/api/ai/conversations`,
       { headers: this.getHeaders() }
@@ -88,6 +96,14 @@ export class AiChatService {
    * Get a specific conversation with its messages
    */
   getConversation(conversationId: string): Observable<GetConversationResponse> {
+    if (!this.validateTokenAndRedirect()) {
+      throw new Error('Authentication required');
+    }
+    
+    if (!conversationId || conversationId === 'undefined') {
+      throw new Error('Invalid conversation ID');
+    }
+    
     return this.http.get<GetConversationResponse>(
       `${this.baseUrl}/api/ai/conversations/${conversationId}`,
       { headers: this.getHeaders() }
@@ -98,6 +114,14 @@ export class AiChatService {
    * Send a message to an AI conversation and get response
    */
   sendMessage(conversationId: string, request: SendMessageRequest): Observable<SendMessageResponse> {
+    if (!this.validateTokenAndRedirect()) {
+      throw new Error('Authentication required');
+    }
+    
+    if (!conversationId || conversationId === 'undefined') {
+      throw new Error('Invalid conversation ID');
+    }
+    
     return this.http.post<SendMessageResponse>(
       `${this.baseUrl}/api/ai/conversations/${conversationId}/messages`,
       request,
@@ -116,7 +140,7 @@ export class AiChatService {
   /**
    * Validate JWT token and redirect if expired
    */
-  private validateTokenAndRedirect(): boolean {
+  validateTokenAndRedirect(): boolean {
     const token = localStorage.getItem('authToken');
     if (!token) {
       this.redirectToLogin();
