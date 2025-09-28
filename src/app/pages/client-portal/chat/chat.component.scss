@@ -206,22 +206,31 @@
   .message-text {
     margin-bottom: 5px;
     word-wrap: break-word;
-    white-space: pre-wrap;
-    line-height: 1.5;
+    white-space: normal;
+    line-height: 1.6;
+    
+    // Paragraph formatting for AI responses
+    p {
+      margin: 12px 0;
+      
+      &:first-child {
+        margin-top: 0;
+      }
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
     
     // Markdown formatting styles
     h1, h2, h3, h4, h5, h6 {
-      margin: 10px 0 5px 0;
+      margin: 15px 0 8px 0;
       font-weight: 600;
     }
     
     h1 { font-size: 1.2em; }
     h2 { font-size: 1.1em; }
     h3 { font-size: 1.05em; }
-    
-    p {
-      margin: 8px 0;
-    }
     
     ul, ol {
       margin: 8px 0;

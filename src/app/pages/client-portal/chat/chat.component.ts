@@ -674,22 +674,56 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
    */
   formatMessageContent(message: any): string {
     if (this.chatMode === 'ai' && message.role === 'assistant') {
-      try {
-        return marked.parse(message.content) as string;
-      } catch (error) {
-        console.error('Error parsing markdown:', error);
-        return this.formatPlainText(message.content);
-      }
+      return this.formatAIResponse(message.content);
     } else if (this.chatMode === 'accountant' && this.isAIMessage(message)) {
-      try {
-        return marked.parse(message.content) as string;
-      } catch (error) {
-        console.error('Error parsing markdown:', error);
-        return this.formatPlainText(message.content);
-      }
+      return this.formatAIResponse(message.content);
     }
     
     return this.formatPlainText(message.content);
+  }
+
+  /**
+   * Format AI response with proper paragraph breaks and structure
+   */
+  private formatAIResponse(content: string): string {
+    if (!content) return '';
+    
+    // First, normalize line breaks and clean up the text
+    let formatted = content.trim();
+    
+    // Replace multiple spaces with single spaces
+    formatted = formatted.replace(/\s+/g, ' ');
+    
+    // Split by common paragraph indicators and rejoin with proper breaks
+    formatted = formatted.replace(/\.\s+([A-Z])/g, '.</p><p>$1');
+    formatted = formatted.replace(/:\s+([A-Z])/g, ':</p><p>$1');
+    formatted = formatted.replace(/\?\s+([A-Z])/g, '?</p><p>$1');
+    formatted = formatted.replace(/!\s+([A-Z])/g, '!</p><p>$1');
+    
+    // Handle numbered lists
+    formatted = formatted.replace(/(\d+\.)\s+/g, '</p><p><strong>$1</strong> ');
+    
+    // Handle bullet points
+    formatted = formatted.replace(/[-•]\s+/g, '</p><p>• ');
+    
+    // Handle special formatting markers
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
+    
+    // Handle section headers (words followed by colon and capital letter)
+    formatted = formatted.replace(/([A-Z][a-z\s]+):\s*([A-Z])/g, '<strong>$1:</strong></p><p>$2');
+    
+    // Wrap in paragraph tags and clean up
+    formatted = '<p>' + formatted + '</p>';
+    
+    // Clean up empty paragraphs and fix multiple paragraph tags
+    formatted = formatted.replace(/<p><\/p>/g, '');
+    formatted = formatted.replace(/<\/p><p>/g, '</p><p>');
+    formatted = formatted.replace(/<p>\s*<p>/g, '<p>');
+    formatted = formatted.replace(/<\/p>\s*<\/p>/g, '</p>');
+    
+    return formatted;
   }
 
   /**
