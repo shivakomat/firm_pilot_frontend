@@ -6,6 +6,7 @@ import { AiChatService, AIConversation, AIMessage } from '../../../core/services
 import { ChatMessage, ChatThread, SendMessageRequest } from '../../../core/models/chat.model';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
+import { marked } from 'marked';
 
 @Component({
   selector: 'app-chat',
@@ -41,6 +42,12 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     private aiChatService: AiChatService
   ) {
     this.currentUser = this.chatService.getCurrentUser();
+    
+    // Configure marked for better formatting
+    marked.setOptions({
+      breaks: true,
+      gfm: true
+    });
   }
 
   ngOnInit(): void {
@@ -660,5 +667,51 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       timestamp: message.timestamp,
       threadId: 1
     };
+  }
+
+  /**
+   * Format message content with markdown parsing for AI messages
+   */
+  formatMessageContent(message: any): string {
+    if (this.chatMode === 'ai' && message.role === 'assistant') {
+      try {
+        return marked.parse(message.content) as string;
+      } catch (error) {
+        console.error('Error parsing markdown:', error);
+        return this.formatPlainText(message.content);
+      }
+    } else if (this.chatMode === 'accountant' && this.isAIMessage(message)) {
+      try {
+        return marked.parse(message.content) as string;
+      } catch (error) {
+        console.error('Error parsing markdown:', error);
+        return this.formatPlainText(message.content);
+      }
+    }
+    
+    return this.formatPlainText(message.content);
+  }
+
+  /**
+   * Format plain text with basic formatting
+   */
+  private formatPlainText(content: string): string {
+    if (!content) return '';
+    
+    // Convert line breaks to HTML
+    let formatted = content.replace(/\n/g, '<br>');
+    
+    // Add basic formatting for common patterns
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Italic
+    formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>'); // Inline code
+    
+    // Format numbered lists
+    formatted = formatted.replace(/^(\d+\.\s)/gm, '<br><strong>$1</strong>');
+    
+    // Format bullet points
+    formatted = formatted.replace(/^[-•]\s/gm, '<br>• ');
+    
+    return formatted;
   }
 }

@@ -102,7 +102,7 @@
             <span *ngIf="chatMode === 'accountant'">{{message.senderName}}</span>
             <span *ngIf="chatMode === 'ai'">AI Tax Assistant</span>
           </div>
-          <div class="message-text">{{message.content}}</div>
+          <div class="message-text" [innerHTML]="formatMessageContent(message)"></div>
           <div class="message-time">{{formatTime(message.timestamp)}}</div>
         </div>
         
