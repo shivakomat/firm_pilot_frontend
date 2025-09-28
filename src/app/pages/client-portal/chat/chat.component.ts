@@ -265,39 +265,87 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
-  formatTime(timestamp: Date): string {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }).format(timestamp);
+  formatTime(timestamp: Date | string): string {
+    try {
+      const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return new Date().toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+      
+      return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting time:', error, timestamp);
+      return new Date().toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
   }
 
-  formatDate(timestamp: Date): string {
-    const today = new Date();
-    const messageDate = new Date(timestamp);
-    
-    if (messageDate.toDateString() === today.toDateString()) {
+  formatDate(timestamp: Date | string): string {
+    try {
+      const today = new Date();
+      const messageDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
+      
+      // Check if date is valid
+      if (isNaN(messageDate.getTime())) {
+        return 'Today';
+      }
+      
+      if (messageDate.toDateString() === today.toDateString()) {
+        return 'Today';
+      }
+      
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      if (messageDate.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+      }
+      
+      return messageDate.toLocaleDateString();
+    } catch (error) {
+      console.error('Error formatting date:', error, timestamp);
       return 'Today';
     }
-    
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    if (messageDate.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    }
-    
-    return messageDate.toLocaleDateString();
   }
 
   shouldShowDateSeparator(index: number): boolean {
     if (index === 0) return true;
     
-    const currentMessage = this.messages[index];
-    const previousMessage = this.messages[index - 1];
+    const currentMessages = this.chatMode === 'ai' ? this.aiMessages : this.messages;
+    const currentMessage = currentMessages[index];
+    const previousMessage = currentMessages[index - 1];
     
-    return currentMessage.timestamp.toDateString() !== previousMessage.timestamp.toDateString();
+    if (!currentMessage || !previousMessage) return false;
+    
+    try {
+      const currentDate = currentMessage.timestamp instanceof Date ? 
+        currentMessage.timestamp : new Date(currentMessage.timestamp);
+      const previousDate = previousMessage.timestamp instanceof Date ? 
+        previousMessage.timestamp : new Date(previousMessage.timestamp);
+      
+      // Check if dates are valid
+      if (isNaN(currentDate.getTime()) || isNaN(previousDate.getTime())) {
+        return false;
+      }
+      
+      return currentDate.toDateString() !== previousDate.toDateString();
+    } catch (error) {
+      console.error('Error in shouldShowDateSeparator:', error);
+      return false;
+    }
   }
 
   isMyMessage(message: ChatMessage): boolean {
@@ -392,7 +440,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       next: (response) => {
         this.aiMessages = response.messages.map(msg => ({
           ...msg,
-          timestamp: new Date(msg.timestamp)
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
         }));
         this.isLoading = false;
       },
@@ -501,15 +549,15 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       content: messageContent
     }).subscribe({
       next: (response) => {
-        // Add both user and AI messages
+        // Add both user and AI messages with safe timestamp handling
         this.aiMessages.push({
           ...response.userMessage,
-          timestamp: new Date(response.userMessage.timestamp)
+          timestamp: response.userMessage.timestamp ? new Date(response.userMessage.timestamp) : new Date()
         });
         
         this.aiMessages.push({
           ...response.assistantMessage,
-          timestamp: new Date(response.assistantMessage.timestamp)
+          timestamp: response.assistantMessage.timestamp ? new Date(response.assistantMessage.timestamp) : new Date()
         });
         
         // Update conversation message count
