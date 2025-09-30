@@ -160,8 +160,12 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
       projectData.description = this.newProject.description.trim();
     }
 
-    console.log('Creating project with cleaned data:', projectData);
+    console.log('=== PROJECT CREATION DEBUG ===');
+    console.log('Raw form data:', this.newProject);
+    console.log('Cleaned project data being sent:', projectData);
     console.log('Client ID:', this.clientId);
+    console.log('Project data JSON:', JSON.stringify(projectData, null, 2));
+    console.log('===============================');
 
     this.apiService.createClientProject(this.clientId, projectData)
       .pipe(takeUntil(this.destroy$))
