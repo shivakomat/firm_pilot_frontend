@@ -52,6 +52,37 @@ export interface Project {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  preparedDocuments?: ProjectDocument[];
+  intakeFormData?: any;
+}
+
+export interface ProjectDocument {
+  id: number;
+  projectId: number;
+  fileName: string;
+  originalName: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: string;
+  uploadedBy: number;
+}
+
+export interface UploadDocumentRequest {
+  file: File;
+  description?: string;
+}
+
+export interface UploadDocumentResponse {
+  success: boolean;
+  message?: string;
+  document?: ProjectDocument;
+}
+
+export interface ProjectDetailResponse {
+  success: boolean;
+  message?: string;
+  project?: Project;
+  intakeForm?: any;
 }
 
 export interface CreateProjectRequest {
@@ -672,6 +703,116 @@ export class ApiService {
     });
 
     return this.http.get<ProjectResponse>(`${this.baseUrl}/projects/${projectId}`, { headers });
+  }
+
+  /**
+   * Get project details with intake form data
+   * @param projectId - ID of the project
+   */
+  getProjectDetail(projectId: number): Observable<ProjectDetailResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<ProjectDetailResponse>(`${this.baseUrl}/projects/${projectId}/detail`, { headers });
+  }
+
+  /**
+   * Upload prepared document for a project
+   * @param projectId - ID of the project
+   * @param file - File to upload
+   * @param description - Optional description
+   */
+  uploadProjectDocument(projectId: number, file: File, description?: string): Observable<UploadDocumentResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const formData = new FormData();
+    formData.append('document', file);
+    if (description) {
+      formData.append('description', description);
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+      // Don't set Content-Type for FormData - browser will set it with boundary
+    });
+
+    return this.http.post<UploadDocumentResponse>(`${this.baseUrl}/projects/${projectId}/documents`, formData, { headers });
+  }
+
+  /**
+   * Get project documents list
+   * @param projectId - ID of the project
+   */
+  getProjectDocuments(projectId: number): Observable<{ success: boolean; documents: ProjectDocument[] }> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<{ success: boolean; documents: ProjectDocument[] }>(`${this.baseUrl}/projects/${projectId}/documents`, { headers });
+  }
+
+  /**
+   * Download project document
+   * @param documentId - ID of the document
+   */
+  downloadProjectDocument(documentId: number): Observable<Blob> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get(`${this.baseUrl}/documents/${documentId}/download`, { 
+      headers, 
+      responseType: 'blob' 
+    });
   }
 
   /**

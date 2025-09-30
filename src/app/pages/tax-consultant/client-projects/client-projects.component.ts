@@ -202,10 +202,8 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
   }
 
   viewProject(project: Project): void {
-    // Navigate to project details or intake forms
-    this.router.navigate(['/tax-consultant/intake-forms'], { 
-      queryParams: { projectId: project.id, clientId: this.clientId }
-    });
+    // Navigate to project detail page
+    this.router.navigate(['/tax-consultant/project-detail', project.id]);
   }
 
   isOverdue(dueDate: string): boolean {

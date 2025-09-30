@@ -1,0 +1,159 @@
+<div class="container-fluid">
+  <!-- Page Title -->
+  <div class="row">
+    <div class="col-12">
+      <div class="page-title-box d-flex align-items-center justify-content-between">
+        <h4 class="mb-0 font-size-18">Project Details</h4>
+        <div class="page-title-right">
+          <button class="btn btn-secondary btn-sm" (click)="goBack()">
+            <i class="ri-arrow-left-line me-1"></i> Back
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Project Details -->
+  <div *ngIf="!isLoading && project" class="row">
+    <!-- Project Information -->
+    <div class="col-xl-8 col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-4">
+            <h5 class="card-title mb-0 me-3">{{project.name}}</h5>
+            <span [class]="getStatusClass(project.status)">{{getStatusLabel(project.status)}}</span>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted">Project Type</label>
+                <p class="mb-0">{{project.type | titlecase}}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted">Tax Year</label>
+                <p class="mb-0">{{project.taxYear || 'Not specified'}}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted">Due Date</label>
+                <p class="mb-0">{{formatDate(project.dueDate || '')}}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted">Created</label>
+                <p class="mb-0">{{formatDate(project.createdAt)}}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="project.description" class="mb-3">
+            <label class="form-label text-muted">Description</label>
+            <p class="mb-0">{{project.description}}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intake Form Data -->
+      <div *ngIf="intakeFormData" class="card">
+        <div class="card-body">
+          <h5 class="card-title">Intake Form Information</h5>
+          <div class="table-responsive">
+            <table class="table table-borderless">
+              <tbody>
+                <tr *ngFor="let item of intakeFormData | keyvalue">
+                  <td class="text-muted" style="width: 30%;">{{item.key | titlecase}}</td>
+                  <td>{{item.value}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Management -->
+    <div class="col-xl-4 col-12">
+      <!-- Upload Document -->
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Upload Prepared Document</h5>
+          
+          <div class="mb-3">
+            <label for="documentFile" class="form-label">Select File</label>
+            <input type="file" 
+                   class="form-control" 
+                   id="documentFile"
+                   accept=".pdf,.doc,.docx"
+                   (change)="onFileSelected($event)">
+            <div class="form-text">Accepted formats: PDF, DOC, DOCX (Max 10MB)</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="uploadDescription" class="form-label">Description (Optional)</label>
+            <textarea class="form-control" 
+                      id="uploadDescription"
+                      rows="3"
+                      [(ngModel)]="uploadDescription"
+                      placeholder="Brief description of the document..."></textarea>
+          </div>
+
+          <button class="btn btn-primary w-100" 
+                  (click)="uploadDocument()"
+                  [disabled]="!selectedFile || isUploading">
+            <span *ngIf="isUploading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            <i *ngIf="!isUploading" class="ri-upload-2-line me-1"></i>
+            {{isUploading ? 'Uploading...' : 'Upload Document'}}
+          </button>
+        </div>
+      </div>
+
+      <!-- Uploaded Documents -->
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Prepared Documents</h5>
+          
+          <div *ngIf="!project.preparedDocuments || project.preparedDocuments.length === 0" 
+               class="text-center text-muted py-4">
+            <i class="ri-file-text-line font-size-24 mb-2 d-block"></i>
+            No documents uploaded yet
+          </div>
+
+          <div *ngFor="let doc of project.preparedDocuments" class="border rounded p-3 mb-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="flex-grow-1">
+                <h6 class="mb-1">{{doc.originalName}}</h6>
+                <small class="text-muted">
+                  {{formatFileSize(doc.fileSize)}} • {{formatDate(doc.uploadedAt)}}
+                </small>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" 
+                      (click)="downloadDocument(doc)">
+                <i class="ri-download-line"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && !project" class="text-center py-5">
+    <div class="text-muted">
+      <i class="ri-error-warning-line font-size-24 mb-2 d-block"></i>
+      Project not found or failed to load
+    </div>
+  </div>
+</div>

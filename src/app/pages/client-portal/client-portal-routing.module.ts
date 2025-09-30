@@ -14,6 +14,10 @@ const routes: Routes = [
   },
   { path: 'documents', component: DocumentsComponent },
   { path: 'projects', component: ClientProjectsComponent },
+  { 
+    path: 'project-detail/:projectId', 
+    loadComponent: () => import('./project-detail/project-detail.component').then(c => c.ProjectDetailComponent)
+  },
   { path: 'intake', component: IntakeComponent },
   { path: 'tax-intake', component: TaxIntakeComponent },
   { path: 'chat', component: ChatComponent }

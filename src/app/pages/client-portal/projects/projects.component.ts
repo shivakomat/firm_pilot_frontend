@@ -84,11 +84,9 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
     return typeObj ? { label: typeObj.label, icon: typeObj.icon } : { label: type, icon: 'bx-folder' };
   }
 
-  viewProjectDetails(project: Project): void {
-    // Navigate to project-specific intake forms or documents
-    this.router.navigate(['/client-portal/tax-intake'], { 
-      queryParams: { projectId: project.id }
-    });
+  viewProject(project: Project): void {
+    // Navigate to project detail page
+    this.router.navigate(['/client-portal/project-detail', project.id]);
   }
 
   formatDate(dateString: string): string {

@@ -6,6 +6,7 @@ import { TaxConsultantRoutingModule } from './tax-consultant-routing.module';
 import { IntakeFormsComponent } from './intake-forms/intake-forms.component';
 import { ClientDocumentsComponent } from './client-documents/client-documents.component';
 import { ClientProjectsComponent } from './client-projects/client-projects.component';
+import { ProjectDetailComponent } from './project-detail/project-detail.component';
 
 // UI Components
 import { PagetitleComponent } from '../../shared/ui/pagetitle/pagetitle.component';
@@ -20,7 +21,8 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
   declarations: [
     IntakeFormsComponent,
     ClientDocumentsComponent,
-    ClientProjectsComponent
+    ClientProjectsComponent,
+    ProjectDetailComponent
   ],
   imports: [
     CommonModule,
