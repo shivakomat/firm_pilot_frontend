@@ -111,6 +111,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
     this.newProject = {
       name: '',
       type: 'tax_return',
+      status: 'active',
       taxYear: new Date().getFullYear(),
       dueDate: '',
       description: ''
@@ -132,10 +133,39 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('Creating project with data:', this.newProject);
+    if (!this.newProject.type) {
+      Swal.fire({
+        title: 'Validation Error',
+        text: 'Project type is required.',
+        icon: 'warning'
+      });
+      return;
+    }
+
+    // Clean the project data - remove empty fields and format properly
+    const projectData: any = {
+      name: this.newProject.name.trim(),
+      type: this.newProject.type,
+      status: this.newProject.status || 'active'
+    };
+
+    // Only add optional fields if they have values
+    if (this.newProject.taxYear && this.newProject.taxYear > 0) {
+      projectData.taxYear = this.newProject.taxYear;
+    }
+
+    if (this.newProject.dueDate && this.newProject.dueDate.trim()) {
+      projectData.dueDate = this.newProject.dueDate.trim();
+    }
+
+    if (this.newProject.description && this.newProject.description.trim()) {
+      projectData.description = this.newProject.description.trim();
+    }
+
+    console.log('Creating project with cleaned data:', projectData);
     console.log('Client ID:', this.clientId);
 
-    this.apiService.createClientProject(this.clientId, this.newProject)
+    this.apiService.createClientProject(this.clientId, projectData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -161,10 +191,14 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error creating project:', error);
+          console.error('Full error object:', JSON.stringify(error, null, 2));
+          
           let errorMessage = 'Failed to create project.';
           
           if (error.error && error.error.message) {
             errorMessage = error.error.message;
+          } else if (error.error && typeof error.error === 'string') {
+            errorMessage = error.error;
           } else if (error.message) {
             errorMessage = error.message;
           } else if (error.status) {
