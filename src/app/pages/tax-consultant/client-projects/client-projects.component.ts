@@ -19,21 +19,21 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
   showCreateModal = false;
   
   // Project creation form
-  newProject: CreateProjectRequest = {
+  newProject: any = {
     name: '',
-    projectType: 'tax_return',
+    projectType: 'Tax Return',
     taxYear: new Date().getFullYear(),
     dueDate: '',
     description: ''
   };
 
   projectTypes = [
-    { value: 'tax_return', label: 'Tax Return' },
-    { value: 'quarterly_filing', label: 'Quarterly Filing' },
-    { value: 'business_setup', label: 'Business Setup' },
-    { value: 'audit', label: 'Audit' },
-    { value: 'consultation', label: 'Consultation' },
-    { value: 'other', label: 'Other' }
+    { value: 'Tax Return', label: 'Tax Return' },
+    { value: 'Quarterly Filing', label: 'Quarterly Filing' },
+    { value: 'Business Setup', label: 'Business Setup' },
+    { value: 'Audit', label: 'Audit' },
+    { value: 'Consultation', label: 'Consultation' },
+    { value: 'Other', label: 'Other' }
   ];
 
   projectTypeMap = {
