@@ -30,9 +30,6 @@
 .DS_Store
 Thumbs.db
 
-# Build outputs
-/dist
-
 # Lock files (let Heroku generate fresh ones)
 package-lock.json
 

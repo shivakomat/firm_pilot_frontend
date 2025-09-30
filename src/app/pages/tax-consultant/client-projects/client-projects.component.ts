@@ -172,7 +172,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
       projectData.description = this.newProject.description.trim();
     }
 
-    console.log('=== PROJECT CREATION DEBUG v111 ===');
+    console.log('=== PROJECT CREATION DEBUG v112 - FIXED MAPPING ===');
     console.log('Raw form data:', this.newProject);
     console.log('Original projectType:', this.newProject.projectType);
     console.log('Mapped projectType:', mappedProjectType);
@@ -183,7 +183,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
     console.log('===============================');
 
     // Add alert to ensure code is running
-    alert('Project creation starting v111 - WORKING APP WITH FIXES - projectType mapping applied');
+    alert('Project creation starting v112 - FIXED DROPDOWN MAPPING - should now send projectType correctly');
 
     this.apiService.createClientProject(this.clientId, projectData)
       .pipe(takeUntil(this.destroy$))
