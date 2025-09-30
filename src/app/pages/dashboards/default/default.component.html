@@ -113,9 +113,10 @@
         </div>
     </div>
 
-    <!-- Row 2: Client Creation Chart -->
+    <!-- Row 2: Charts Side by Side -->
     <div class="row">
-        <div class="col-12">
+        <!-- Client Creation Trends -->
+        <div class="col-xl-6 col-12">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex flex-wrap align-items-center mb-4">
@@ -128,7 +129,32 @@
                             </div>
                         </div>
                     </div>
-                    <apx-chart [series]="clientCreationChart.series" [chart]="clientCreationChart.chart" [stroke]="clientCreationChart.stroke" [xaxis]="clientCreationChart.xaxis" [colors]="clientCreationChart.colors" [legend]="clientCreationChart.legend"></apx-chart>
+                    <apx-chart
+                      [series]="clientCreationChart.series"
+                      [chart]="clientCreationChart.chart"
+                      [stroke]="clientCreationChart.stroke"
+                      [xaxis]="clientCreationChart.xaxis"
+                      [colors]="clientCreationChart.colors"
+                      [legend]="clientCreationChart.legend"></apx-chart>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Growth Over Time (placeholder) -->
+        <div class="col-xl-6 col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap align-items-center mb-4">
+                        <h5 class="card-title me-2">Revenue Growth Over Time</h5>
+                    </div>
+                    <apx-chart
+                      [series]="revenueGrowthChart.series"
+                      [chart]="revenueGrowthChart.chart"
+                      [stroke]="revenueGrowthChart.stroke"
+                      [xaxis]="revenueGrowthChart.xaxis"
+                      [colors]="revenueGrowthChart.colors"
+                      [legend]="revenueGrowthChart.legend"
+                      [noData]="revenueGrowthChart.noData"></apx-chart>
                 </div>
             </div>
         </div>

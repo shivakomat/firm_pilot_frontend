@@ -30,6 +30,7 @@ export class DefaultComponent implements OnInit {
   monthlyEarningChart: ChartType;
   revenueChart: ChartType;
   clientCreationChart: ChartType;
+  revenueGrowthChart: ChartType;
   transactions: any;
   statData: any;
   
@@ -170,6 +171,34 @@ export class DefaultComponent implements OnInit {
       colors: ['#f1b44c', '#556ee6', '#34c38f', '#50a5f1'],
       legend: {
         position: 'top'
+      }
+    };
+
+    // Revenue Growth Over Time (placeholder – no data yet)
+    this.revenueGrowthChart = {
+      series: [],
+      chart: {
+        type: 'area',
+        height: 350,
+        toolbar: { show: false }
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3
+      },
+      xaxis: {
+        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      },
+      colors: ['#34c38f'],
+      legend: { show: false },
+      noData: {
+        text: 'No revenue data yet',
+        align: 'center',
+        verticalAlign: 'middle',
+        style: {
+          color: '#6c757d',
+          fontSize: '14px'
+        }
       }
     };
   }
