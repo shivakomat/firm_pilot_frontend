@@ -36,6 +36,15 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
     { value: 'other', label: 'Other' }
   ];
 
+  projectTypeMap = {
+    'Tax Return': 'tax_return',
+    'Quarterly Filing': 'quarterly_filing',
+    'Business Setup': 'business_setup',
+    'Audit': 'audit',
+    'Consultation': 'consultation',
+    'Other': 'other'
+  };
+
   projectStatuses = [
     { value: 'active', label: 'Active', class: 'badge bg-success' },
     { value: 'in_progress', label: 'In Progress', class: 'badge bg-primary' },
@@ -142,9 +151,12 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
     }
 
     // Clean the project data - remove empty fields and format properly
+    // Ensure projectType is mapped to correct backend value
+    const mappedProjectType = this.projectTypeMap[this.newProject.projectType] || this.newProject.projectType;
+    
     const projectData: any = {
       name: this.newProject.name.trim(),
-      projectType: this.newProject.projectType
+      projectType: mappedProjectType
     };
 
     // Only add optional fields if they have values
@@ -160,12 +172,18 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
       projectData.description = this.newProject.description.trim();
     }
 
-    console.log('=== PROJECT CREATION DEBUG ===');
+    console.log('=== PROJECT CREATION DEBUG v111 ===');
     console.log('Raw form data:', this.newProject);
+    console.log('Original projectType:', this.newProject.projectType);
+    console.log('Mapped projectType:', mappedProjectType);
     console.log('Cleaned project data being sent:', projectData);
     console.log('Client ID:', this.clientId);
     console.log('Project data JSON:', JSON.stringify(projectData, null, 2));
+    console.log('Current timestamp:', new Date().toISOString());
     console.log('===============================');
+
+    // Add alert to ensure code is running
+    alert('Project creation starting v111 - WORKING APP WITH FIXES - projectType mapping applied');
 
     this.apiService.createClientProject(this.clientId, projectData)
       .pipe(takeUntil(this.destroy$))
@@ -232,7 +250,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
   }
 
   updateProjectStatus(project: Project, newStatus: string): void {
-    this.apiService.updateProject(project.id, { name: project.name, projectType: project.type as any })
+    this.apiService.updateProject(project.id, { name: project.name, projectType: project.projectType as any })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

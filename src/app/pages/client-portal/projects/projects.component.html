@@ -117,8 +117,8 @@
 
                     <div class="project-details mb-3">
                       <div class="d-flex align-items-center mb-2">
-                        <i class="{{ getTypeInfo(project.type).icon }} me-2 text-muted"></i>
-                        <span class="text-muted">{{ getTypeInfo(project.type).label }}</span>
+                        <i class="{{ getTypeInfo(project.projectType).icon }} me-2 text-muted"></i>
+                        <span class="text-muted">{{ getTypeInfo(project.projectType).label }}</span>
                       </div>
                       
                       <div class="d-flex align-items-center mb-2" *ngIf="project.taxYear">

@@ -46,7 +46,7 @@ export interface Project {
   id: number;
   clientId: number;
   name: string;
-  type: 'tax_return' | 'quarterly_filing' | 'business_setup' | 'audit' | 'consultation' | 'other';
+  projectType: 'tax_return' | 'quarterly_filing' | 'business_setup' | 'audit' | 'consultation' | 'other';
   status: 'active' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
   taxYear?: number;
   dueDate?: string;
