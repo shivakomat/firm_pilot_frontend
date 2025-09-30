@@ -132,10 +132,14 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    console.log('Creating project with data:', this.newProject);
+    console.log('Client ID:', this.clientId);
+
     this.apiService.createClientProject(this.clientId, this.newProject)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('Project creation response:', response);
           if (response.success) {
             Swal.fire({
               title: 'Success!',
@@ -146,13 +150,30 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
             });
             this.closeCreateModal();
             this.loadClientProjects();
+          } else {
+            console.error('Project creation failed:', response.message);
+            Swal.fire({
+              title: 'Error',
+              text: response.message || 'Failed to create project.',
+              icon: 'error'
+            });
           }
         },
         error: (error) => {
           console.error('Error creating project:', error);
+          let errorMessage = 'Failed to create project.';
+          
+          if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          } else if (error.status) {
+            errorMessage = `Server error (${error.status}): ${error.statusText || 'Unknown error'}`;
+          }
+          
           Swal.fire({
             title: 'Error',
-            text: 'Failed to create project.',
+            text: errorMessage,
             icon: 'error'
           });
         }

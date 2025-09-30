@@ -653,6 +653,7 @@ export class ApiService {
       'Authorization': `Bearer ${token}`
     });
 
+    console.log('Creating project for client:', clientId, 'with data:', projectData);
     return this.http.post<ProjectResponse>(`${this.baseUrl}/clients/${clientId}/projects`, projectData, { headers });
   }
 
