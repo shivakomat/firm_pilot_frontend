@@ -6,12 +6,8 @@
 # Only exists if Bazel was run
 /bazel-out
 
-# dependencies
+# Dependencies
 /node_modules
-
-# profiling files
-chrome-profiler-events*.json
-speed-measure-plugin*.json
 
 # IDEs and editors
 /.idea
@@ -29,6 +25,16 @@ speed-measure-plugin*.json
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+/dist
+
+# Lock files (let Heroku generate fresh ones)
+package-lock.json
 
 # misc
 /.angular/cache
