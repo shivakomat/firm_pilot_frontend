@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
@@ -654,7 +655,23 @@ export class ApiService {
     });
 
     console.log('Creating project for client:', clientId, 'with data:', projectData);
-    return this.http.post<ProjectResponse>(`${this.baseUrl}/clients/${clientId}/projects`, projectData, { headers });
+    console.log('Full API URL:', `${this.baseUrl}/clients/${clientId}/projects`);
+    console.log('Request headers:', headers);
+    
+    return this.http.post<ProjectResponse>(`${this.baseUrl}/clients/${clientId}/projects`, projectData, { headers })
+      .pipe(
+        tap(response => console.log('API Response:', response)),
+        catchError(error => {
+          console.error('API Error Details:', {
+            status: error.status,
+            statusText: error.statusText,
+            error: error.error,
+            url: error.url,
+            headers: error.headers
+          });
+          throw error;
+        })
+      );
   }
 
   /**
