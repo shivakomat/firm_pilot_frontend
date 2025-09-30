@@ -21,7 +21,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
   // Project creation form
   newProject: CreateProjectRequest = {
     name: '',
-    type: 'tax_return',
+    projectType: 'tax_return',
     taxYear: new Date().getFullYear(),
     dueDate: '',
     description: ''
@@ -110,8 +110,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
   openCreateModal(): void {
     this.newProject = {
       name: '',
-      type: 'tax_return',
-      status: 'active',
+      projectType: 'tax_return',
       taxYear: new Date().getFullYear(),
       dueDate: '',
       description: ''
@@ -133,7 +132,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.newProject.type) {
+    if (!this.newProject.projectType) {
       Swal.fire({
         title: 'Validation Error',
         text: 'Project type is required.',
@@ -145,8 +144,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
     // Clean the project data - remove empty fields and format properly
     const projectData: any = {
       name: this.newProject.name.trim(),
-      type: this.newProject.type,
-      status: this.newProject.status || 'active'
+      projectType: this.newProject.projectType
     };
 
     // Only add optional fields if they have values
@@ -230,7 +228,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
   }
 
   updateProjectStatus(project: Project, newStatus: string): void {
-    this.apiService.updateProject(project.id, { status: newStatus as any })
+    this.apiService.updateProject(project.id, { name: project.name, projectType: project.type as any })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

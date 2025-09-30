@@ -139,7 +139,7 @@
               <div class="mb-3">
                 <label for="projectType" class="form-label">Project Type *</label>
                 <select class="form-select" id="projectType" 
-                        [(ngModel)]="newProject.type" name="projectType">
+                        [(ngModel)]="newProject.projectType" name="projectType">
                   <option *ngFor="let type of projectTypes" [value]="type.value">
                     {{ type.label }}
                   </option>

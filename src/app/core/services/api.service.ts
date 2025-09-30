@@ -88,11 +88,10 @@ export interface ProjectDetailResponse {
 
 export interface CreateProjectRequest {
   name: string;
-  type: 'tax_return' | 'quarterly_filing' | 'business_setup' | 'audit' | 'consultation' | 'other';
-  status?: 'active' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
+  projectType: 'tax_return' | 'quarterly_filing' | 'business_setup' | 'audit' | 'consultation' | 'other';
+  description?: string;
   taxYear?: number;
   dueDate?: string;
-  description?: string;
 }
 
 export interface ProjectResponse {
