@@ -92,37 +92,30 @@ export const MENU: MenuItem[] = [
         id: 50,
         label: 'MENUITEMS.CLIENTS.TEXT',
         icon: 'bxs-user-detail',
-        subItems: [
-            {
-                id: 51,
-                label: 'MENUITEMS.CLIENTS.TEXT',
-                link: '/clients/list',
-                parentId: 50
-            },
-            {
-                id: 52,
-                label: 'MENUITEMS.INVITATIONS.TEXT',
-                link: '/invitations',
-                parentId: 50
-            },
-            {
-                id: 53,
-                label: 'MENUITEMS.TAXCONSULTANT.LIST.INTAKEFORMS',
-                link: '/tax-consultant/intake-forms',
-                parentId: 50
-            },
-            {
-                id: 54,
-                label: 'MENUITEMS.TAXCONSULTANT.LIST.CLIENTDOCUMENTS',
-                link: '/tax-consultant/client-documents',
-                parentId: 50
-            }
-        ]
+        link: '/clients/list',
+    },
+    {
+        id: 52,
+        label: 'MENUITEMS.INVITATIONS.TEXT',
+        icon: 'bx-paper-plane',
+        link: '/invitations',
+    },
+    {
+        id: 53,
+        label: 'MENUITEMS.TAXCONSULTANT.LIST.INTAKEFORMS',
+        icon: 'bx-copy-alt',
+        link: '/tax-consultant/intake-forms',
+    },
+    {
+        id: 54,
+        label: 'MENUITEMS.TAXCONSULTANT.LIST.CLIENTDOCUMENTS',
+        icon: 'bx-file-find',
+        link: '/tax-consultant/client-documents',
     },
     {
         id: 70,
         label: 'MENUITEMS.PROJECTS.TEXT',
-        icon: 'bx-briefcase',
+        icon: 'bx-folder-open',
         link: '/tax-consultant/projects',
     },
     {
@@ -134,7 +127,7 @@ export const MENU: MenuItem[] = [
     {
         id: 30,
         label: 'MENUITEMS.EMAIL.TEXT',
-        icon: 'bx-envelope',
+        icon: 'bx-mail-send',
         link: '/email/inbox',
         // subItems: [
         //     {
