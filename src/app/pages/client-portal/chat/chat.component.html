@@ -138,31 +138,48 @@
   </div>
 
   <!-- Message Input -->
-  <div class="chat-input">
-    <div class="input-container">
-      <button class="btn btn-light attachment-btn">
-        <i class="ri-emotion-line"></i>
-      </button>
-      <button class="btn btn-light attachment-btn">
-        <i class="ri-attachment-2"></i>
-      </button>
-      <button class="btn btn-light attachment-btn">
-        <i class="ri-file-line"></i>
-      </button>
-      <div class="input-wrapper">
-        <textarea class="message-input" 
-                  placeholder="Enter Message..." 
-                  [(ngModel)]="newMessage" 
-                  (keypress)="onKeyPress($event)"
-                  [disabled]="isLoading"
-                  rows="1"></textarea>
+  <div class="p-3 chat-input-section">
+    <div class="row">
+      <div class="col">
+        <div class="position-relative">
+          <input type="text" 
+                 class="form-control chat-input" 
+                 placeholder="Enter Message..." 
+                 [(ngModel)]="newMessage" 
+                 (keypress)="onKeyPress($event)"
+                 [disabled]="isLoading"
+                 name="message">
+          <div class="chat-input-links">
+            <ul class="list-inline mb-0">
+              <li class="list-inline-item">
+                <a href="javascript: void(0);" class="emoji-btn">
+                  <i class="mdi mdi-emoticon-happy-outline"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="javascript: void(0);">
+                  <i class="mdi mdi-file-image-outline"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="javascript: void(0);">
+                  <i class="mdi mdi-file-document-outline"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
-      <button type="button" 
-              class="btn send-btn" 
-              (click)="sendMessage()" 
-              [disabled]="!newMessage.trim() || isLoading">
-        <i class="ri-send-plane-fill"></i>
-      </button>
+      <div class="col-auto">
+        <button type="button" 
+                class="btn btn-primary btn-rounded chat-send w-md" 
+                (click)="sendMessage()" 
+                [disabled]="!newMessage.trim() || isLoading">
+          <span class="d-none d-sm-inline-block me-2" *ngIf="!isLoading">Send</span>
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+          <i class="mdi mdi-send"></i>
+        </button>
+      </div>
     </div>
   </div>
 </div>

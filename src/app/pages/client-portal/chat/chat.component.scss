@@ -410,92 +410,64 @@
   color: #6b7280;
 }
 
-// Chat Input
-.chat-input {
-  padding: 16px 20px;
+// Chat Input (copied from accountant portal)
+.chat-input-section {
+  border-top: 1px solid #dee2e6;
   background: #ffffff;
-  border-top: 1px solid #f0f0f0;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
 }
 
-.input-container {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 24px;
-  padding: 8px 12px;
-  transition: border-color 0.2s;
-}
-
-.input-container:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.attachment-btn {
-  border: none;
-  background: transparent;
-  color: #6b7280;
-  padding: 8px;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.attachment-btn:hover {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.input-wrapper {
-  flex: 1;
-}
-
-.message-input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  resize: none;
-  outline: none;
+.chat-input {
+  border-radius: 30px;
+  background-color: #f8f9fa !important;
+  border-color: #f8f9fa !important;
+  padding-right: 120px;
+  padding: 12px 120px 12px 20px;
   font-size: 14px;
-  line-height: 1.4;
-  padding: 8px 0;
-  color: #1f2937;
-  max-height: 120px;
+  
+  &:focus {
+    background-color: #f8f9fa !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+  }
+  
+  &::placeholder {
+    color: #6c757d;
+  }
 }
 
-.message-input::placeholder {
-  color: #9ca3af;
+.chat-input-links {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  li {
+    a {
+      font-size: 16px;
+      line-height: 36px;
+      padding: 0px 4px;
+      display: inline-block;
+      color: #6c757d;
+      text-decoration: none;
+      
+      &:hover {
+        color: #495057;
+      }
+    }
+  }
 }
 
-.send-btn {
-  background: #6366f1;
-  border: none;
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.send-btn:hover:not(:disabled) {
-  background: #5856eb;
-  transform: scale(1.05);
-}
-
-.send-btn:disabled {
-  background: #d1d5db;
-  cursor: not-allowed;
-  transform: none;
+.chat-send {
+  border-radius: 30px;
+  padding: 12px 20px;
+  font-weight: 500;
+  
+  @media (max-width: 575.98px) {
+    min-width: auto;
+  }
 }
 
 // Scrollbar styling
