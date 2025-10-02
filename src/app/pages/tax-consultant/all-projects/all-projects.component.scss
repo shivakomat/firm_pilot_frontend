@@ -1,0 +1,117 @@
+.card {
+  box-shadow: 0 0.75rem 1.5rem rgba(18, 38, 63, 0.03);
+  border: 1px solid #eff2f7;
+  border-radius: 0.375rem;
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #495057;
+  border-bottom: 2px solid #eff2f7;
+}
+
+.table td {
+  font-size: 0.8125rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #eff2f7;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-link {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.avatar-title {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.font-size-12 {
+  font-size: 0.75rem !important;
+}
+
+.font-size-14 {
+  font-size: 0.875rem !important;
+}
+
+.font-size-16 {
+  font-size: 1rem !important;
+}
+
+.font-size-18 {
+  font-size: 1.125rem !important;
+}
+
+.display-4 {
+  font-size: 3.5rem;
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+.page-title-box {
+  padding-bottom: 1.5rem;
+}
+
+.breadcrumb {
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: ">";
+  color: #74788d;
+}
+
+.breadcrumb-item a {
+  color: #556ee6;
+  text-decoration: none;
+}
+
+.breadcrumb-item.active {
+  color: #495057;
+}
+
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.75rem;
+  }
+  
+  .d-flex.gap-2 {
+    flex-direction: column;
+    gap: 0.25rem !important;
+  }
+  
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

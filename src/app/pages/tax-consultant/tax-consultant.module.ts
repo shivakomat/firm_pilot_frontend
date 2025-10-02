@@ -7,6 +7,7 @@ import { IntakeFormsComponent } from './intake-forms/intake-forms.component';
 import { ClientDocumentsComponent } from './client-documents/client-documents.component';
 import { ClientProjectsComponent } from './client-projects/client-projects.component';
 import { ProjectDetailComponent } from './project-detail/project-detail.component';
+import { AllProjectsComponent } from './all-projects/all-projects.component';
 
 // UI Components
 import { PagetitleComponent } from '../../shared/ui/pagetitle/pagetitle.component';
@@ -31,6 +32,7 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
     PagetitleComponent,
     LoaderComponent,
     ProjectDetailComponent,
+    AllProjectsComponent,
     BsDropdownModule,
     ModalModule,
     TabsModule
