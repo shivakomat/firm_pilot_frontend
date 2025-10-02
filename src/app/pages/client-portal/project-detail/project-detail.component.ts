@@ -50,7 +50,8 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         next: (response) => {
           if (response.success) {
             this.project = response.project || null;
-            this.intakeFormData = response.intakeForm || null;
+            // Note: intakeFormData would come from project.intakeFormData if available
+            this.intakeFormData = this.project?.intakeFormData || null;
           }
           this.isLoading = false;
         },

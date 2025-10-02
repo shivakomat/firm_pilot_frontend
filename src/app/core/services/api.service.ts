@@ -727,7 +727,7 @@ export class ApiService {
    * Get project details with intake form data
    * @param projectId - ID of the project
    */
-  getProjectDetail(projectId: number): Observable<ProjectDetailResponse> {
+  getProjectDetail(projectId: number): Observable<ProjectResponse> {
     const token = localStorage.getItem('authToken');
     
     if (!token) {
@@ -745,7 +745,7 @@ export class ApiService {
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.get<ProjectDetailResponse>(`${this.baseUrl}/projects/${projectId}/detail`, { headers });
+    return this.http.get<ProjectResponse>(`${this.baseUrl}/projects/${projectId}`, { headers });
   }
 
   /**
