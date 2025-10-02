@@ -1,26 +1,28 @@
 <div class="chat-container">
-  <!-- Chat Mode Toggle -->
-  <div class="chat-mode-toggle mb-3">
-    <div class="btn-group w-100" role="group">
-      <button type="button" 
-              class="btn" 
-              [class.btn-primary]="chatMode === 'accountant'"
-              [class.btn-outline-primary]="chatMode !== 'accountant'"
-              (click)="switchChatMode('accountant')">
-        <i class="ri-user-3-line me-2"></i>Chat with Accountant
-      </button>
-      <button type="button" 
-              class="btn" 
-              [class.btn-success]="chatMode === 'ai'"
-              [class.btn-outline-success]="chatMode !== 'ai'"
-              (click)="switchChatMode('ai')">
-        <i class="ri-robot-2-line me-2"></i>AI Tax Assistant
-      </button>
+  <!-- Fixed Header Section -->
+  <div class="chat-header-section">
+    <!-- Chat Mode Toggle -->
+    <div class="chat-mode-toggle mb-3">
+      <div class="btn-group w-100" role="group">
+        <button type="button" 
+                class="btn" 
+                [class.btn-primary]="chatMode === 'accountant'"
+                [class.btn-outline-primary]="chatMode !== 'accountant'"
+                (click)="switchChatMode('accountant')">
+          <i class="ri-user-3-line me-2"></i>Chat with Accountant
+        </button>
+        <button type="button" 
+                class="btn" 
+                [class.btn-success]="chatMode === 'ai'"
+                [class.btn-outline-success]="chatMode !== 'ai'"
+                (click)="switchChatMode('ai')">
+          <i class="ri-robot-2-line me-2"></i>AI Tax Assistant
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- Chat Header -->
-  <div class="chat-header">
+    <!-- Chat Header -->
+    <div class="chat-header">
     <div class="d-flex align-items-center">
       <div class="avatar-container me-3">
         <div class="avatar-circle" 
@@ -64,6 +66,7 @@
         <i class="ri-more-2-line"></i>
       </button>
     </div>
+  </div>
   </div>
   
   <!-- Messages Area -->

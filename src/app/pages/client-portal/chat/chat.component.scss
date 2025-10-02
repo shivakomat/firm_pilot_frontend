@@ -10,17 +10,22 @@
   overflow: hidden;
 }
 
+// Fixed Header Section (includes toggle + header)
+.chat-header-section {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #ffffff;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
 // Chat Header
 .chat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
   background: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .avatar-container {
