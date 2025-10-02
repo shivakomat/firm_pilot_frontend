@@ -20,8 +20,8 @@ import { marked } from 'marked';
 export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   
-  // Chat mode: 'accountant' or 'ai'
-  chatMode: 'accountant' | 'ai' = 'accountant';
+  // Chat mode: 'accountant' or 'ai' - Default to AI for client portal
+  chatMode: 'accountant' | 'ai' = 'ai';
   
   // Accountant chat
   messages: ChatMessage[] = [];
