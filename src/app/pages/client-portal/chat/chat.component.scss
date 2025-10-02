@@ -1,9 +1,15 @@
-// Chat Container
+// Prevent page scrolling
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+// Chat Container - Full available height
 .chat-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-height: 800px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -18,6 +24,7 @@
   background: #ffffff;
   padding: 16px 20px;
   border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0; // Prevent header from shrinking
 }
 
 // Chat Header
@@ -422,6 +429,7 @@
   position: sticky;
   bottom: 0;
   z-index: 2;
+  flex-shrink: 0; // Prevent input from shrinking
 }
 
 .chat-input {
