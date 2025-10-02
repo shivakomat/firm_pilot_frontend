@@ -123,7 +123,7 @@ export const MENU: MenuItem[] = [
         id: 70,
         label: 'MENUITEMS.PROJECTS.TEXT',
         icon: 'bx-briefcase',
-        link: '/projects',
+        link: '/tax-consultant/projects',
     },
     {
         id: 10,
