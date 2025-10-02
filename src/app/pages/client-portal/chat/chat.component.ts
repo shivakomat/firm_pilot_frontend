@@ -272,7 +272,15 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
-  formatTime(timestamp: Date | string): string {
+  formatTime(timestamp: Date | string | null | undefined): string {
+    if (!timestamp) {
+      return new Date().toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+    
     try {
       const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
       
@@ -300,7 +308,11 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
-  formatDate(timestamp: Date | string): string {
+  formatDate(timestamp: Date | string | null | undefined): string {
+    if (!timestamp) {
+      return 'Today';
+    }
+    
     try {
       const today = new Date();
       const messageDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
@@ -335,7 +347,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     const currentMessage = currentMessages[index];
     const previousMessage = currentMessages[index - 1];
     
-    if (!currentMessage || !previousMessage) return false;
+    if (!currentMessage || !previousMessage || !currentMessage.timestamp || !previousMessage.timestamp) return false;
     
     try {
       const currentDate = currentMessage.timestamp instanceof Date ? 

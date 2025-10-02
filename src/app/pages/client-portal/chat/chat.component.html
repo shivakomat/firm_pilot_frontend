@@ -76,7 +76,7 @@
     <div *ngFor="let message of (chatMode === 'ai' ? aiMessages : messages); let i = index" class="message-container">
       <!-- Date Separator -->
       <div *ngIf="shouldShowDateSeparator(i)" class="date-separator">
-        <span class="date-label">{{formatDate(message.timestamp)}}</span>
+        <span class="date-label">{{message?.timestamp ? formatDate(message.timestamp) : 'Today'}}</span>
       </div>
       
       <!-- Message Bubble -->
@@ -103,7 +103,7 @@
             <span *ngIf="chatMode === 'ai'">AI Tax Assistant</span>
           </div>
           <div class="message-text" [innerHTML]="formatMessageContent(message)"></div>
-          <div class="message-time">{{formatTime(message.timestamp)}}</div>
+          <div class="message-time">{{message?.timestamp ? formatTime(message.timestamp) : 'Now'}}</div>
         </div>
         
         <!-- Message options -->
