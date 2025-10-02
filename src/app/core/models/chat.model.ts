@@ -34,3 +34,24 @@ export interface AIAgentResponse {
   confidence: number;
   suggestedActions?: string[];
 }
+
+// API Response interfaces (matching actual backend format)
+export interface ApiThreadResponse {
+  success: boolean;
+  thread: {
+    id: number;
+    clientId: number;
+    createdAt: string;
+  };
+  messages: ApiMessage[];
+}
+
+export interface ApiMessage {
+  id: number;
+  threadId: number;
+  senderId: number;
+  body: string;
+  attachmentDocumentId: number | null;
+  createdAt: string;
+  readAt: string | null;
+}

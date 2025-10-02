@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../../core/services/chat.service';
 import { AiChatService, AIConversation, AIMessage } from '../../../core/services/ai-chat.service';
-import { ChatMessage, ChatThread, SendMessageRequest } from '../../../core/models/chat.model';
+import { ChatMessage, ChatThread, SendMessageRequest, ApiThreadResponse, ApiMessage } from '../../../core/models/chat.model';
 import { AuthenticationService } from '../../../core/services/auth.service';
 import { Subscription, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -94,7 +94,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   private loadMessagesPromise(): Promise<void> {
     console.log('📝 loadMessagesPromise started', {
       chatMode: this.chatMode,
-      currentAIConversation: this.currentAIConversation
+      currentAIConversation: this.currentAIConversation,
+      currentUser: this.currentUser
     });
     
     return new Promise((resolve) => {
@@ -110,7 +111,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
               
               this.aiMessages = response.messages.map(msg => ({
                 ...msg,
-                timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
+                timestamp: this.safeTimestamp(msg.timestamp)
               }));
               
               console.log('📋 Processed AI messages:', this.aiMessages);
@@ -123,18 +124,68 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
             }
           });
       } else {
-        console.log('💬 Loading regular chat messages (mock data)');
+        console.log('💼 Loading accountant chat messages from API');
         
-        // Load regular chat messages (fallback to mock for now)
-        try {
-          this.loadMessages();
-          console.log('📋 Loaded regular messages:', this.messages);
+        // Load accountant chat messages from real API
+        const clientId = this.currentUser?.id || 1;
+        this.loadAccountantMessages(clientId).then(() => {
           resolve();
-        } catch (error) {
-          console.error('❌ Error loading messages:', error);
+        }).catch((error) => {
+          console.error('❌ Error loading accountant messages:', error);
           resolve();
-        }
+        });
       }
+    });
+  }
+
+  private loadAccountantMessages(clientId: number): Promise<void> {
+    console.log('💼 loadAccountantMessages called for clientId:', clientId);
+    
+    return new Promise((resolve, reject) => {
+      // Use the real API endpoint: GET /threads/{clientId}
+      this.chatService.getThread(clientId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response: ApiThreadResponse) => {
+            console.log('✅ Thread API response:', response);
+            
+            if (response.success && response.thread) {
+              this.currentThread = {
+                id: response.thread.id,
+                clientId: response.thread.clientId,
+                clientName: this.currentUser?.firstName + ' ' + this.currentUser?.lastName || 'Client',
+                clientEmail: this.currentUser?.email || 'client@example.com',
+                lastActivity: new Date(response.thread.createdAt),
+                unreadCount: 0,
+                messages: []
+              };
+              
+              // Convert API messages to our format
+              this.messages = response.messages.map((msg: ApiMessage) => ({
+                id: msg.id,
+                content: msg.body,
+                senderId: msg.senderId,
+                senderName: msg.senderId === clientId ? 'You' : 'Tax Consultant',
+                senderType: msg.senderId === clientId ? 'CLIENT' : 'ACCOUNTANT',
+                timestamp: new Date(msg.createdAt),
+                threadId: msg.threadId
+              }));
+              
+              console.log('📋 Processed accountant messages:', this.messages);
+            } else {
+              console.log('⚠️ No thread found, will create one when sending first message');
+              this.messages = [];
+            }
+            
+            resolve();
+          },
+          error: (error) => {
+            console.error('❌ Error loading thread:', error);
+            // Initialize empty state if API fails
+            this.messages = [];
+            resolve();
+          }
+        });
     });
   }
 
@@ -199,10 +250,32 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
     
     const sub = this.chatService.getThread(clientId).subscribe({
-      next: (response) => {
-        this.currentThread = response.thread;
-        this.messages = response.messages;
-        this.saveMessagesToStorage(clientId, this.messages);
+      next: (response: ApiThreadResponse) => {
+        if (response.success && response.thread) {
+          // Convert API thread to our format
+          this.currentThread = {
+            id: response.thread.id,
+            clientId: response.thread.clientId,
+            clientName: this.currentUser?.firstName + ' ' + this.currentUser?.lastName || 'Client',
+            clientEmail: this.currentUser?.email || 'client@example.com',
+            lastActivity: new Date(response.thread.createdAt),
+            unreadCount: 0,
+            messages: []
+          };
+          
+          // Convert API messages to our format
+          this.messages = response.messages.map((msg: ApiMessage) => ({
+            id: msg.id,
+            content: msg.body,
+            senderId: msg.senderId,
+            senderName: msg.senderId === clientId ? 'You' : 'Tax Consultant',
+            senderType: msg.senderId === clientId ? 'CLIENT' : 'ACCOUNTANT',
+            timestamp: new Date(msg.createdAt),
+            threadId: msg.threadId
+          }));
+          
+          this.saveMessagesToStorage(clientId, this.messages);
+        }
         this.isLoading = false;
       },
       error: (error) => {
@@ -778,9 +851,24 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   sendAccountantMessage(): void {
+    console.log('💼 sendAccountantMessage called:', {
+      currentThread: this.currentThread,
+      messageContent: this.newMessage.trim(),
+      currentUser: this.currentUser
+    });
+    
+    // Ensure we have a thread for accountant messages
     if (!this.currentThread) {
-      this.addLocalMessage();
-      return;
+      this.currentThread = {
+        id: 1,
+        clientId: this.currentUser?.id || 1,
+        clientName: this.currentUser?.firstName + ' ' + this.currentUser?.lastName || 'Client',
+        clientEmail: this.currentUser?.email || 'client@example.com',
+        lastActivity: new Date(),
+        unreadCount: 0,
+        messages: []
+      };
+      console.log('📝 Created new thread for accountant chat:', this.currentThread);
     }
 
     const messageRequest: SendMessageRequest = {
@@ -792,6 +880,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     
     const sub = this.chatService.sendMessage(clientId, messageRequest).subscribe({
       next: (response) => {
+        console.log('✅ Accountant message API response:', response);
+        
         const newMessage: ChatMessage = {
           content: this.newMessage,
           senderId: this.currentUser?.id || 2,
@@ -800,12 +890,17 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
           timestamp: new Date(),
           threadId: this.currentThread?.id || 1
         };
+        
+        console.log('📨 Adding message to chat:', newMessage);
         this.messages.push(newMessage);
         this.saveMessagesToStorage(clientId, this.messages);
         this.newMessage = '';
+        this.scrollToBottom();
       },
       error: (error) => {
-        console.error('Error sending message:', error);
+        console.error('❌ Error sending accountant message:', error);
+        
+        // Still add the message locally even if API fails
         const newMessage: ChatMessage = {
           content: this.newMessage,
           senderId: this.currentUser?.id || 2,
@@ -814,9 +909,12 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
           timestamp: new Date(),
           threadId: this.currentThread?.id || 1
         };
+        
+        console.log('📨 Adding message locally (API failed):', newMessage);
         this.messages.push(newMessage);
         this.saveMessagesToStorage(clientId, this.messages);
         this.newMessage = '';
+        this.scrollToBottom();
       }
     });
     this.subscriptions.push(sub);

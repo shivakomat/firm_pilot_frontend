@@ -7,7 +7,8 @@ import {
   ChatMessage, 
   SendMessageRequest, 
   ChatThreadResponse,
-  AIAgentResponse 
+  AIAgentResponse,
+  ApiThreadResponse
 } from '../models/chat.model';
 
 @Injectable({
@@ -43,14 +44,14 @@ export class ChatService {
   /**
    * Get specific chat thread with messages
    */
-  getThread(clientId: number): Observable<ChatThreadResponse> {
+  getThread(clientId: number): Observable<ApiThreadResponse> {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.get<ChatThreadResponse>(`${this.baseUrl}/threads/${clientId}`, { headers });
+    return this.http.get<ApiThreadResponse>(`${this.baseUrl}/threads/${clientId}`, { headers });
   }
 
   /**

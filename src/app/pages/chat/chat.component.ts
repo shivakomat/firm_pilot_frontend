@@ -6,7 +6,7 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
 import { SimplebarAngularModule } from 'simplebar-angular';
 import { PagetitleComponent } from '../../shared/ui/pagetitle/pagetitle.component';
 import { ChatService } from '../../core/services/chat.service';
-import { ChatMessage, ChatThread, SendMessageRequest } from '../../core/models/chat.model';
+import { ChatMessage, ChatThread, SendMessageRequest, ApiThreadResponse, ApiMessage } from '../../core/models/chat.model';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -97,9 +97,30 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isLoading = true;
     const clientId = this.currentUser?.id || 1; // Fallback for testing
     const sub = this.chatService.getThread(clientId).subscribe({
-      next: (response) => {
-        this.currentThread = response.thread;
-        this.messages = response.messages;
+      next: (response: ApiThreadResponse) => {
+        if (response.success && response.thread) {
+          // Convert API thread to our format
+          this.currentThread = {
+            id: response.thread.id,
+            clientId: response.thread.clientId,
+            clientName: 'Client',
+            clientEmail: 'client@example.com',
+            lastActivity: new Date(response.thread.createdAt),
+            unreadCount: 0,
+            messages: []
+          };
+          
+          // Convert API messages to our format
+          this.messages = response.messages.map((msg: ApiMessage) => ({
+            id: msg.id,
+            content: msg.body,
+            senderId: msg.senderId,
+            senderName: msg.senderId === clientId ? 'You' : 'Accountant',
+            senderType: msg.senderId === clientId ? 'CLIENT' : 'ACCOUNTANT',
+            timestamp: new Date(msg.createdAt),
+            threadId: msg.threadId
+          }));
+        }
         this.isLoading = false;
         this.scrollToBottom();
       },
