@@ -21,8 +21,7 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
   declarations: [
     IntakeFormsComponent,
     ClientDocumentsComponent,
-    ClientProjectsComponent,
-    ProjectDetailComponent
+    ClientProjectsComponent
   ],
   imports: [
     CommonModule,
@@ -31,6 +30,7 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
     TaxConsultantRoutingModule,
     PagetitleComponent,
     LoaderComponent,
+    ProjectDetailComponent,
     BsDropdownModule,
     ModalModule,
     TabsModule
