@@ -270,6 +270,14 @@ export interface ClientDetailsResponse {
   message?: string;
 }
 
+export interface AllDocumentsResponse {
+  success: boolean;
+  documents: ClientDocument[];
+  clients: Client[];
+  projects: Project[];
+  message?: string;
+}
+
 export interface Invitation {
   id: number;
   clientId: number;
@@ -759,6 +767,30 @@ export class ApiService {
     });
 
     return this.http.get<ProjectsResponse>(`${this.baseUrl}/clients/${clientId}/projects`, { headers });
+  }
+
+  /**
+   * Get all documents across all clients for the accountant
+   */
+  getAllDocuments(): Observable<AllDocumentsResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<AllDocumentsResponse>(`${this.baseUrl}/documents/all`, { headers });
   }
 
   /**

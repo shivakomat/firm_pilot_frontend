@@ -1,20 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
+import { ApiService, ClientDocument, Client, Project, AllDocumentsResponse } from '../../../core/services/api.service';
 import Swal from 'sweetalert2';
 
-interface ClientDocument {
-  id: number;
-  clientId: number;
+interface DocumentWithDetails extends ClientDocument {
   clientName: string;
   clientEmail: string;
-  documentName: string;
-  documentType: string;
-  category: 'tax-documents' | 'financial-statements' | 'receipts' | 'other';
-  size: string;
-  uploadDate: string;
-  status: 'pending' | 'reviewed' | 'approved' | 'rejected';
-  reviewedBy?: string;
-  reviewDate?: string;
-  notes?: string;
+  projectName?: string;
 }
 
 @Component({
@@ -22,162 +14,149 @@ interface ClientDocument {
   templateUrl: './client-documents.component.html',
   styleUrls: ['./client-documents.component.scss']
 })
-export class ClientDocumentsComponent implements OnInit {
-  documents: ClientDocument[] = [];
-  filteredDocuments: ClientDocument[] = [];
-  selectedStatus: string = 'all';
-  selectedCategory: string = 'all';
+export class ClientDocumentsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
+  documents: DocumentWithDetails[] = [];
+  filteredDocuments: DocumentWithDetails[] = [];
+  clients: Client[] = [];
+  projects: Project[] = [];
+  
+  // Filters
   selectedClient: string = 'all';
+  selectedProject: string = 'all';
+  selectedTag: string = 'all';
+  selectedRequired: string = 'all';
   searchTerm: string = '';
+  
+  // Loading state
+  isLoading = false;
   
   // Statistics
   stats = {
     total: 0,
-    pending: 0,
-    reviewed: 0,
-    approved: 0,
-    rejected: 0
+    required: 0,
+    optional: 0,
+    byTag: new Map<string, number>()
   };
 
-  // Unique clients for filter
-  clients: { id: number, name: string }[] = [];
+  // Available tags for filtering
+  availableTags: string[] = [];
 
-  constructor() { }
+  constructor(private apiService: ApiService) { }
 
   ngOnInit(): void {
     this.loadDocuments();
-    this.calculateStats();
-    this.extractClients();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadDocuments(): void {
-    // Mock data - in real app, this would come from API
-    this.documents = [
-      {
-        id: 1,
-        clientId: 101,
-        clientName: 'John Smith',
-        clientEmail: 'john.smith@email.com',
-        documentName: 'W2_2024.pdf',
-        documentType: 'PDF',
-        category: 'tax-documents',
-        size: '245 KB',
-        uploadDate: '2024-02-15T10:30:00Z',
-        status: 'pending'
-      },
-      {
-        id: 2,
-        clientId: 102,
-        clientName: 'Sarah Johnson',
-        clientEmail: 'sarah.johnson@email.com',
-        documentName: 'Bank_Statement_Jan2024.pdf',
-        documentType: 'PDF',
-        category: 'financial-statements',
-        size: '1.2 MB',
-        uploadDate: '2024-02-14T14:20:00Z',
-        status: 'reviewed',
-        reviewedBy: 'Tax Consultant',
-        reviewDate: '2024-02-16T09:15:00Z'
-      },
-      {
-        id: 3,
-        clientId: 103,
-        clientName: 'Michael Brown',
-        clientEmail: 'michael.brown@email.com',
-        documentName: 'Receipt_Office_Supplies.jpg',
-        documentType: 'Image',
-        category: 'receipts',
-        size: '890 KB',
-        uploadDate: '2024-02-13T16:45:00Z',
-        status: 'approved',
-        reviewedBy: 'Tax Consultant',
-        reviewDate: '2024-02-17T11:30:00Z'
-      },
-      {
-        id: 4,
-        clientId: 104,
-        clientName: 'Emily Davis',
-        clientEmail: 'emily.davis@email.com',
-        documentName: '1099_Form.pdf',
-        documentType: 'PDF',
-        category: 'tax-documents',
-        size: '156 KB',
-        uploadDate: '2024-02-12T09:10:00Z',
-        status: 'rejected',
-        reviewedBy: 'Tax Consultant',
-        reviewDate: '2024-02-16T15:20:00Z',
-        notes: 'Document is unclear, please re-upload with better quality'
-      },
-      {
-        id: 5,
-        clientId: 105,
-        clientName: 'Robert Wilson',
-        clientEmail: 'robert.wilson@email.com',
-        documentName: 'Business_Expenses_Q1.xlsx',
-        documentType: 'Spreadsheet',
-        category: 'financial-statements',
-        size: '2.1 MB',
-        uploadDate: '2024-02-11T13:25:00Z',
-        status: 'pending'
-      },
-      {
-        id: 6,
-        clientId: 101,
-        clientName: 'John Smith',
-        clientEmail: 'john.smith@email.com',
-        documentName: 'Property_Tax_Statement.pdf',
-        documentType: 'PDF',
-        category: 'tax-documents',
-        size: '340 KB',
-        uploadDate: '2024-02-10T11:15:00Z',
-        status: 'approved',
-        reviewedBy: 'Tax Consultant',
-        reviewDate: '2024-02-15T14:45:00Z'
-      }
-    ];
+    this.isLoading = true;
     
-    this.filteredDocuments = [...this.documents];
+    this.apiService.getAllDocuments()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            // Transform documents to include client and project names
+            this.documents = response.documents.map(doc => ({
+              ...doc,
+              clientName: this.getClientName(doc.clientId, response.clients),
+              clientEmail: this.getClientEmail(doc.clientId, response.clients),
+              projectName: this.getProjectName(doc.projectId, response.projects)
+            }));
+            
+            this.clients = response.clients;
+            this.projects = response.projects;
+            this.filteredDocuments = [...this.documents];
+            
+            this.calculateStats();
+            this.extractTags();
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error loading documents:', error);
+          this.isLoading = false;
+          Swal.fire({
+            title: 'Error',
+            text: 'Failed to load documents. Please try again.',
+            icon: 'error'
+          });
+        }
+      });
+  }
+
+  getClientName(clientId: number, clients: Client[]): string {
+    const client = clients.find(c => c.id === clientId);
+    return client ? `${client.firstName} ${client.lastName}` : 'Unknown Client';
+  }
+
+  getClientEmail(clientId: number, clients: Client[]): string {
+    const client = clients.find(c => c.id === clientId);
+    return client?.email || '';
+  }
+
+  getProjectName(projectId: number, projects: Project[]): string {
+    const project = projects.find(p => p.id === projectId);
+    return project?.name || '';
   }
 
   calculateStats(): void {
     this.stats.total = this.documents.length;
-    this.stats.pending = this.documents.filter(doc => doc.status === 'pending').length;
-    this.stats.reviewed = this.documents.filter(doc => doc.status === 'reviewed').length;
-    this.stats.approved = this.documents.filter(doc => doc.status === 'approved').length;
-    this.stats.rejected = this.documents.filter(doc => doc.status === 'rejected').length;
+    this.stats.required = this.documents.filter(doc => doc.required).length;
+    this.stats.optional = this.documents.filter(doc => !doc.required).length;
+    
+    // Calculate stats by tag
+    this.stats.byTag.clear();
+    this.documents.forEach(doc => {
+      const count = this.stats.byTag.get(doc.tag) || 0;
+      this.stats.byTag.set(doc.tag, count + 1);
+    });
   }
 
-  extractClients(): void {
-    const uniqueClients = new Map();
+  extractTags(): void {
+    const uniqueTags = new Set<string>();
     this.documents.forEach(doc => {
-      if (!uniqueClients.has(doc.clientId)) {
-        uniqueClients.set(doc.clientId, { id: doc.clientId, name: doc.clientName });
+      if (doc.tag) {
+        uniqueTags.add(doc.tag);
       }
     });
-    this.clients = Array.from(uniqueClients.values());
+    this.availableTags = Array.from(uniqueTags).sort();
   }
 
   filterDocuments(): void {
     this.filteredDocuments = this.documents.filter(doc => {
-      const matchesStatus = this.selectedStatus === 'all' || doc.status === this.selectedStatus;
-      const matchesCategory = this.selectedCategory === 'all' || doc.category === this.selectedCategory;
       const matchesClient = this.selectedClient === 'all' || doc.clientId.toString() === this.selectedClient;
-      const matchesSearch = doc.documentName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+      const matchesProject = this.selectedProject === 'all' || doc.projectId.toString() === this.selectedProject;
+      const matchesTag = this.selectedTag === 'all' || doc.tag === this.selectedTag;
+      const matchesRequired = this.selectedRequired === 'all' || 
+                             (this.selectedRequired === 'required' && doc.required) ||
+                             (this.selectedRequired === 'optional' && !doc.required);
+      const matchesSearch = doc.filename.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                            doc.clientName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           doc.clientEmail.toLowerCase().includes(this.searchTerm.toLowerCase());
-      return matchesStatus && matchesCategory && matchesClient && matchesSearch;
+                           doc.tag.toLowerCase().includes(this.searchTerm.toLowerCase());
+      return matchesClient && matchesProject && matchesTag && matchesRequired && matchesSearch;
     });
   }
 
-  onStatusChange(): void {
-    this.filterDocuments();
-  }
-
-  onCategoryChange(): void {
-    this.filterDocuments();
-  }
-
   onClientChange(): void {
+    this.filterDocuments();
+  }
+
+  onProjectChange(): void {
+    this.filterDocuments();
+  }
+
+  onTagChange(): void {
+    this.filterDocuments();
+  }
+
+  onRequiredChange(): void {
     this.filterDocuments();
   }
 
@@ -185,101 +164,114 @@ export class ClientDocumentsComponent implements OnInit {
     this.filterDocuments();
   }
 
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'approved': return 'badge bg-success';
-      case 'reviewed': return 'badge bg-info';
-      case 'pending': return 'badge bg-warning';
-      case 'rejected': return 'badge bg-danger';
+  getRequiredClass(required: boolean): string {
+    return required ? 'badge bg-warning' : 'badge bg-secondary';
+  }
+
+  getRequiredText(required: boolean): string {
+    return required ? 'Required' : 'Optional';
+  }
+
+  getTagClass(tag: string): string {
+    // Color code common tax document tags
+    switch (tag.toLowerCase()) {
+      case 'w2': return 'badge bg-primary';
+      case '1099': return 'badge bg-info';
+      case 'receipt': return 'badge bg-warning';
+      case 'bank_statement': return 'badge bg-success';
+      case 'tax_return': return 'badge bg-danger';
       default: return 'badge bg-secondary';
     }
   }
 
-  getCategoryDisplay(category: string): string {
-    switch (category) {
-      case 'tax-documents': return 'Tax Documents';
-      case 'financial-statements': return 'Financial Statements';
-      case 'receipts': return 'Receipts';
-      case 'other': return 'Other';
-      default: return category;
-    }
-  }
-
-  getCategoryClass(category: string): string {
-    switch (category) {
-      case 'tax-documents': return 'badge bg-primary-subtle text-primary';
-      case 'financial-statements': return 'badge bg-success-subtle text-success';
-      case 'receipts': return 'badge bg-warning-subtle text-warning';
-      case 'other': return 'badge bg-info-subtle text-info';
-      default: return 'badge bg-secondary';
-    }
-  }
-
-  viewDocument(doc: ClientDocument): void {
-    // In real app, this would open document viewer or download
+  viewDocument(doc: DocumentWithDetails): void {
+    // Navigate to document viewer or open in new tab
     Swal.fire({
       title: 'View Document',
-      text: `Opening ${doc.documentName} for ${doc.clientName}`,
+      text: `Opening ${doc.filename} for ${doc.clientName}`,
       icon: 'info',
       timer: 2000,
       showConfirmButton: false
     });
   }
 
-  downloadDocument(doc: ClientDocument): void {
-    // In real app, this would trigger actual download
+  downloadDocument(doc: DocumentWithDetails): void {
+    console.log('Downloading document:', doc);
+    
+    // Show loading indicator
     Swal.fire({
-      title: 'Download Started',
-      text: `Downloading ${doc.documentName}...`,
+      title: 'Downloading...',
+      text: 'Please wait while we prepare your document.',
       icon: 'info',
-      timer: 2000,
-      showConfirmButton: false
-    });
-  }
-
-  updateStatus(doc: ClientDocument, newStatus: string): void {
-    const oldStatus = doc.status;
-    doc.status = newStatus as any;
-    doc.reviewedBy = 'Tax Consultant';
-    doc.reviewDate = new Date().toISOString();
-    
-    this.calculateStats();
-    this.filterDocuments();
-    
-    Swal.fire({
-      title: 'Status Updated',
-      text: `Document status changed from ${oldStatus} to ${newStatus}`,
-      icon: 'success',
-      timer: 2000,
-      showConfirmButton: false
-    });
-  }
-
-  addNotes(doc: ClientDocument): void {
-    Swal.fire({
-      title: 'Add Notes',
-      input: 'textarea',
-      inputLabel: 'Review Notes',
-      inputPlaceholder: 'Enter your notes about this document...',
-      inputValue: doc.notes || '',
-      showCancelButton: true,
-      confirmButtonText: 'Save Notes',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        doc.notes = result.value;
-        doc.reviewedBy = 'Tax Consultant';
-        doc.reviewDate = new Date().toISOString();
-        
-        Swal.fire({
-          title: 'Notes Saved',
-          text: 'Review notes have been added to the document',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
-        });
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
       }
     });
+
+    this.apiService.downloadDocument(doc.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          // Create a blob URL and trigger download
+          const url = window.URL.createObjectURL(blob);
+          const link = window.document.createElement('a');
+          link.href = url;
+          link.download = doc.filename;
+          
+          // Append to body, click, and remove
+          window.document.body.appendChild(link);
+          link.click();
+          window.document.body.removeChild(link);
+          
+          // Clean up the blob URL
+          window.URL.revokeObjectURL(url);
+          
+          // Show success message
+          Swal.fire({
+            title: 'Download Complete!',
+            text: `${doc.filename} has been downloaded successfully.`,
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false
+          });
+        },
+        error: (error) => {
+          console.error('Error downloading document:', error);
+          
+          let errorMessage = 'Failed to download document. Please try again.';
+          
+          if (error.status === 404) {
+            errorMessage = 'Document not found. It may have been moved or deleted.';
+          } else if (error.status === 403) {
+            errorMessage = 'You do not have permission to download this document.';
+          } else if (error.status === 401) {
+            errorMessage = 'Your session has expired. Please log in again.';
+          }
+          
+          Swal.fire({
+            title: 'Download Failed',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
+      });
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
   }
 
   exportDocuments(): void {
