@@ -145,19 +145,19 @@
                   <td>{{client.createdAt | date:'short'}}</td>
                   <td>
                     <div class="d-flex gap-2">
-                      <button type="button" class="btn btn-sm btn-outline-info" title="View Projects" 
+                      <button type="button" class="btn btn-sm btn-outline-info" title="View Client Projects" 
                               (click)="viewClientProjects(client)">
                         <i class="bx bx-briefcase"></i>
                       </button>
-                      <button type="button" class="btn btn-sm btn-outline-primary" title="Invite Client" 
+                      <button type="button" class="btn btn-sm btn-outline-primary" title="Send Invitation Email" 
                               (click)="openInviteModal(client)"
                               [disabled]="client.invitationStatus === 'accepted'">
                         <i class="bx bx-mail-send"></i>
                       </button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit" (click)="openEditModal(client)">
+                      <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit Client Details" (click)="openEditModal(client)">
                         <i class="bx bx-pencil"></i>
                       </button>
-                      <button type="button" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <button type="button" class="btn btn-sm btn-outline-danger" title="Delete Client">
                         <i class="bx bx-trash"></i>
                       </button>
                     </div>

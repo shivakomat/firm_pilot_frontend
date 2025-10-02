@@ -3,7 +3,7 @@
     <div class="col-12">
       <div class="page-title-box d-sm-flex align-items-center justify-content-between">
         <h4 class="mb-sm-0 font-size-18">
-          <i class="bx bx-arrow-back me-2 cursor-pointer" (click)="goBack()"></i>
+          <i class="bx bx-arrow-back me-2 cursor-pointer" (click)="goBack()" title="Go Back to Clients List"></i>
           {{ clientName }} - Projects
         </h4>
         <div class="page-title-right">
@@ -88,7 +88,7 @@
                   <td>
                     <div class="d-flex gap-2">
                       <button type="button" class="btn btn-sm btn-outline-primary" 
-                              (click)="viewProject(project)" title="View Project">
+                              (click)="viewProject(project)" title="View Project Details">
                         <i class="bx bx-show"></i>
                       </button>
                     </div>

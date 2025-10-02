@@ -141,7 +141,7 @@
               <thead class="table-light">
                 <tr>
                   <th>Project Name</th>
-                  <th>Client ID</th>
+                  <th>Client</th>
                   <th>Type</th>
                   <th>Status</th>
                   <th>Tax Year</th>
@@ -164,8 +164,8 @@
                   </td>
                   <td>
                     <button type="button" class="btn btn-link p-0 text-primary" 
-                            (click)="viewClient(project)">
-                      #{{ project.clientId }}
+                            (click)="viewClient(project)" title="View Client Details">
+                      {{ project.clientName || '#' + project.clientId }}
                     </button>
                   </td>
                   <td>
@@ -185,7 +185,7 @@
                   <td>
                     <div class="d-flex gap-2">
                       <button type="button" class="btn btn-sm btn-outline-primary" 
-                              (click)="viewProject(project)" title="View Project">
+                              (click)="viewProject(project)" title="View Project Details">
                         <i class="bx bx-show"></i>
                       </button>
                     </div>

@@ -46,6 +46,7 @@ export interface Project {
   id: number;
   clientId: number;
   accountantId: number;
+  clientName?: string;
   name: string;
   projectType: 'tax_return' | 'quarterly_filing' | 'business_setup' | 'audit' | 'consultation' | 'other';
   status: 'active' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
