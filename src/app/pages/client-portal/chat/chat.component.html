@@ -68,13 +68,24 @@
   
   <!-- Messages Area -->
   <div class="chat-messages" #messagesContainer>
-    <!-- Date Separator -->
-    <div class="date-separator">
-      <span class="date-label">Today</span>
+    <!-- Loading indicator during initialization -->
+    <div *ngIf="!isInitialized" class="loading-container">
+      <div class="spinner-border spinner-border-sm text-primary" role="status">
+        <span class="visually-hidden">Initializing...</span>
+      </div>
+      <small class="text-muted ms-2">Loading chat...</small>
     </div>
     
-    <ng-container *ngFor="let message of (chatMode === 'ai' ? (aiMessages || []) : (messages || [])); let i = index; trackBy: trackByMessage">
-      <div class="message-container" *ngIf="message && message.content">
+    <!-- Messages content - only show when initialized -->
+    <div *ngIf="isInitialized">
+      <!-- Date Separator -->
+      <div class="date-separator">
+        <span class="date-label">Today</span>
+      </div>
+      
+      <!-- Messages List -->
+      <div *ngFor="let message of getMessagesForCurrentMode(); let i = index; trackBy: trackByMessage" class="message-container">
+        <div *ngIf="message && message.content">
       <!-- Date Separator -->
       <div *ngIf="message && shouldShowDateSeparator(i)" class="date-separator">
         <span class="date-label">{{message?.timestamp ? formatDate(message.timestamp) : 'Today'}}</span>
@@ -124,9 +135,9 @@
             <i class="ri-user-line text-white"></i>
           </div>
         </div>
+        </div>
       </div>
-      </div>
-    </ng-container>
+    </div>
     
     <!-- Loading indicator -->
     <div *ngIf="isLoading" class="loading-container">

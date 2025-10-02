@@ -5,7 +5,8 @@ import { ChatService } from '../../../core/services/chat.service';
 import { AiChatService, AIConversation, AIMessage } from '../../../core/services/ai-chat.service';
 import { ChatMessage, ChatThread, SendMessageRequest } from '../../../core/models/chat.model';
 import { AuthenticationService } from '../../../core/services/auth.service';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { marked } from 'marked';
 
@@ -36,7 +37,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   newMessage: string = '';
   currentUser: any;
   isLoading = false;
+  isInitialized = false; // Add initialization flag
   private subscriptions: Subscription[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(
     private chatService: ChatService,
@@ -63,8 +66,62 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.aiMessages = this.aiMessages || [];
     this.aiConversations = this.aiConversations || [];
     
-    this.loadMessages();
-    this.loadAIConversations();
+    // Set initialization flag to false until everything is loaded
+    this.isInitialized = false;
+    
+    // Load data and mark as initialized when done
+    Promise.all([
+      this.loadMessagesPromise(),
+      this.loadAIConversationsPromise()
+    ]).then(() => {
+      this.isInitialized = true;
+    }).catch((error) => {
+      console.error('Error during initialization:', error);
+      this.isInitialized = true; // Still mark as initialized to show UI
+    });
+  }
+
+  private loadMessagesPromise(): Promise<void> {
+    return new Promise((resolve) => {
+      try {
+        this.loadMessages();
+        resolve();
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        resolve();
+      }
+    });
+  }
+
+  private loadAIConversationsPromise(): Promise<void> {
+    return new Promise((resolve) => {
+      this.isLoading = true;
+      
+      const sub = this.aiChatService.getConversations()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            // Handle the response properly - it might be an array or an object with conversations
+            const conversations = Array.isArray(response) ? response : (response?.conversations || []);
+            this.aiConversations = conversations;
+            this.isLoading = false;
+            
+            // Auto-select first conversation if available
+            if (conversations && conversations.length > 0 && !this.currentAIConversation) {
+              this.selectAIConversation(conversations[0]);
+            }
+            resolve();
+          },
+          error: (error) => {
+            console.error('Error loading AI conversations:', error);
+            this.aiConversations = [];
+            this.isLoading = false;
+            resolve();
+          }
+        });
+      
+      this.subscriptions.push(sub);
+    });
   }
 
   ngAfterViewChecked(): void {
@@ -72,6 +129,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
@@ -788,5 +847,13 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   trackByMessage(index: number, message: any): any {
     return message ? (message.id || message.timestamp || index) : index;
+  }
+
+  getMessagesForCurrentMode(): any[] {
+    if (this.chatMode === 'ai') {
+      return this.aiMessages || [];
+    } else {
+      return this.messages || [];
+    }
   }
 }
