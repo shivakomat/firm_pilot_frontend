@@ -166,15 +166,17 @@ export class ClientDocumentsComponent implements OnInit, OnDestroy {
     // Calculate stats by tag
     this.stats.byTag.clear();
     this.documents.forEach(doc => {
-      const count = this.stats.byTag.get(doc.tag) || 0;
-      this.stats.byTag.set(doc.tag, count + 1);
+      if (doc.tag && doc.tag.trim()) {
+        const count = this.stats.byTag.get(doc.tag) || 0;
+        this.stats.byTag.set(doc.tag, count + 1);
+      }
     });
   }
 
   extractTags(): void {
     const uniqueTags = new Set<string>();
     this.documents.forEach(doc => {
-      if (doc.tag) {
+      if (doc.tag && doc.tag.trim()) {
         uniqueTags.add(doc.tag);
       }
     });
@@ -189,9 +191,9 @@ export class ClientDocumentsComponent implements OnInit, OnDestroy {
       const matchesRequired = this.selectedRequired === 'all' || 
                              (this.selectedRequired === 'required' && doc.required) ||
                              (this.selectedRequired === 'optional' && !doc.required);
-      const matchesSearch = doc.filename.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           doc.clientName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           doc.tag.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesSearch = (doc.filename || '').toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                           (doc.clientName || '').toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                           (doc.tag || '').toLowerCase().includes(this.searchTerm.toLowerCase());
       return matchesClient && matchesProject && matchesTag && matchesRequired && matchesSearch;
     });
   }
@@ -226,6 +228,8 @@ export class ClientDocumentsComponent implements OnInit, OnDestroy {
 
   getTagClass(tag: string): string {
     // Color code common tax document tags
+    if (!tag) return 'badge bg-secondary';
+    
     switch (tag.toLowerCase()) {
       case 'w2': return 'badge bg-primary';
       case '1099': return 'badge bg-info';
