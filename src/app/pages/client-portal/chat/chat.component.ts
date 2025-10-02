@@ -83,12 +83,33 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   private loadMessagesPromise(): Promise<void> {
     return new Promise((resolve) => {
-      try {
-        this.loadMessages();
-        resolve();
-      } catch (error) {
-        console.error('Error loading messages:', error);
-        resolve();
+      if (this.chatMode === 'ai' && this.currentAIConversation) {
+        // Load AI conversation messages from API
+        this.aiChatService.getConversation(this.currentAIConversation.id)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (response) => {
+              this.aiMessages = response.messages.map(msg => ({
+                ...msg,
+                timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
+              }));
+              resolve();
+            },
+            error: (error) => {
+              console.error('Error loading AI messages:', error);
+              this.aiMessages = [];
+              resolve();
+            }
+          });
+      } else {
+        // Load regular chat messages (fallback to mock for now)
+        try {
+          this.loadMessages();
+          resolve();
+        } catch (error) {
+          console.error('Error loading messages:', error);
+          resolve();
+        }
       }
     });
   }
