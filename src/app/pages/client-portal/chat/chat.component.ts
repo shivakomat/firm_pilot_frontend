@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../../core/services/chat.service';
 import { AiChatService, AIConversation, AIMessage } from '../../../core/services/ai-chat.service';
 import { ChatMessage, ChatThread, SendMessageRequest } from '../../../core/models/chat.model';
+import { AuthenticationService } from '../../../core/services/auth.service';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { marked } from 'marked';
@@ -39,9 +40,15 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   constructor(
     private chatService: ChatService,
-    private aiChatService: AiChatService
+    private aiChatService: AiChatService,
+    private authService: AuthenticationService
   ) {
-    this.currentUser = this.chatService.getCurrentUser();
+    this.currentUser = this.authService.currentUser();
+    
+    // Initialize message arrays to prevent undefined errors
+    this.messages = [];
+    this.aiMessages = [];
+    this.aiConversations = [];
     
     // Configure marked for better formatting
     marked.setOptions({
@@ -131,7 +138,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         // Convert timestamp strings back to Date objects
         return messages.map((msg: any) => ({
           ...msg,
-          timestamp: new Date(msg.timestamp)
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
         }));
       }
     } catch (error) {
@@ -344,6 +351,11 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     if (index === 0) return true;
     
     const currentMessages = this.chatMode === 'ai' ? this.aiMessages : this.messages;
+    
+    // Extra safety checks
+    if (!currentMessages || currentMessages.length === 0) return false;
+    if (index >= currentMessages.length || index < 0) return false;
+    
     const currentMessage = currentMessages[index];
     const previousMessage = currentMessages[index - 1];
     
@@ -481,12 +493,12 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         // Add both user and AI messages
         this.aiMessages.push({
           ...response.userMessage,
-          timestamp: new Date(response.userMessage.timestamp)
+          timestamp: response.userMessage.timestamp ? new Date(response.userMessage.timestamp) : new Date()
         });
         
         this.aiMessages.push({
           ...response.assistantMessage,
-          timestamp: new Date(response.assistantMessage.timestamp)
+          timestamp: response.assistantMessage.timestamp ? new Date(response.assistantMessage.timestamp) : new Date()
         });
         
         // Update conversation message count
@@ -668,7 +680,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       senderId: message.role === 'user' ? this.currentUser?.id || 2 : 0,
       senderName: message.role === 'user' ? 'You' : 'AI Tax Assistant',
       senderType: message.role === 'user' ? 'CLIENT' : 'AI_AGENT',
-      timestamp: message.timestamp,
+      timestamp: message.timestamp ? new Date(message.timestamp) : new Date(),
       threadId: 1
     };
   }
@@ -767,5 +779,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   isAIMessage(message: any): boolean {
     return message.senderType === 'AI_AGENT' || message.role === 'assistant';
+  }
+
+  trackByMessage(index: number, message: any): any {
+    return message ? (message.id || message.timestamp || index) : index;
   }
 }
