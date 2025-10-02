@@ -273,8 +273,6 @@ export interface ClientDetailsResponse {
 export interface AllDocumentsResponse {
   success: boolean;
   documents: ClientDocument[];
-  clients: Client[];
-  projects: Project[];
   message?: string;
 }
 
@@ -790,7 +788,7 @@ export class ApiService {
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.get<AllDocumentsResponse>(`${this.baseUrl}/documents/all`, { headers });
+    return this.http.get<AllDocumentsResponse>(`${this.baseUrl}/documents`, { headers });
   }
 
   /**

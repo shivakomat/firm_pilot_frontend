@@ -57,38 +57,90 @@ export class ClientDocumentsComponent implements OnInit, OnDestroy {
   loadDocuments(): void {
     this.isLoading = true;
     
-    this.apiService.getAllDocuments()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.success) {
-            // Transform documents to include client and project names
-            this.documents = response.documents.map(doc => ({
-              ...doc,
-              clientName: this.getClientName(doc.clientId, response.clients),
-              clientEmail: this.getClientEmail(doc.clientId, response.clients),
-              projectName: this.getProjectName(doc.projectId, response.projects)
-            }));
-            
-            this.clients = response.clients;
-            this.projects = response.projects;
-            this.filteredDocuments = [...this.documents];
-            
-            this.calculateStats();
-            this.extractTags();
-          }
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Error loading documents:', error);
-          this.isLoading = false;
-          Swal.fire({
-            title: 'Error',
-            text: 'Failed to load documents. Please try again.',
-            icon: 'error'
+    // Load documents and clients/projects in parallel
+    const documents$ = this.apiService.getAllDocuments();
+    const clients$ = this.apiService.getClients();
+    
+    // Combine both API calls
+    documents$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (documentsResponse) => {
+        if (documentsResponse.success) {
+          // Load clients to get names and emails
+          clients$.pipe(takeUntil(this.destroy$)).subscribe({
+            next: (clientsResponse) => {
+              if (clientsResponse.success) {
+                this.clients = clientsResponse.clients;
+                
+                // Transform documents to include client names
+                this.documents = documentsResponse.documents.map(doc => ({
+                  ...doc,
+                  clientName: this.getClientName(doc.clientId, this.clients),
+                  clientEmail: this.getClientEmail(doc.clientId, this.clients),
+                  projectName: '' // Will be populated when we have project data
+                }));
+                
+                // Extract unique projects from documents
+                this.extractProjectsFromDocuments();
+                this.filteredDocuments = [...this.documents];
+                
+                this.calculateStats();
+                this.extractTags();
+              }
+              this.isLoading = false;
+            },
+            error: (error) => {
+              console.error('Error loading clients:', error);
+              this.isLoading = false;
+              // Still show documents even if client names fail
+              this.documents = documentsResponse.documents.map(doc => ({
+                ...doc,
+                clientName: `Client ${doc.clientId}`,
+                clientEmail: '',
+                projectName: ''
+              }));
+              this.filteredDocuments = [...this.documents];
+              this.calculateStats();
+              this.extractTags();
+            }
           });
+        } else {
+          this.isLoading = false;
         }
-      });
+      },
+      error: (error) => {
+        console.error('Error loading documents:', error);
+        this.isLoading = false;
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to load documents. Please try again.',
+          icon: 'error'
+        });
+      }
+    });
+  }
+
+  extractProjectsFromDocuments(): void {
+    // Extract unique project IDs from documents and create a simple project list
+    const projectIds = new Set<number>();
+    this.documents.forEach(doc => {
+      if (doc.projectId) {
+        projectIds.add(doc.projectId);
+      }
+    });
+    
+    // Create simple project objects (we don't have project names from the API)
+    this.projects = Array.from(projectIds).map(id => ({
+      id,
+      name: `Project ${id}`,
+      clientId: 0, // Will be determined from documents
+      accountantId: 0, // Not available from documents
+      projectType: 'other' as const,
+      status: 'active' as const,
+      createdAt: '',
+      updatedAt: ''
+    }));
   }
 
   getClientName(clientId: number, clients: Client[]): string {
