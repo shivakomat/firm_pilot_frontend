@@ -150,13 +150,68 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   }
 
   downloadDocument(document: ClientDocument): void {
-    // Download document (will be implemented when backend is ready)
     console.log('Downloading document:', document);
+    
+    // Show loading indicator
     Swal.fire({
-      title: 'Coming Soon',
-      text: 'Document download will be available once the backend API is ready.',
-      icon: 'info'
+      title: 'Downloading...',
+      text: 'Please wait while we prepare your document.',
+      icon: 'info',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
     });
+
+    this.apiService.downloadDocument(document.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          // Create a blob URL and trigger download
+          const url = window.URL.createObjectURL(blob);
+          const link = window.document.createElement('a');
+          link.href = url;
+          link.download = document.filename;
+          
+          // Append to body, click, and remove
+          window.document.body.appendChild(link);
+          link.click();
+          window.document.body.removeChild(link);
+          
+          // Clean up the blob URL
+          window.URL.revokeObjectURL(url);
+          
+          // Show success message
+          Swal.fire({
+            title: 'Download Complete!',
+            text: `${document.filename} has been downloaded successfully.`,
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false
+          });
+        },
+        error: (error) => {
+          console.error('Error downloading document:', error);
+          
+          let errorMessage = 'Failed to download document. Please try again.';
+          
+          if (error.status === 404) {
+            errorMessage = 'Document not found. It may have been moved or deleted.';
+          } else if (error.status === 403) {
+            errorMessage = 'You do not have permission to download this document.';
+          } else if (error.status === 401) {
+            errorMessage = 'Your session has expired. Please log in again.';
+          }
+          
+          Swal.fire({
+            title: 'Download Failed',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
+      });
   }
 
   sendEmail(): void {

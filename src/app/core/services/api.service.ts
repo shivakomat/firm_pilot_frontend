@@ -762,11 +762,38 @@ export class ApiService {
   }
 
   /**
+   * Download a document by ID
+   * @param documentId - ID of the document to download
+   */
+  downloadDocument(documentId: number): Observable<Blob> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get(`${this.baseUrl}/documents/${documentId}/download`, { 
+      headers, 
+      responseType: 'blob' 
+    });
+  }
+
+  /**
    * Create a new project for a client (Accountant)
    * @param clientId - ID of the client
-   * @param projectData - Project creation data
+   * @param projectData - Project data to create
    */
-  createClientProject(clientId: number, projectData: CreateProjectRequest): Observable<ProjectResponse> {
+  createProject(clientId: number, projectData: any): Observable<any> {
     const token = localStorage.getItem('authToken');
     
     if (!token) {

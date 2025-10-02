@@ -378,8 +378,9 @@
                     <td>{{ formatDate(document.uploadedAt) }}</td>
                     <td>
                       <button type="button" class="btn btn-sm btn-outline-success" 
-                              (click)="downloadDocument(document)" title="Download Document">
-                        <i class="bx bx-download"></i>
+                              (click)="downloadDocument(document)" title="Download {{ document.filename }}">
+                        <i class="bx bx-download me-1"></i>
+                        <span class="d-none d-md-inline">Download</span>
                       </button>
                     </td>
                   </tr>
@@ -387,7 +388,38 @@
               </table>
             </div>
 
-            <div *ngIf="documents.length === 0" class="text-center py-5">
+            <!-- Document Requirements Section -->
+            <div *ngIf="documentRequirements.length > 0" class="mt-4">
+              <h6 class="mb-3">Document Requirements</h6>
+              <div class="row">
+                <div *ngFor="let requirement of documentRequirements" class="col-md-6 mb-3">
+                  <div class="card border" [class.border-success]="requirement.fulfilled" [class.border-warning]="!requirement.fulfilled">
+                    <div class="card-body p-3">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                          <h6 class="mb-1 font-size-14">{{ requirement.documentType }}</h6>
+                          <p class="text-muted mb-2 font-size-12">{{ requirement.description }}</p>
+                          <div class="d-flex align-items-center gap-2">
+                            <span [class]="requirement.fulfilled ? 'badge bg-success' : 'badge bg-warning'">
+                              {{ requirement.fulfilled ? 'Fulfilled' : 'Required' }}
+                            </span>
+                            <span *ngIf="requirement.dueDate" class="text-muted font-size-12">
+                              Due: {{ formatDate(requirement.dueDate) }}
+                            </span>
+                          </div>
+                        </div>
+                        <div class="text-end">
+                          <i [class]="requirement.fulfilled ? 'bx bx-check-circle text-success' : 'bx bx-time text-warning'" 
+                             class="font-size-20"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="documents.length === 0 && documentRequirements.length === 0" class="text-center py-5">
               <i class="bx bx-folder font-size-48 text-muted d-block mb-3"></i>
               <h5>No Documents</h5>
               <p class="text-muted">No documents have been uploaded for this client yet.</p>

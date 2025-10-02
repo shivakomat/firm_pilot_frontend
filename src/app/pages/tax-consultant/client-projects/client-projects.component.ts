@@ -185,7 +185,7 @@ export class ClientProjectsComponent implements OnInit, OnDestroy {
     // Add alert to ensure code is running
     alert('Project creation starting v112 - FIXED DROPDOWN MAPPING - should now send projectType correctly');
 
-    this.apiService.createClientProject(this.clientId, projectData)
+    this.apiService.createProject(this.clientId, projectData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
