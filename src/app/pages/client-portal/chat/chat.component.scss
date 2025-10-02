@@ -341,9 +341,11 @@
 }
 
 .bubble-sent {
-  background: #6366f1;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
   border-bottom-right-radius: 6px;
+  border-bottom-left-radius: 18px;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
   margin-left: auto;
 }
 
@@ -358,6 +360,8 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 18px;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
 }
 
 .message-sender {

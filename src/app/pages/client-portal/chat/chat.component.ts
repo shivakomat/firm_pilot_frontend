@@ -367,14 +367,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
-  isMyMessage(message: ChatMessage): boolean {
-    return message.senderType === 'CLIENT' && message.senderId === this.currentUser?.id;
-  }
-
-  isAIMessage(message: ChatMessage): boolean {
-    return message.senderType === 'AI_AGENT';
-  }
-
   // === AI CHAT METHODS ===
 
   switchChatMode(mode: 'accountant' | 'ai'): void {
@@ -759,5 +751,21 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     formatted = formatted.replace(/^[-•]\s/gm, '<br>• ');
     
     return formatted;
+  }
+
+  isMyMessage(message: any): boolean {
+    return message.senderId === this.currentUser?.id;
+  }
+
+  isUserMessage(message: any): boolean {
+    if (this.chatMode === 'ai') {
+      return message.role === 'user';
+    } else {
+      return message.senderId === this.currentUser?.id;
+    }
+  }
+
+  isAIMessage(message: any): boolean {
+    return message.senderType === 'AI_AGENT' || message.role === 'assistant';
   }
 }

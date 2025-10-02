@@ -95,6 +95,9 @@
     </div>
   </div>
 
+  <!-- Spacing -->
+  <div class="mb-4"></div>
+
   <!-- Filters and Search -->
   <div class="row">
     <div class="col-12">
@@ -187,12 +190,12 @@
                     </td>
                     <td>{{formatDate(doc.uploadedAt)}}</td>
                     <td>
-                      <div class="d-flex gap-1">
-                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewDocument(doc)" title="View Document">
-                          <i class="ri-eye-line"></i>
+                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewDocumentInNewTab(doc)" title="View {{doc.filename}} in new tab">
+                          <i class="ri-external-link-line me-1"></i>View
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-success" (click)="downloadDocument(doc)" title="Download {{doc.filename}}">
-                          <i class="ri-download-line"></i>
+                          <i class="ri-download-line me-1"></i>Download
                         </button>
                       </div>
                     </td>

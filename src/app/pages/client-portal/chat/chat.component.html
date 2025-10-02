@@ -81,36 +81,47 @@
       
       <!-- Message Bubble -->
       <div class="message-row" 
-           [class.message-sent]="chatMode === 'accountant' ? isMyMessage(message) : (message.role === 'user')"
-           [class.message-received]="chatMode === 'accountant' ? !isMyMessage(message) : (message.role === 'assistant')">
-        <!-- Avatar for received messages -->
-        <div *ngIf="chatMode === 'accountant' ? !isMyMessage(message) : (message.role === 'assistant')" class="message-avatar">
+           [class.message-sent]="isUserMessage(message)"
+           [class.message-received]="!isUserMessage(message)">
+        
+        <!-- Avatar for received messages (AI/Accountant) -->
+        <div *ngIf="!isUserMessage(message)" class="message-avatar">
           <div class="avatar-circle" 
                [class.bg-primary]="chatMode === 'accountant' && message.senderType === 'ACCOUNTANT'" 
-               [class.bg-gradient-ai]="chatMode === 'ai' || (chatMode === 'accountant' && isAIMessage(message))">
+               [class.bg-gradient-ai]="chatMode === 'ai' || isAIMessage(message)">
             <i class="ri-user-3-line text-white" *ngIf="chatMode === 'accountant' && message.senderType === 'ACCOUNTANT'"></i>
-            <i class="ri-robot-2-line text-white" *ngIf="chatMode === 'ai' || (chatMode === 'accountant' && isAIMessage(message))"></i>
+            <i class="ri-robot-2-line text-white" *ngIf="chatMode === 'ai' || isAIMessage(message)"></i>
           </div>
         </div>
         
         <!-- Message Bubble -->
         <div class="message-bubble" 
-             [class.bubble-sent]="chatMode === 'accountant' ? isMyMessage(message) : (message.role === 'user')"
+             [class.bubble-sent]="isUserMessage(message)"
              [class.bubble-received]="chatMode === 'accountant' && message.senderType === 'ACCOUNTANT'"
-             [class.bubble-ai]="chatMode === 'ai' || (chatMode === 'accountant' && isAIMessage(message))">
-          <div class="message-sender" *ngIf="chatMode === 'accountant' ? !isMyMessage(message) : (message.role === 'assistant')">
+             [class.bubble-ai]="chatMode === 'ai' || isAIMessage(message)">
+          
+          <!-- Sender name for received messages -->
+          <div class="message-sender" *ngIf="!isUserMessage(message)">
             <span *ngIf="chatMode === 'accountant'">{{message.senderName}}</span>
-            <span *ngIf="chatMode === 'ai'">AI Tax Assistant</span>
+            <span *ngIf="chatMode === 'ai' || isAIMessage(message)">AI Tax Assistant</span>
           </div>
+          
           <div class="message-text" [innerHTML]="formatMessageContent(message)"></div>
           <div class="message-time">{{message?.timestamp ? formatTime(message.timestamp) : 'Now'}}</div>
         </div>
         
-        <!-- Message options -->
-        <div class="message-options" *ngIf="chatMode === 'accountant' ? !isMyMessage(message) : (message.role === 'assistant')">
+        <!-- Message options for received messages -->
+        <div class="message-options" *ngIf="!isUserMessage(message)">
           <button class="btn btn-sm btn-light">
             <i class="ri-more-2-fill"></i>
           </button>
+        </div>
+        
+        <!-- Avatar for sent messages (User) -->
+        <div *ngIf="isUserMessage(message)" class="message-avatar">
+          <div class="avatar-circle bg-secondary">
+            <i class="ri-user-line text-white"></i>
+          </div>
         </div>
       </div>
     </div>

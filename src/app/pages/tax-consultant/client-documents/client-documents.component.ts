@@ -251,6 +251,76 @@ export class ClientDocumentsComponent implements OnInit, OnDestroy {
     });
   }
 
+  viewDocumentInNewTab(doc: DocumentWithDetails): void {
+    console.log('Opening document in new tab:', doc);
+    
+    // Show loading indicator
+    Swal.fire({
+      title: 'Opening Document...',
+      text: 'Please wait while we prepare the document for viewing.',
+      icon: 'info',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.apiService.downloadDocument(doc.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob: Blob) => {
+          // Create a blob URL for viewing
+          const url = window.URL.createObjectURL(blob);
+          
+          // Open in new tab
+          const newWindow = window.open(url, '_blank');
+          
+          if (newWindow) {
+            // Clean up the blob URL after a delay to allow the document to load
+            setTimeout(() => {
+              window.URL.revokeObjectURL(url);
+            }, 10000); // 10 seconds should be enough for most documents to load
+            
+            Swal.close();
+          } else {
+            // Popup blocked - show download instead
+            window.URL.revokeObjectURL(url);
+            Swal.fire({
+              title: 'Popup Blocked',
+              text: 'Your browser blocked the popup. The document will be downloaded instead.',
+              icon: 'warning',
+              timer: 3000,
+              showConfirmButton: false
+            });
+            
+            // Trigger download as fallback
+            this.downloadDocument(doc);
+          }
+        },
+        error: (error) => {
+          console.error('Error viewing document:', error);
+          
+          let errorMessage = 'Failed to open document. Please try again.';
+          
+          if (error.status === 404) {
+            errorMessage = 'Document not found. It may have been moved or deleted.';
+          } else if (error.status === 403) {
+            errorMessage = 'You do not have permission to view this document.';
+          } else if (error.status === 401) {
+            errorMessage = 'Your session has expired. Please log in again.';
+          }
+          
+          Swal.fire({
+            title: 'View Failed',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
+      });
+  }
+
   downloadDocument(doc: DocumentWithDetails): void {
     console.log('Downloading document:', doc);
     
