@@ -190,6 +190,86 @@ export interface ResendInvitationResponse {
   message?: string;
 }
 
+export interface IntakeFormSchema {
+  id: number;
+  accountantId: number;
+  title: string;
+  schemaJson: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IntakeFormResponse {
+  id: number;
+  clientId: number;
+  formId: number;
+  answersJson: any;
+  status: 'draft' | 'submitted' | 'completed';
+  submittedAt?: string;
+}
+
+export interface IntakeFormWithProject {
+  form: IntakeFormSchema;
+  projectId: number;
+  projectName: string;
+  response?: IntakeFormResponse;
+}
+
+export interface ClientInvitation {
+  id: number;
+  clientId: number;
+  accountantId: number;
+  email: string;
+  invitationToken: string;
+  status: 'pending' | 'sent' | 'accepted' | 'expired';
+  invitedAt: string;
+  acceptedAt?: string;
+  expiresAt: string;
+  resentCount: number;
+  lastResentAt?: string;
+}
+
+export interface ClientDocument {
+  id: number;
+  clientId: number;
+  projectId: number;
+  filename: string;
+  mimeType: string;
+  storagePath: string;
+  sizeBytes: number;
+  tag: string;
+  required: boolean;
+  uploadedAt: string;
+  sha256Hash: string;
+}
+
+export interface DocumentRequirement {
+  id: number;
+  clientId: number;
+  documentType: string;
+  description: string;
+  required: boolean;
+  fulfilled: boolean;
+  dueDate?: string;
+  createdAt: string;
+}
+
+export interface ClientDetails {
+  client: Client;
+  invitation?: ClientInvitation;
+  projects: Project[];
+  ongoingProjects: Project[];
+  intakeForms: IntakeFormWithProject[];
+  documents: ClientDocument[];
+  documentRequirements: DocumentRequirement[];
+}
+
+export interface ClientDetailsResponse {
+  success: boolean;
+  clientDetails: ClientDetails;
+  message?: string;
+}
+
 export interface Invitation {
   id: number;
   clientId: number;
@@ -629,6 +709,31 @@ export class ApiService {
     });
 
     return this.http.get<ProjectsResponse>(`${this.baseUrl}/my/accountant/projects`, { headers });
+  }
+
+  /**
+   * Get comprehensive client details including projects, forms, documents, and invitation
+   * @param clientId - ID of the client
+   */
+  getClientDetails(clientId: number): Observable<ClientDetailsResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<ClientDetailsResponse>(`${this.baseUrl}/clients/${clientId}/details`, { headers });
   }
 
   /**

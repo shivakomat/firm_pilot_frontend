@@ -303,6 +303,10 @@ export class ClientlistComponent implements OnInit {
   }
 
   // Navigate to client projects page
+  viewClientDetail(client: any) {
+    this.router.navigate(['/clients/detail', client.id]);
+  }
+
   viewClientProjects(client: any) {
     this.router.navigate(['/tax-consultant/client-projects', client.id]);
   }

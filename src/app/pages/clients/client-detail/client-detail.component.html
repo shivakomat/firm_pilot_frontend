@@ -1,0 +1,565 @@
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="row">
+    <div class="col-12">
+      <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <h4 class="mb-sm-0 font-size-18">
+          <i class="bx bx-arrow-back me-2 cursor-pointer" (click)="goBack()" title="Go Back to Clients List"></i>
+          <span *ngIf="client">{{ client.firstName }} {{ client.lastName }}</span>
+          <span *ngIf="!client">Client Details</span>
+        </h4>
+        <div class="page-title-right">
+          <button type="button" class="btn btn-outline-success me-2" (click)="sendEmail()" 
+                  *ngIf="client && client.email" title="Send Email">
+            <i class="bx bx-mail-send me-1"></i> Send Email
+          </button>
+          <button type="button" class="btn btn-outline-primary me-2" (click)="openEditModal()" 
+                  *ngIf="client" title="Edit Client">
+            <i class="bx bx-pencil me-1"></i> Edit Client
+          </button>
+          <button type="button" class="btn btn-primary" (click)="viewAllProjects()" 
+                  *ngIf="client" title="View All Projects">
+            <i class="bx bx-briefcase me-1"></i> All Projects
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-muted">Loading client details...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Details -->
+  <div *ngIf="!isLoading && client" class="row">
+    <!-- Client Info Card -->
+    <div class="col-xl-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="text-center">
+            <div class="avatar-lg mx-auto mb-4">
+              <div class="avatar-title bg-light text-primary rounded-circle font-size-24">
+                {{ client.firstName?.charAt(0) }}{{ client.lastName?.charAt(0) }}
+              </div>
+            </div>
+            <h5 class="font-size-16 mb-1">{{ client.firstName }} {{ client.lastName }}</h5>
+            <p class="text-muted mb-3">
+              <span [class]="client.entityType === 'INDIVIDUAL' ? 'badge bg-primary' : 'badge bg-info'">
+                {{ client.entityType || 'N/A' }}
+              </span>
+            </p>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-borderless mb-0">
+              <tbody>
+                <tr>
+                  <th class="ps-0" scope="row">Email :</th>
+                  <td class="text-muted">{{ client.email || 'Not provided' }}</td>
+                </tr>
+                <tr>
+                  <th class="ps-0" scope="row">Phone :</th>
+                  <td class="text-muted">{{ formatPhoneForDisplay(client.phone || '') || 'Not provided' }}</td>
+                </tr>
+                <tr>
+                  <th class="ps-0" scope="row">Status :</th>
+                  <td>
+                    <span class="badge" [ngClass]="client.status === 'active' ? 'bg-success' : 
+                                                   client.status === 'lead' ? 'bg-warning' : 
+                                                   client.status === 'invited' ? 'bg-primary' : 'bg-info'">
+                      {{ client.status || 'N/A' }}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <th class="ps-0" scope="row">Joined :</th>
+                  <td class="text-muted">{{ formatDate(client.createdAt) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Quick Stats</h5>
+          <div class="row">
+            <div class="col-6">
+              <div class="text-center">
+                <h4 class="mb-1 text-primary">{{ getActiveProjectsCount() }}</h4>
+                <p class="text-muted mb-0 font-size-12">Active Projects</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center">
+                <h4 class="mb-1 text-success">{{ getCompletedProjectsCount() }}</h4>
+                <p class="text-muted mb-0 font-size-12">Completed</p>
+              </div>
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-6">
+              <div class="text-center">
+                <h4 class="mb-1 text-warning">{{ getPendingIntakeFormsCount() }}</h4>
+                <p class="text-muted mb-0 font-size-12">Pending Forms</p>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center">
+                <h4 class="mb-1 text-info">{{ documents.length }}</h4>
+                <p class="text-muted mb-0 font-size-12">Documents</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-xl-8">
+      <!-- Navigation Tabs -->
+      <div class="card">
+        <div class="card-body">
+          <ul class="nav nav-tabs nav-tabs-custom nav-justified" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'overview'" 
+                 (click)="setActiveTab('overview')" role="tab">
+                <i class="bx bx-home font-size-20"></i>
+                <span class="d-none d-sm-block">Overview</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'projects'" 
+                 (click)="setActiveTab('projects')" role="tab">
+                <i class="bx bx-briefcase font-size-20"></i>
+                <span class="d-none d-sm-block">Projects</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'intake'" 
+                 (click)="setActiveTab('intake')" role="tab">
+                <i class="bx bx-file font-size-20"></i>
+                <span class="d-none d-sm-block">Intake Forms</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'documents'" 
+                 (click)="setActiveTab('documents')" role="tab">
+                <i class="bx bx-folder font-size-20"></i>
+                <span class="d-none d-sm-block">Documents</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'invitation'" 
+                 (click)="setActiveTab('invitation')" role="tab">
+                <i class="bx bx-mail-send font-size-20"></i>
+                <span class="d-none d-sm-block">Invitation</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="card">
+        <div class="card-body">
+          <!-- Overview Tab -->
+          <div *ngIf="activeTab === 'overview'">
+            <h5 class="card-title mb-4">Client Overview</h5>
+            
+            <!-- Recent Activity -->
+            <div class="row">
+              <div class="col-md-6">
+                <h6 class="mb-3">Recent Projects</h6>
+                <div *ngIf="projects.length > 0">
+                  <div *ngFor="let project of projects.slice(0, 3)" class="d-flex align-items-center mb-3">
+                    <div class="avatar-xs me-3">
+                      <span class="avatar-title bg-light text-primary rounded-circle">
+                        <i class="bx bx-briefcase"></i>
+                      </span>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1 font-size-14">{{ project.name }}</h6>
+                      <p class="text-muted mb-0 font-size-12">
+                        <span [class]="getProjectStatusClass(project.status)">
+                          {{ getProjectStatusLabel(project.status) }}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="projects.length === 0" class="text-muted text-center py-3">
+                  <i class="bx bx-briefcase font-size-24 d-block mb-2"></i>
+                  No projects yet
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <h6 class="mb-3">Recent Forms</h6>
+                <div *ngIf="intakeForms.length > 0">
+                  <div *ngFor="let form of intakeForms.slice(0, 3)" class="d-flex align-items-center mb-3">
+                    <div class="avatar-xs me-3">
+                      <span class="avatar-title bg-light text-info rounded-circle">
+                        <i class="bx bx-file"></i>
+                      </span>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1 font-size-14">{{ form.form.title }}</h6>
+                      <p class="text-muted mb-0 font-size-12">
+                        <span [class]="getIntakeFormStatusClass(form.response?.status || 'draft')">
+                          {{ (form.response?.status || 'draft') | titlecase }}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="intakeForms.length === 0" class="text-muted text-center py-3">
+                  <i class="bx bx-file font-size-24 d-block mb-2"></i>
+                  No forms yet
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Projects Tab -->
+          <div *ngIf="activeTab === 'projects'">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="card-title mb-0">Projects ({{ projects.length }})</h5>
+              <button type="button" class="btn btn-primary btn-sm" (click)="viewAllProjects()">
+                <i class="bx bx-plus me-1"></i> New Project
+              </button>
+            </div>
+
+            <div *ngIf="projects.length > 0" class="table-responsive">
+              <table class="table table-nowrap align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Project Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Due Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let project of projects">
+                    <td>
+                      <h6 class="mb-1 font-size-14">{{ project.name }}</h6>
+                      <p class="text-muted mb-0 font-size-12" *ngIf="project.description">
+                        {{ project.description }}
+                      </p>
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark">{{ getProjectTypeLabel(project.projectType) }}</span>
+                    </td>
+                    <td>
+                      <span [class]="getProjectStatusClass(project.status)">
+                        {{ getProjectStatusLabel(project.status) }}
+                      </span>
+                    </td>
+                    <td>{{ formatDate(project.dueDate || '') }}</td>
+                    <td>
+                      <button type="button" class="btn btn-sm btn-outline-primary" 
+                              (click)="viewProject(project)" title="View Project Details">
+                        <i class="bx bx-show"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div *ngIf="projects.length === 0" class="text-center py-5">
+              <i class="bx bx-briefcase font-size-48 text-muted d-block mb-3"></i>
+              <h5>No Projects Yet</h5>
+              <p class="text-muted">This client doesn't have any projects. Create one to get started.</p>
+              <button type="button" class="btn btn-primary" (click)="viewAllProjects()">
+                <i class="bx bx-plus me-1"></i> Create First Project
+              </button>
+            </div>
+          </div>
+
+          <!-- Intake Forms Tab -->
+          <div *ngIf="activeTab === 'intake'">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="card-title mb-0">Intake Forms ({{ intakeForms.length }})</h5>
+            </div>
+
+            <div *ngIf="intakeForms.length > 0" class="row">
+              <div *ngFor="let form of intakeForms" class="col-md-6 mb-4">
+                <div class="card border">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <h6 class="card-title mb-0">{{ form.form.title }}</h6>
+                      <span [class]="getIntakeFormStatusClass(form.response?.status || 'draft')">
+                        {{ (form.response?.status || 'draft') | titlecase }}
+                      </span>
+                    </div>
+                    <p class="text-muted font-size-13 mb-2">
+                      <strong>Project:</strong> {{ form.projectName }}
+                    </p>
+                    <p class="text-muted font-size-12 mb-3" *ngIf="form.response?.submittedAt">
+                      Submitted: {{ formatDate(form.response.submittedAt) }}
+                    </p>
+                    <p class="text-muted font-size-12 mb-3" *ngIf="!form.response">
+                      Not started yet
+                    </p>
+                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                            (click)="openIntakeForm(form)">
+                      <i class="bx bx-edit me-1"></i> 
+                      {{ form.response ? 'View Form' : 'Open Form' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="intakeForms.length === 0" class="text-center py-5">
+              <i class="bx bx-file font-size-48 text-muted d-block mb-3"></i>
+              <h5>No Intake Forms</h5>
+              <p class="text-muted">No intake forms have been created for this client yet.</p>
+            </div>
+          </div>
+
+          <!-- Documents Tab -->
+          <div *ngIf="activeTab === 'documents'">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="card-title mb-0">Documents ({{ documents.length }})</h5>
+            </div>
+
+            <div *ngIf="documents.length > 0" class="table-responsive">
+              <table class="table table-nowrap align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Document Name</th>
+                    <th>Tag</th>
+                    <th>Size</th>
+                    <th>Required</th>
+                    <th>Uploaded</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let document of documents">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="avatar-xs me-3">
+                          <span class="avatar-title bg-light text-primary rounded">
+                            <i class="bx bx-file"></i>
+                          </span>
+                        </div>
+                        <div>
+                          <h6 class="mb-0 font-size-14">{{ document.filename }}</h6>
+                          <p class="text-muted mb-0 font-size-12">{{ document.mimeType }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark">{{ document.tag }}</span>
+                    </td>
+                    <td>{{ formatFileSize(document.sizeBytes) }}</td>
+                    <td>
+                      <span [class]="document.required ? 'badge bg-warning' : 'badge bg-secondary'">
+                        {{ document.required ? 'Required' : 'Optional' }}
+                      </span>
+                    </td>
+                    <td>{{ formatDate(document.uploadedAt) }}</td>
+                    <td>
+                      <button type="button" class="btn btn-sm btn-outline-success" 
+                              (click)="downloadDocument(document)" title="Download Document">
+                        <i class="bx bx-download"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div *ngIf="documents.length === 0" class="text-center py-5">
+              <i class="bx bx-folder font-size-48 text-muted d-block mb-3"></i>
+              <h5>No Documents</h5>
+              <p class="text-muted">No documents have been uploaded for this client yet.</p>
+            </div>
+          </div>
+
+          <!-- Invitation Tab -->
+          <div *ngIf="activeTab === 'invitation'">
+            <h5 class="card-title mb-4">Client Portal Invitation</h5>
+
+            <div *ngIf="invitation" class="card border">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-md-8">
+                    <h6 class="mb-2">Invitation Status</h6>
+                    <p class="text-muted mb-2">
+                      <strong>Email:</strong> {{ invitation.email }}
+                    </p>
+                    <p class="text-muted mb-2">
+                      <strong>Status:</strong> 
+                      <span [class]="getInvitationStatusClass(invitation.status)" class="ms-2">
+                        {{ invitation.status | titlecase }}
+                      </span>
+                    </p>
+                    <p class="text-muted mb-2">
+                      <strong>Sent:</strong> {{ formatDate(invitation.invitedAt) }}
+                    </p>
+                    <p class="text-muted mb-2" *ngIf="invitation.acceptedAt">
+                      <strong>Accepted:</strong> {{ formatDate(invitation.acceptedAt) }}
+                    </p>
+                    <p class="text-muted mb-2" *ngIf="invitation.lastResentAt">
+                      <strong>Last Resent:</strong> {{ formatDate(invitation.lastResentAt) }}
+                    </p>
+                    <p class="text-muted mb-2">
+                      <strong>Resent Count:</strong> {{ invitation.resentCount }}
+                    </p>
+                    <p class="text-muted mb-0">
+                      <strong>Expires:</strong> {{ formatDate(invitation.expiresAt) }}
+                    </p>
+                  </div>
+                  <div class="col-md-4 text-end">
+                    <button type="button" class="btn btn-primary" 
+                            (click)="resendInvitation()"
+                            [disabled]="invitation.status === 'accepted'">
+                      <i class="bx bx-mail-send me-1"></i>
+                      {{ invitation.status === 'accepted' ? 'Invitation Accepted' : 'Resend Invitation' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="!invitation" class="text-center py-5">
+              <i class="bx bx-mail-send font-size-48 text-muted d-block mb-3"></i>
+              <h5>No Invitation Sent</h5>
+              <p class="text-muted">No client portal invitation has been sent to this client yet.</p>
+              <button type="button" class="btn btn-primary" (click)="resendInvitation()">
+                <i class="bx bx-mail-send me-1"></i> Send Invitation
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && !client" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="bx bx-user-x font-size-48 text-muted d-block mb-3"></i>
+          <h5>Client Not Found</h5>
+          <p class="text-muted">The requested client could not be found.</p>
+          <button type="button" class="btn btn-primary" (click)="goBack()">
+            <i class="bx bx-arrow-back me-1"></i> Back to Clients
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Client Modal -->
+<div bsModal #editClientModal="bs-modal" class="modal fade" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editClientModalLabel">Edit Client</h5>
+        <button type="button" class="btn-close" (click)="editClientModal?.hide()"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="editClientForm" (ngSubmit)="updateClient()">
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editFirstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editFirstName" formControlName="firstName"
+                       [class.is-invalid]="editSubmitted && ef['firstName'].errors">
+                <div *ngIf="editSubmitted && ef['firstName'].errors" class="invalid-feedback">
+                  <div *ngIf="ef['firstName'].errors?.['required']">First name is required</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editLastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="editLastName" formControlName="lastName"
+                       [class.is-invalid]="editSubmitted && ef['lastName'].errors">
+                <div *ngIf="editSubmitted && ef['lastName'].errors" class="invalid-feedback">
+                  <div *ngIf="ef['lastName'].errors?.['required']">Last name is required</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="editEmail" formControlName="email"
+                       [class.is-invalid]="editSubmitted && ef['email'].errors">
+                <div *ngIf="editSubmitted && ef['email'].errors" class="invalid-feedback">
+                  <div *ngIf="ef['email'].errors?.['email']">Please enter a valid email address</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editPhoneNumber" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" id="editPhoneNumber" formControlName="phoneNumber"
+                       placeholder="(555) 123-4567">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editEntityType" class="form-label">Entity Type</label>
+                <select class="form-select" id="editEntityType" formControlName="entityType">
+                  <option value="">Select Entity Type</option>
+                  <option value="INDIVIDUAL">Individual</option>
+                  <option value="BUSINESS">Business</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="mb-3">
+                <label for="editStatus" class="form-label">Status</label>
+                <select class="form-select" id="editStatus" formControlName="status">
+                  <option value="">Select Status</option>
+                  <option value="lead">Lead</option>
+                  <option value="invited">Invited</option>
+                  <option value="active">Active</option>
+                  <option value="complete">Complete</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-12">
+            <div class="text-end">
+              <button type="button" class="btn btn-outline-secondary me-2" (click)="editClientModal?.hide()" [disabled]="editLoading">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="editLoading">
+                <span *ngIf="editLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Update Client
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

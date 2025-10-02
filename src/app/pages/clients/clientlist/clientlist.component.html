@@ -145,6 +145,10 @@
                   <td>{{client.createdAt | date:'short'}}</td>
                   <td>
                     <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-outline-success" title="View Client Details" 
+                              (click)="viewClientDetail(client)">
+                        <i class="bx bx-show"></i>
+                      </button>
                       <button type="button" class="btn btn-sm btn-outline-info" title="View Client Projects" 
                               (click)="viewClientProjects(client)">
                         <i class="bx bx-briefcase"></i>
