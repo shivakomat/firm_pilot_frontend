@@ -61,10 +61,19 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   ngOnInit(): void {
+    console.log('🚀 Chat Component ngOnInit started');
+    
     // Ensure arrays are properly initialized to prevent race conditions
     this.messages = this.messages || [];
     this.aiMessages = this.aiMessages || [];
     this.aiConversations = this.aiConversations || [];
+    
+    console.log('📊 Initial arrays state:', {
+      messages: this.messages,
+      aiMessages: this.aiMessages,
+      aiConversations: this.aiConversations,
+      chatMode: this.chatMode
+    });
     
     // Set initialization flag to false until everything is loaded
     this.isInitialized = false;
@@ -74,40 +83,55 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       this.loadMessagesPromise(),
       this.loadAIConversationsPromise()
     ]).then(() => {
+      console.log('✅ All data loaded successfully, setting isInitialized = true');
       this.isInitialized = true;
     }).catch((error) => {
-      console.error('Error during initialization:', error);
+      console.error('❌ Error during initialization:', error);
       this.isInitialized = true; // Still mark as initialized to show UI
     });
   }
 
   private loadMessagesPromise(): Promise<void> {
+    console.log('📝 loadMessagesPromise started', {
+      chatMode: this.chatMode,
+      currentAIConversation: this.currentAIConversation
+    });
+    
     return new Promise((resolve) => {
       if (this.chatMode === 'ai' && this.currentAIConversation) {
+        console.log('🤖 Loading AI conversation messages for ID:', this.currentAIConversation.id);
+        
         // Load AI conversation messages from API
         this.aiChatService.getConversation(this.currentAIConversation.id)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (response) => {
+              console.log('✅ AI messages API response:', response);
+              
               this.aiMessages = response.messages.map(msg => ({
                 ...msg,
                 timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
               }));
+              
+              console.log('📋 Processed AI messages:', this.aiMessages);
               resolve();
             },
             error: (error) => {
-              console.error('Error loading AI messages:', error);
+              console.error('❌ Error loading AI messages:', error);
               this.aiMessages = [];
               resolve();
             }
           });
       } else {
+        console.log('💬 Loading regular chat messages (mock data)');
+        
         // Load regular chat messages (fallback to mock for now)
         try {
           this.loadMessages();
+          console.log('📋 Loaded regular messages:', this.messages);
           resolve();
         } catch (error) {
-          console.error('Error loading messages:', error);
+          console.error('❌ Error loading messages:', error);
           resolve();
         }
       }
@@ -115,6 +139,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   private loadAIConversationsPromise(): Promise<void> {
+    console.log('🗂️ loadAIConversationsPromise started');
+    
     return new Promise((resolve) => {
       this.isLoading = true;
       
@@ -122,19 +148,24 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
+            console.log('✅ AI conversations API response:', response);
+            
             // Handle the response properly - it might be an array or an object with conversations
             const conversations = Array.isArray(response) ? response : (response?.conversations || []);
             this.aiConversations = conversations;
             this.isLoading = false;
             
+            console.log('📋 Processed AI conversations:', this.aiConversations);
+            
             // Auto-select first conversation if available
             if (conversations && conversations.length > 0 && !this.currentAIConversation) {
+              console.log('🎯 Auto-selecting first conversation:', conversations[0]);
               this.selectAIConversation(conversations[0]);
             }
             resolve();
           },
           error: (error) => {
-            console.error('Error loading AI conversations:', error);
+            console.error('❌ Error loading AI conversations:', error);
             this.aiConversations = [];
             this.isLoading = false;
             resolve();
@@ -433,18 +464,43 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   shouldShowDateSeparator(index: number): boolean {
+    console.log('📅 shouldShowDateSeparator called:', {
+      index,
+      chatMode: this.chatMode,
+      aiMessagesLength: this.aiMessages?.length,
+      messagesLength: this.messages?.length
+    });
+    
     if (index === 0) return true;
     
     const currentMessages = this.chatMode === 'ai' ? this.aiMessages : this.messages;
     
+    console.log('📋 Current messages array:', currentMessages);
+    
     // Extra safety checks
-    if (!currentMessages || currentMessages.length === 0) return false;
-    if (index >= currentMessages.length || index < 0) return false;
+    if (!currentMessages || currentMessages.length === 0) {
+      console.log('⚠️ No messages array or empty array');
+      return false;
+    }
+    if (index >= currentMessages.length || index < 0) {
+      console.log('⚠️ Index out of bounds:', { index, length: currentMessages.length });
+      return false;
+    }
     
     const currentMessage = currentMessages[index];
     const previousMessage = currentMessages[index - 1];
     
-    if (!currentMessage || !previousMessage || !currentMessage.timestamp || !previousMessage.timestamp) return false;
+    console.log('📨 Messages for comparison:', {
+      currentMessage,
+      previousMessage,
+      currentTimestamp: currentMessage?.timestamp,
+      previousTimestamp: previousMessage?.timestamp
+    });
+    
+    if (!currentMessage || !previousMessage || !currentMessage.timestamp || !previousMessage.timestamp) {
+      console.log('⚠️ Missing message or timestamp data');
+      return false;
+    }
     
     try {
       const currentDate = currentMessage.timestamp instanceof Date ? 
@@ -871,10 +927,17 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   getMessagesForCurrentMode(): any[] {
-    if (this.chatMode === 'ai') {
-      return this.aiMessages || [];
-    } else {
-      return this.messages || [];
-    }
+    const result = this.chatMode === 'ai' ? (this.aiMessages || []) : (this.messages || []);
+    
+    console.log('📨 getMessagesForCurrentMode called:', {
+      chatMode: this.chatMode,
+      isInitialized: this.isInitialized,
+      aiMessages: this.aiMessages,
+      messages: this.messages,
+      result: result,
+      resultLength: result.length
+    });
+    
+    return result;
   }
 }
