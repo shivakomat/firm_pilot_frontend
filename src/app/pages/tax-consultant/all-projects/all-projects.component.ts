@@ -1,17 +1,18 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { ApiService, Project } from '../../../core/services/api.service';
+import { ApiService, Project, Client } from '../../../core/services/api.service';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-all-projects',
   templateUrl: './all-projects.component.html',
   styleUrls: ['./all-projects.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ModalModule]
 })
 export class AllProjectsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -24,6 +25,14 @@ export class AllProjectsComponent implements OnInit, OnDestroy {
   searchTerm = '';
   selectedStatus = '';
   selectedProjectType = '';
+
+  // Edit Client Modal
+  editClientForm!: UntypedFormGroup;
+  editSubmitted = false;
+  editLoading = false;
+  selectedClient: Client | null = null;
+
+  @ViewChild('editClientModal', { static: false }) editClientModal?: ModalDirective;
 
   projectTypes = [
     { value: 'tax_return', label: 'Tax Return' },
@@ -44,11 +53,24 @@ export class AllProjectsComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private formBuilder: UntypedFormBuilder
   ) {}
 
   ngOnInit(): void {
+    this.initializeEditForm();
     this.loadAllProjects();
+  }
+
+  initializeEditForm(): void {
+    this.editClientForm = this.formBuilder.group({
+      firstName: ['', [Validators.required]],
+      lastName: ['', [Validators.required]],
+      email: ['', [Validators.email]],
+      phoneNumber: [''],
+      entityType: [''],
+      status: ['']
+    });
   }
 
   ngOnDestroy(): void {
@@ -119,6 +141,126 @@ export class AllProjectsComponent implements OnInit, OnDestroy {
   viewClient(project: Project): void {
     this.router.navigate(['/clients/detail', project.clientId]);
   }
+
+  // Open edit client modal
+  openEditClientModal(project: Project): void {
+    if (!project.clientId) return;
+    
+    // Fetch client details by ID
+    this.apiService.getClients()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.clients) {
+            const client = response.clients.find(c => c.id === project.clientId);
+            if (client) {
+              this.selectedClient = client;
+              this.populateEditForm(client);
+              this.editClientModal?.show();
+            } else {
+              Swal.fire({
+                title: 'Error',
+                text: 'Client not found.',
+                icon: 'error'
+              });
+            }
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching client:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'Failed to load client details.',
+            icon: 'error'
+          });
+        }
+      });
+  }
+
+  populateEditForm(client: Client): void {
+    this.editClientForm.patchValue({
+      firstName: client.firstName || '',
+      lastName: client.lastName || '',
+      email: client.email || '',
+      phoneNumber: this.formatPhoneForDisplay(client.phone || ''),
+      entityType: client.entityType || '',
+      status: client.status || ''
+    });
+    this.editSubmitted = false;
+  }
+
+  // Update existing client
+  updateClient(): void {
+    this.editSubmitted = true;
+
+    if (this.editClientForm.invalid || !this.selectedClient) {
+      return;
+    }
+
+    this.editLoading = true;
+    const formData = this.editClientForm.value;
+    
+    // Clean phone number (remove formatting)
+    const cleanPhone = formData.phoneNumber ? formData.phoneNumber.replace(/\D/g, '') : '';
+
+    const updateData = {
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email ? formData.email.trim() : null,
+      phone: cleanPhone || null,
+      entityType: formData.entityType || null,
+      status: formData.status || null
+    };
+
+    this.apiService.updateClient(this.selectedClient.id, updateData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.editLoading = false;
+          if (response.success) {
+            Swal.fire({
+              title: 'Success!',
+              text: 'Client updated successfully.',
+              icon: 'success',
+              confirmButtonText: 'OK'
+            });
+
+            this.editClientModal?.hide();
+            this.loadAllProjects(); // Refresh projects to get updated client names
+            this.editClientForm.reset();
+            this.selectedClient = null;
+          } else {
+            Swal.fire({
+              title: 'Error',
+              text: response.message || 'Failed to update client.',
+              icon: 'error'
+            });
+          }
+        },
+        error: (error) => {
+          this.editLoading = false;
+          console.error('Error updating client:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'Failed to update client. Please try again.',
+            icon: 'error'
+          });
+        }
+      });
+  }
+
+  // Format phone number for display
+  formatPhoneForDisplay(phone: string): string {
+    if (!phone) return '';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    return phone;
+  }
+
+  // Convenience getter for form fields
+  get ef() { return this.editClientForm.controls; }
 
   getTypeLabel(type: string): string {
     const typeObj = this.projectTypes.find(t => t.value === type);
