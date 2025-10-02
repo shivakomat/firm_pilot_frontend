@@ -37,211 +37,34 @@
         </div>
 
         <div class="chat-leftsidebar-nav">
-          <tabset [justified]="true" class="nav-pills nav-justified">
-            <tab heading="Chat" class="">
-              <div class="py-4 tab-content">
-                <h5 class="font-size-14 mb-3">Recent</h5>
-                <ngx-simplebar style="position: relative; height: 410px;" #scrollEle>
-                  <ul class="list-unstyled chat-list">
-                    @for (data of threads; track $index) {
-                    <li class="" [ngClass]="{'active': data.id == currentThread?.id}">
-                      <a href="javascript: void(0);" (click)="selectThread(data)">
-                        <div class="d-flex">
-                          <div class="flex-shrink-0 align-self-center me-3">
-                            <i class="mdi mdi-circle text-success font-size-10"></i>
-                          </div>
-                          <div class="avatar-xs align-self-center me-3">
-                            <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                              {{ data.clientName?.charAt(0) || 'C' }}
-                            </span>
-                          </div>
-                          <div class="flex-grow-1 overflow-hidden">
-                            <h5 class="text-truncate font-size-13 mb-1">{{ data.clientName || 'Client' }}</h5>
-                            <p class="chat-user-message text-truncate mb-0">{{ data.lastMessage || 'No messages yet' }}</p>
-                          </div>
-                          <div class="font-size-11">Now</div>
-                        </div>
-                      </a>
-                    </li>}
-                  </ul>
-                </ngx-simplebar>
-              </div>
-            </tab>
-            <tab heading="Groups" class="py-4 tab-content">
-              <h5 class="font-size-14 mb-3">Groups</h5>
+          <!-- Client Chats Section -->
+          <div class="py-4">
+            <h5 class="font-size-14 mb-3">Client Chats</h5>
+            <ngx-simplebar style="position: relative; height: 410px;" #scrollEle>
               <ul class="list-unstyled chat-list">
-                <li>
-                  <a href="javascript: void(0);">
-                    <div class="d-flex align-items-center">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar-xs">
-                          <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                            G
-                          </span>
-                        </div>
+                @for (data of threads; track $index) {
+                <li class="" [ngClass]="{'active': data.id == currentThread?.id}">
+                  <a href="javascript: void(0);" (click)="selectThread(data)">
+                    <div class="d-flex">
+                      <div class="flex-shrink-0 align-self-center me-3">
+                        <i class="mdi mdi-circle text-success font-size-10"></i>
                       </div>
-
-                      <div class="flex-grow-1">
-                        <h5 class="font-size-14 mb-0">General</h5>
+                      <div class="avatar-xs align-self-center me-3">
+                        <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
+                          {{ data.clientName?.charAt(0) || 'C' }}
+                        </span>
                       </div>
+                      <div class="flex-grow-1 overflow-hidden">
+                        <h5 class="text-truncate font-size-13 mb-1">{{ data.clientName || 'Client' }}</h5>
+                        <p class="chat-user-message text-truncate mb-0">{{ data.lastMessage || 'No messages yet' }}</p>
+                      </div>
+                      <div class="font-size-11">Now</div>
                     </div>
                   </a>
-                </li>
-
-                <li>
-                  <a href="javascript: void(0);">
-                    <div class="d-flex align-items-center">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar-xs">
-                          <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                            R
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="flex-grow-1">
-                        <h5 class="font-size-14 mb-0">Reporting</h5>
-                      </div>
-                    </div>
-                  </a>
-                </li>
-
-                <li>
-                  <a href="javascript: void(0);">
-                    <div class="d-flex align-items-center">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar-xs">
-                          <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                            M
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="flex-grow-1">
-                        <h5 class="font-size-14 mb-0">Meeting</h5>
-                      </div>
-                    </div>
-                  </a>
-                </li>
-
-                <li>
-                  <a href="javascript: void(0);">
-                    <div class="d-flex align-items-center">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar-xs">
-                          <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                            A
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="flex-grow-1">
-                        <h5 class="font-size-14 mb-0">Project A</h5>
-                      </div>
-                    </div>
-                  </a>
-                </li>
-
-                <li>
-                  <a href="javascript: void(0);">
-                    <div class="d-flex align-items-center">
-                      <div class="flex-shrink-0 me-3">
-                        <div class="avatar-xs">
-                          <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                            B
-                          </span>
-                        </div>
-                      </div>
-
-                      <div class="flex-grow-1">
-                        <h5 class="font-size-14 mb-0">Project B</h5>
-                      </div>
-                    </div>
-                  </a>
-                </li>
+                </li>}
               </ul>
-            </tab>
-            <tab heading="Contacts" class="py-4 tab-content">
-              <h5 class="font-size-14 mb-3">Contacts</h5>
-              <ngx-simplebar style="height: 410px;" #scrollEle>
-                <div>
-                  <div class="avatar-xs mb-3">
-                    <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                      A
-                    </span>
-                  </div>
-
-                  <ul class="list-unstyled chat-list">
-                    <li>
-                      <a href="javascript: void(0);">
-                        <h5 class="font-size-14 mb-0">Adam Miller</h5>
-                      </a>
-                    </li>
-
-                    <li>
-                      <a href="javascript: void(0);">
-                        <h5 class="font-size-14 mb-0">Alfonso Fisher</h5>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-
-                <div class="mt-4">
-                  <div class="avatar-xs mb-3">
-                    <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                      B
-                    </span>
-                  </div>
-
-                  <ul class="list-unstyled chat-list">
-                    <li>
-                      <a href="javascript: void(0);">
-                        <h5 class="font-size-14 mb-0">Bonnie Harney</h5>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-
-                <div class="mt-4">
-                  <div class="avatar-xs mb-3">
-                    <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                      C
-                    </span>
-                  </div>
-
-                  <ul class="list-unstyled chat-list">
-                    <li>
-                      <a href="javascript: void(0);">
-                        <h5 class="font-size-14 mb-0">Charles Brown</h5>
-                      </a>
-                      <a href="javascript: void(0);">
-                        <h5 class="font-size-14 mb-0">Carmella Jones</h5>
-                      </a>
-                      <a href="javascript: void(0);">
-                        <h5 class="font-size-14 mb-0">Carrie Williams</h5>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-
-                <div class="mt-4">
-                  <div class="avatar-xs mb-3">
-                    <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                      D
-                    </span>
-                  </div>
-
-                  <ul class="list-unstyled chat-list">
-                    <li>
-                      <a href="javascript: void(0);">
-                        <h5 class="font-size-14 mb-0">Dolores Minter</h5>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </ngx-simplebar>
-            </tab>
-          </tabset>
+            </ngx-simplebar>
+          </div>
         </div>
       </div>
     </div>
