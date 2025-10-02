@@ -173,16 +173,23 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
               
               console.log('📋 Processed accountant messages:', this.messages);
             } else {
-              console.log('⚠️ No thread found, will create one when sending first message');
+              console.log('⚠️ No thread found or API returned success=false');
+              console.log('📊 API response details:', {
+                success: response.success,
+                hasThread: !!response.thread,
+                messagesCount: response.messages?.length || 0
+              });
               this.messages = [];
             }
             
             resolve();
           },
           error: (error) => {
-            console.error('❌ Error loading thread:', error);
+            console.error('❌ Error loading thread from API:', error);
+            console.log('🔄 Will create new thread when first message is sent');
             // Initialize empty state if API fails
             this.messages = [];
+            this.currentThread = null;
             resolve();
           }
         });
@@ -238,17 +245,11 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   loadMessages(): void {
+    console.log('📝 loadMessages called - fetching from API');
     this.isLoading = true;
     const clientId = this.currentUser?.id || 1;
     
-    // First try to load from localStorage
-    const savedMessages = this.loadMessagesFromStorage(clientId);
-    if (savedMessages.length > 0) {
-      this.messages = savedMessages;
-      this.isLoading = false;
-      return;
-    }
-    
+    // Always fetch fresh data from API first
     const sub = this.chatService.getThread(clientId).subscribe({
       next: (response: ApiThreadResponse) => {
         if (response.success && response.thread) {
@@ -279,11 +280,19 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading messages:', error);
+        console.error('❌ Error loading messages from API:', error);
+        
+        // Fallback to localStorage if API fails
+        const savedMessages = this.loadMessagesFromStorage(clientId);
+        if (savedMessages.length > 0) {
+          console.log('📦 Using saved messages from localStorage:', savedMessages);
+          this.messages = savedMessages;
+        } else {
+          console.log('📝 No saved messages, using mock data');
+          this.loadMockMessages();
+        }
+        
         this.isLoading = false;
-        // Fallback to mock data for demo
-        this.loadMockMessages();
-        this.saveMessagesToStorage(clientId, this.messages);
       }
     });
     this.subscriptions.push(sub);
