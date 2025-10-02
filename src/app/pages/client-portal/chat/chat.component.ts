@@ -618,6 +618,11 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   sendAIMessage(): void {
+    console.log('💬 sendAIMessage called:', {
+      currentAIConversation: this.currentAIConversation,
+      messageContent: this.newMessage.trim()
+    });
+    
     if (!this.currentAIConversation) {
       // Create a new conversation first, then send the message
       this.createConversationAndSendMessage();
@@ -631,16 +636,30 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       content: messageContent
     }).subscribe({
       next: (response) => {
-        // Add both user and AI messages
-        this.aiMessages.push({
+        console.log('✅ AI message API response:', response);
+        
+        // Safely handle user message
+        const userMessage = {
           ...response.userMessage,
-          timestamp: response.userMessage.timestamp ? new Date(response.userMessage.timestamp) : new Date()
+          timestamp: this.safeTimestamp(response.userMessage?.timestamp)
+        };
+        
+        // Safely handle assistant message  
+        const assistantMessage = {
+          ...response.assistantMessage,
+          timestamp: this.safeTimestamp(response.assistantMessage?.timestamp)
+        };
+        
+        console.log('📨 Processed messages:', {
+          userMessage,
+          assistantMessage
         });
         
-        this.aiMessages.push({
-          ...response.assistantMessage,
-          timestamp: response.assistantMessage.timestamp ? new Date(response.assistantMessage.timestamp) : new Date()
-        });
+        // Add both user and AI messages
+        this.aiMessages.push(userMessage);
+        this.aiMessages.push(assistantMessage);
+        
+        console.log('📋 Updated aiMessages array:', this.aiMessages);
         
         // Update conversation message count
         if (this.currentAIConversation) {
@@ -713,16 +732,26 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       content: messageContent
     }).subscribe({
       next: (response) => {
+        console.log('✅ AI message to conversation API response:', response);
+        
         // Add both user and AI messages with safe timestamp handling
-        this.aiMessages.push({
+        const userMessage = {
           ...response.userMessage,
-          timestamp: response.userMessage.timestamp ? new Date(response.userMessage.timestamp) : new Date()
+          timestamp: this.safeTimestamp(response.userMessage?.timestamp)
+        };
+        
+        const assistantMessage = {
+          ...response.assistantMessage,
+          timestamp: this.safeTimestamp(response.assistantMessage?.timestamp)
+        };
+        
+        console.log('📨 Processed messages for conversation:', {
+          userMessage,
+          assistantMessage
         });
         
-        this.aiMessages.push({
-          ...response.assistantMessage,
-          timestamp: response.assistantMessage.timestamp ? new Date(response.assistantMessage.timestamp) : new Date()
-        });
+        this.aiMessages.push(userMessage);
+        this.aiMessages.push(assistantMessage);
         
         // Update conversation message count
         if (this.currentAIConversation) {
@@ -939,5 +968,32 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     });
     
     return result;
+  }
+
+  private safeTimestamp(timestamp: any): Date {
+    console.log('🕐 safeTimestamp called with:', timestamp);
+    
+    if (!timestamp) {
+      console.log('⚠️ No timestamp provided, using current date');
+      return new Date();
+    }
+    
+    if (timestamp instanceof Date) {
+      console.log('✅ Timestamp is already a Date object');
+      return timestamp;
+    }
+    
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        console.log('⚠️ Invalid timestamp, using current date');
+        return new Date();
+      }
+      console.log('✅ Successfully converted timestamp to Date');
+      return date;
+    } catch (error) {
+      console.error('❌ Error converting timestamp:', error);
+      return new Date();
+    }
   }
 }
