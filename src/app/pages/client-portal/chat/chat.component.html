@@ -73,10 +73,10 @@
       <span class="date-label">Today</span>
     </div>
     
-    <ng-container *ngFor="let message of (chatMode === 'ai' ? aiMessages : messages); let i = index; trackBy: trackByMessage">
-      <div class="message-container" *ngIf="message">
+    <ng-container *ngFor="let message of (chatMode === 'ai' ? (aiMessages || []) : (messages || [])); let i = index; trackBy: trackByMessage">
+      <div class="message-container" *ngIf="message && message.content">
       <!-- Date Separator -->
-      <div *ngIf="shouldShowDateSeparator(i)" class="date-separator">
+      <div *ngIf="message && shouldShowDateSeparator(i)" class="date-separator">
         <span class="date-label">{{message?.timestamp ? formatDate(message.timestamp) : 'Today'}}</span>
       </div>
       

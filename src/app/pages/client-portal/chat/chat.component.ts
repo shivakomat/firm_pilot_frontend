@@ -58,6 +58,11 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Ensure arrays are properly initialized to prevent race conditions
+    this.messages = this.messages || [];
+    this.aiMessages = this.aiMessages || [];
+    this.aiConversations = this.aiConversations || [];
+    
     this.loadMessages();
     this.loadAIConversations();
   }
