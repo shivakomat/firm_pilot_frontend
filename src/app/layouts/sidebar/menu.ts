@@ -2,10 +2,21 @@ import { MenuItem } from './menu.model';
 
 export const MENU: MenuItem[] = [
     {
+        id: 1,
+        label: 'MENUITEMS.MENU.TEXT',
+        isTitle: true
+    },
+    {
         id: 2,
         label: 'MENUITEMS.DASHBOARDS.TEXT',
         icon: 'bx-home-circle',
         link: '/dashboards/default',
+    },
+    {
+        id: 3,
+        label: 'MENUITEMS.INSIGHTS.TEXT',
+        icon: 'bx-bar-chart-alt-2',
+        link: '/insights',
     },
     {
         id: 8,
@@ -207,4 +218,3 @@ export const MENU: MenuItem[] = [
         link: '/settings',
     },
 ];
-

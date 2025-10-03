@@ -113,54 +113,10 @@
         </div>
     </div>
 
-    <!-- Row 2: Charts Side by Side -->
-    <div class="row">
-        <!-- Client Creation Trends -->
-        <div class="col-xl-6 col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex flex-wrap align-items-center mb-4">
-                        <h5 class="card-title me-2">Client Creation Trends</h5>
-                        <div class="ms-auto">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-primary">6M</button>
-                                <button type="button" class="btn btn-primary">1Y</button>
-                                <button type="button" class="btn btn-outline-primary">ALL</button>
-                            </div>
-                        </div>
-                    </div>
-                    <apx-chart
-                      [series]="clientCreationChart.series"
-                      [chart]="clientCreationChart.chart"
-                      [stroke]="clientCreationChart.stroke"
-                      [xaxis]="clientCreationChart.xaxis"
-                      [colors]="clientCreationChart.colors"
-                      [legend]="clientCreationChart.legend"></apx-chart>
-                </div>
-            </div>
-        </div>
+    <!-- Charts moved to Insights page -->
 
-        <!-- Revenue Growth Over Time (placeholder) -->
-        <div class="col-xl-6 col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex flex-wrap align-items-center mb-4">
-                        <h5 class="card-title me-2">Revenue Growth Over Time</h5>
-                    </div>
-                    <apx-chart
-                      [series]="revenueGrowthChart.series"
-                      [chart]="revenueGrowthChart.chart"
-                      [stroke]="revenueGrowthChart.stroke"
-                      [xaxis]="revenueGrowthChart.xaxis"
-                      [colors]="revenueGrowthChart.colors"
-                      [legend]="revenueGrowthChart.legend"
-                      [noData]="revenueGrowthChart.noData"></apx-chart>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Row 3: Activity Section -->
+    <!-- Row 3: Activity Section - Temporarily commented out -->
+    <!-- 
     <div class="row">
         <div class="col-xl-12">
             <div class="card">
@@ -237,6 +193,6 @@
                 </div>
             </div>
         </div>
-
     </div>
+    -->
 </div> <!-- container-fluid -->

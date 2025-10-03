@@ -13,6 +13,7 @@ const routes: Routes = [
     component: DefaultComponent
   },
   { path: 'dashboard', component: DefaultComponent },
+  { path: 'insights', loadComponent: () => import('./insights/insights.component').then(c => c.InsightsComponent) },
   { path: 'calendar', component: CalendarComponent },
   { path: 'chat', component: ChatComponent },
   { path: 'filemanager', component: FilemanagerComponent },

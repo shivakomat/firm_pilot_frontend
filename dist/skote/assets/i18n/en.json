@@ -80,6 +80,9 @@
         "JOBS": "Jobs"
       }
     },
+    "INSIGHTS": {
+      "TEXT": "Insights"
+    },
     "LAYOUTS": {
       "TEXT": "Layouts",
       "LIST": {

@@ -29,8 +29,9 @@ export class DefaultComponent implements OnInit {
   emailSentBarChart: ChartType;
   monthlyEarningChart: ChartType;
   revenueChart: ChartType;
-  clientCreationChart: ChartType;
-  revenueGrowthChart: ChartType;
+  // Charts moved to Insights page
+  // clientCreationChart: ChartType;
+  // revenueGrowthChart: ChartType;
   transactions: any;
   statData: any;
   
@@ -134,73 +135,7 @@ export class DefaultComponent implements OnInit {
       colors: ['#556ee6']
     };
 
-    // Client Creation Chart
-    this.clientCreationChart = {
-      series: [
-        {
-          name: 'Lead',
-          data: [5, 8, 12, 15, 18, 22, 25, 28, 32, 35, 38, 42]
-        },
-        {
-          name: 'Invited',
-          data: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
-        },
-        {
-          name: 'Active',
-          data: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23]
-        },
-        {
-          name: 'Complete',
-          data: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        }
-      ],
-      chart: {
-        type: 'line',
-        height: 350,
-        toolbar: {
-          show: false
-        }
-      },
-      stroke: {
-        curve: 'smooth',
-        width: 3
-      },
-      xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      },
-      colors: ['#f1b44c', '#556ee6', '#34c38f', '#50a5f1'],
-      legend: {
-        position: 'top'
-      }
-    };
-
-    // Revenue Growth Over Time (placeholder – no data yet)
-    this.revenueGrowthChart = {
-      series: [],
-      chart: {
-        type: 'area',
-        height: 350,
-        toolbar: { show: false }
-      },
-      stroke: {
-        curve: 'smooth',
-        width: 3
-      },
-      xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      },
-      colors: ['#34c38f'],
-      legend: { show: false },
-      noData: {
-        text: 'No revenue data yet',
-        align: 'center',
-        verticalAlign: 'middle',
-        style: {
-          color: '#6c757d',
-          fontSize: '14px'
-        }
-      }
-    };
+    // Charts moved to Insights page - removed chart initialization code
   }
 
   /**
@@ -223,8 +158,25 @@ export class DefaultComponent implements OnInit {
       }
     });
 
-    // Mock data for projects and meetings - would be replaced with actual API calls
-    this.totalProjects = 125;
+    // Load projects data from API
+    this.apiService.getAccountantProjects().subscribe({
+      next: (response) => {
+        if (response.success && response.projects) {
+          this.totalProjects = response.projects.length;
+          console.log('✅ Loaded projects count from API:', this.totalProjects);
+        } else {
+          console.warn('⚠️ Projects API returned no data, using fallback');
+          this.totalProjects = 0;
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error loading projects:', error);
+        // Fallback to mock data
+        this.totalProjects = 125;
+      }
+    });
+
+    // Mock data for meetings - would be replaced with actual API calls
     this.upcomingMeetings = 7;
   }
   opencenterModal(template: TemplateRef<any>) {

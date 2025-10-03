@@ -1,0 +1,133 @@
+<div class="container-fluid">
+  <app-page-title title="Insights" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <h4 class="mb-sm-0 font-size-18">Analytics Dashboard</h4>
+        <div class="page-title-right">
+          <ol class="breadcrumb m-0">
+            <li class="breadcrumb-item"><a href="javascript: void(0);">Insights</a></li>
+            <li class="breadcrumb-item active">Analytics</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row">
+    <!-- Client Trends Chart -->
+    <div class="col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-sm-flex flex-wrap">
+            <h4 class="card-title mb-4">Client Trends</h4>
+            <div class="ms-auto">
+              <ul class="nav nav-pills">
+                <li class="nav-item">
+                  <a class="nav-link active" href="#">Week</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Month</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Year</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <apx-chart
+            [series]="clientCreationChart.series"
+            [chart]="clientCreationChart.chart"
+            [stroke]="clientCreationChart.stroke"
+            [xaxis]="clientCreationChart.xaxis"
+            [colors]="clientCreationChart.colors"
+            [legend]="clientCreationChart.legend"></apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div class="col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-sm-flex flex-wrap">
+            <h4 class="card-title mb-4">Revenue Overview</h4>
+            <div class="ms-auto">
+              <ul class="nav nav-pills">
+                <li class="nav-item">
+                  <a class="nav-link active" href="#">Week</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Month</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Year</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <apx-chart
+            [series]="revenueGrowthChart.series"
+            [chart]="revenueGrowthChart.chart"
+            [stroke]="revenueGrowthChart.stroke"
+            [xaxis]="revenueGrowthChart.xaxis"
+            [colors]="revenueGrowthChart.colors"
+            [legend]="revenueGrowthChart.legend"></apx-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Analytics Row -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title mb-4">Business Insights</h4>
+          <p class="text-muted">Detailed analytics and insights will be displayed here.</p>
+          
+          <!-- Placeholder for future analytics widgets -->
+          <div class="row">
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="avatar-sm mx-auto mb-4">
+                  <span class="avatar-title rounded-circle bg-primary-subtle text-primary font-size-16">
+                    <i class="bx bx-trending-up"></i>
+                  </span>
+                </div>
+                <h5 class="font-size-15">Growth Metrics</h5>
+                <p class="text-muted">Track business growth over time</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="avatar-sm mx-auto mb-4">
+                  <span class="avatar-title rounded-circle bg-success-subtle text-success font-size-16">
+                    <i class="bx bx-dollar-circle"></i>
+                  </span>
+                </div>
+                <h5 class="font-size-15">Revenue Analysis</h5>
+                <p class="text-muted">Detailed revenue breakdown</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="avatar-sm mx-auto mb-4">
+                  <span class="avatar-title rounded-circle bg-info-subtle text-info font-size-16">
+                    <i class="bx bx-user-check"></i>
+                  </span>
+                </div>
+                <h5 class="font-size-15">Client Insights</h5>
+                <p class="text-muted">Client behavior and trends</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
