@@ -264,6 +264,9 @@ export class InboxComponent implements OnInit {
               this.isGmailConnected = false;
               this.gmailEmail = '';
               this.gmailMessages = [];
+              
+              // Clear stored Gmail tokens
+              this.apiService.clearGmailTokens();
               this.loadMockData();
               
               Swal.fire({
@@ -277,6 +280,13 @@ export class InboxComponent implements OnInit {
           },
           error: (error) => {
             console.error('❌ Error disconnecting Gmail:', error);
+            
+            // Clear tokens even if API call fails
+            this.apiService.clearGmailTokens();
+            this.isGmailConnected = false;
+            this.gmailEmail = '';
+            this.gmailMessages = [];
+            
             Swal.fire({
               title: 'Disconnect Failed',
               text: 'Unable to disconnect Gmail. Please try again.',
@@ -293,6 +303,14 @@ export class InboxComponent implements OnInit {
    */
   getGmailStatusAndLoadMessages(): void {
     console.log('🔍 Getting Gmail status after OAuth success...');
+    
+    // First check if we have valid tokens
+    if (!this.apiService.isGmailTokenValid()) {
+      console.warn('⚠️ Gmail tokens are invalid or expired');
+      this.isGmailConnected = false;
+      this.isCheckingStatus = false;
+      return;
+    }
     
     this.apiService.getGmailStatus().subscribe({
       next: (response) => {

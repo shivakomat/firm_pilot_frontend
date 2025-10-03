@@ -1339,15 +1339,43 @@ export class ApiService {
   }
 
   /**
-   * Check if we're returning from OAuth callback
+   * Check if we're returning from OAuth callback and extract session data
    */
   handleOAuthReturn(): boolean {
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get('oauth_success');
     const error = urlParams.get('oauth_error');
     
+    // Extract Gmail session data from URL parameters
+    const gmailAccessToken = urlParams.get('gmail_access_token');
+    const gmailRefreshToken = urlParams.get('gmail_refresh_token');
+    const gmailExpiresAt = urlParams.get('gmail_expires_at');
+    const userId = urlParams.get('user_id');
+    
     if (success === 'true') {
       console.log('✅ Gmail OAuth successful');
+      
+      // Store Gmail tokens and session data
+      if (gmailAccessToken) {
+        localStorage.setItem('gmail_access_token', gmailAccessToken);
+        console.log('💾 Stored Gmail access token');
+      }
+      
+      if (gmailRefreshToken) {
+        localStorage.setItem('gmail_refresh_token', gmailRefreshToken);
+        console.log('💾 Stored Gmail refresh token');
+      }
+      
+      if (gmailExpiresAt) {
+        localStorage.setItem('gmail_expires_at', gmailExpiresAt);
+        console.log('💾 Stored Gmail token expiration:', new Date(parseInt(gmailExpiresAt)));
+      }
+      
+      if (userId) {
+        localStorage.setItem('gmail_user_id', userId);
+        console.log('💾 Stored Gmail user ID:', userId);
+      }
+      
       // Clean up URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
       return true;
@@ -1359,6 +1387,43 @@ export class ApiService {
     }
     
     return false;
+  }
+
+  /**
+   * Check if Gmail tokens are valid and not expired
+   */
+  isGmailTokenValid(): boolean {
+    const accessToken = localStorage.getItem('gmail_access_token');
+    const expiresAt = localStorage.getItem('gmail_expires_at');
+    
+    if (!accessToken || !expiresAt) {
+      console.log('❌ Gmail tokens not found');
+      return false;
+    }
+    
+    const expirationTime = parseInt(expiresAt);
+    const currentTime = Date.now();
+    
+    if (currentTime >= expirationTime) {
+      console.log('❌ Gmail tokens expired');
+      // Clear expired tokens
+      this.clearGmailTokens();
+      return false;
+    }
+    
+    console.log('✅ Gmail tokens are valid');
+    return true;
+  }
+
+  /**
+   * Clear Gmail tokens from localStorage
+   */
+  clearGmailTokens(): void {
+    localStorage.removeItem('gmail_access_token');
+    localStorage.removeItem('gmail_refresh_token');
+    localStorage.removeItem('gmail_expires_at');
+    localStorage.removeItem('gmail_user_id');
+    console.log('🗑️ Cleared Gmail tokens');
   }
 
   /**
