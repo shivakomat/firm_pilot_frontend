@@ -761,15 +761,8 @@ export class ApiService {
       'Authorization': `Bearer ${token}`
     });
 
-    // Note: API specification mentions passing user id in body for GET request
-    // This is unusual but following the specification
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const requestBody = {
-      userId: currentUser.id || currentUser.userId
-    };
-
-    // Using POST method as GET with body is not standard HTTP practice
-    return this.http.post<AccountantIntakeFormsResponse>(`${this.baseUrl}/intake/forms`, requestBody, { headers });
+    // Simple GET request - user ID is automatically handled by JWT token
+    return this.http.get<AccountantIntakeFormsResponse>(`${this.baseUrl}/intake/forms`, { headers });
   }
 
   /**
