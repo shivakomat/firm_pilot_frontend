@@ -276,6 +276,29 @@ export interface AllDocumentsResponse {
   message?: string;
 }
 
+export interface AccountantIntakeForm {
+  id: number;
+  clientId: number;
+  clientName: string;
+  clientEmail: string;
+  projectId?: number;
+  projectName?: string;
+  formId: number;
+  formTitle: string;
+  formType?: 'tax-intake' | 'business-intake';
+  submissionDate?: string;
+  status: 'pending' | 'reviewed' | 'approved' | 'needs-revision';
+  completionPercentage: number;
+  lastModified?: string;
+  responseData?: any;
+}
+
+export interface AccountantIntakeFormsResponse {
+  success: boolean;
+  message?: string;
+  forms?: AccountantIntakeForm[];
+}
+
 export interface Invitation {
   id: number;
   clientId: number;
@@ -715,6 +738,38 @@ export class ApiService {
     });
 
     return this.http.get<ProjectsResponse>(`${this.baseUrl}/my/accountant/projects`, { headers });
+  }
+
+  /**
+   * Get all intake forms for the logged-in accountant across all clients
+   */
+  getAccountantIntakeForms(): Observable<AccountantIntakeFormsResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    // Note: API specification mentions passing user id in body for GET request
+    // This is unusual but following the specification
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const requestBody = {
+      userId: currentUser.id || currentUser.userId
+    };
+
+    // Using POST method as GET with body is not standard HTTP practice
+    return this.http.post<AccountantIntakeFormsResponse>(`${this.baseUrl}/intake/forms`, requestBody, { headers });
   }
 
   /**

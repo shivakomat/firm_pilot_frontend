@@ -140,7 +140,29 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let form of filteredForms">
+                <!-- Loading State -->
+                <tr *ngIf="isLoading">
+                  <td colspan="8" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading intake forms...</p>
+                  </td>
+                </tr>
+                
+                <!-- No Data State -->
+                <tr *ngIf="!isLoading && filteredForms.length === 0">
+                  <td colspan="8" class="text-center py-4">
+                    <div class="text-muted">
+                      <i class="ri-file-list-3-line font-size-48 mb-3 d-block"></i>
+                      <h5>No intake forms found</h5>
+                      <p>No intake forms match your current filters.</p>
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Data Rows -->
+                <tr *ngFor="let form of filteredForms" [hidden]="isLoading">
                   <td>
                     <div>
                       <h6 class="mb-1">{{form.clientName}}</h6>
@@ -156,7 +178,7 @@
                   </td>
                   <td>
                     <span class="badge bg-primary-subtle text-primary">
-                      {{getFormTypeDisplay(form.formType)}}
+                      {{getFormTypeDisplay(form.formType || 'tax-intake')}}
                     </span>
                   </td>
                   <td>{{form.submissionDate | date:'short'}}</td>

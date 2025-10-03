@@ -1,19 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import Swal from 'sweetalert2';
+import { ApiService, AccountantIntakeForm } from '../../../core/services/api.service';
 
-interface ClientIntakeForm {
-  id: number;
-  clientId: number;
-  clientName: string;
-  clientEmail: string;
-  projectId?: number;
-  projectName?: string;
-  submissionDate: string;
-  status: 'pending' | 'reviewed' | 'approved' | 'needs-revision';
-  formType: 'tax-intake' | 'business-intake';
-  completionPercentage: number;
-  lastModified: string;
-}
+// Using AccountantIntakeForm interface from API service
 
 @Component({
   selector: 'app-intake-forms',
@@ -21,11 +10,12 @@ interface ClientIntakeForm {
   styleUrls: ['./intake-forms.component.scss']
 })
 export class IntakeFormsComponent implements OnInit {
-  intakeForms: ClientIntakeForm[] = [];
-  filteredForms: ClientIntakeForm[] = [];
+  intakeForms: AccountantIntakeForm[] = [];
+  filteredForms: AccountantIntakeForm[] = [];
   selectedStatus: string = 'all';
   selectedFormType: string = 'all';
   searchTerm: string = '';
+  isLoading: boolean = false;
   
   // Statistics
   stats = {
@@ -36,7 +26,7 @@ export class IntakeFormsComponent implements OnInit {
     needsRevision: 0
   };
 
-  constructor() { }
+  constructor(private apiService: ApiService) { }
 
   ngOnInit(): void {
     this.loadIntakeForms();
@@ -44,76 +34,42 @@ export class IntakeFormsComponent implements OnInit {
   }
 
   loadIntakeForms(): void {
-    // Mock data - in real app, this would come from API
-    this.intakeForms = [
-      {
-        id: 1,
-        clientId: 101,
-        clientName: 'John Smith',
-        clientEmail: 'john.smith@email.com',
-        projectId: 1,
-        projectName: '2024 Tax Return',
-        submissionDate: '2024-02-15T10:30:00Z',
-        status: 'pending',
-        formType: 'tax-intake',
-        completionPercentage: 100,
-        lastModified: '2024-02-15T10:30:00Z'
-      },
-      {
-        id: 2,
-        clientId: 102,
-        clientName: 'Sarah Johnson',
-        clientEmail: 'sarah.johnson@email.com',
-        projectId: 2,
-        projectName: '2024 Business Tax',
-        submissionDate: '2024-02-14T14:20:00Z',
-        status: 'reviewed',
-        formType: 'tax-intake',
-        completionPercentage: 100,
-        lastModified: '2024-02-16T09:15:00Z'
-      },
-      {
-        id: 3,
-        clientId: 103,
-        clientName: 'Michael Brown',
-        clientEmail: 'michael.brown@email.com',
-        projectId: 3,
-        projectName: '2024 Individual Return',
-        submissionDate: '2024-02-13T16:45:00Z',
-        status: 'approved',
-        formType: 'tax-intake',
-        completionPercentage: 100,
-        lastModified: '2024-02-17T11:30:00Z'
-      },
-      {
-        id: 4,
-        clientId: 104,
-        clientName: 'Emily Davis',
-        clientEmail: 'emily.davis@email.com',
-        projectId: 4,
-        projectName: '2024 Amended Return',
-        submissionDate: '2024-02-12T09:10:00Z',
-        status: 'needs-revision',
-        formType: 'tax-intake',
-        completionPercentage: 85,
-        lastModified: '2024-02-16T15:20:00Z'
-      },
-      {
-        id: 5,
-        clientId: 105,
-        clientName: 'Robert Wilson',
-        clientEmail: 'robert.wilson@email.com',
-        projectId: 5,
-        projectName: '2024 LLC Tax Filing',
-        submissionDate: '2024-02-11T13:25:00Z',
-        status: 'pending',
-        formType: 'business-intake',
-        completionPercentage: 92,
-        lastModified: '2024-02-11T13:25:00Z'
-      }
-    ];
+    this.isLoading = true;
+    console.log('📝 Loading intake forms from API...');
     
-    this.filteredForms = [...this.intakeForms];
+    this.apiService.getAccountantIntakeForms().subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        if (response.success && response.forms) {
+          this.intakeForms = response.forms;
+          this.filteredForms = [...this.intakeForms];
+          this.calculateStats();
+          console.log('✅ Loaded intake forms:', this.intakeForms);
+        } else {
+          console.warn('⚠️ API returned no forms or failed:', response);
+          this.intakeForms = [];
+          this.filteredForms = [];
+          this.calculateStats();
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('❌ Error loading intake forms:', error);
+        
+        // Show user-friendly error message
+        Swal.fire({
+          title: 'Error Loading Forms',
+          text: 'Unable to load intake forms. Please try again later.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        
+        // Initialize empty arrays
+        this.intakeForms = [];
+        this.filteredForms = [];
+        this.calculateStats();
+      }
+    });
   }
 
   calculateStats(): void {
@@ -127,9 +83,10 @@ export class IntakeFormsComponent implements OnInit {
   filterForms(): void {
     this.filteredForms = this.intakeForms.filter(form => {
       const matchesStatus = this.selectedStatus === 'all' || form.status === this.selectedStatus;
-      const matchesFormType = this.selectedFormType === 'all' || form.formType === this.selectedFormType;
+      const matchesFormType = this.selectedFormType === 'all' || (form.formType || 'tax-intake') === this.selectedFormType;
       const matchesSearch = form.clientName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           form.clientEmail.toLowerCase().includes(this.searchTerm.toLowerCase());
+                           form.clientEmail.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                           (form.formTitle && form.formTitle.toLowerCase().includes(this.searchTerm.toLowerCase()));
       return matchesStatus && matchesFormType && matchesSearch;
     });
   }
@@ -164,18 +121,18 @@ export class IntakeFormsComponent implements OnInit {
     }
   }
 
-  viewForm(form: ClientIntakeForm): void {
+  viewForm(form: AccountantIntakeForm): void {
     // In real app, this would navigate to form details or open modal
     Swal.fire({
       title: 'View Intake Form',
-      text: `Opening ${form.formType} form for ${form.clientName}`,
+      text: `Opening ${form.formType || 'intake'} form for ${form.clientName}`,
       icon: 'info',
       timer: 2000,
       showConfirmButton: false
     });
   }
 
-  updateStatus(form: ClientIntakeForm, newStatus: string): void {
+  updateStatus(form: AccountantIntakeForm, newStatus: string): void {
     const oldStatus = form.status;
     form.status = newStatus as any;
     form.lastModified = new Date().toISOString();
