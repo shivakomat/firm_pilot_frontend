@@ -140,11 +140,9 @@
               <button 
                 type="button" 
                 class="btn btn-primary btn-lg"
-                (click)="connectGmail()"
-                [disabled]="isLoadingGmail">
-                <span *ngIf="isLoadingGmail" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                <i *ngIf="!isLoadingGmail" class="ri-google-line me-2"></i>
-                {{ isLoadingGmail ? 'Connecting...' : 'Connect Gmail Account' }}
+                (click)="showGmailLogin()">
+                <i class="ri-mail-line me-2"></i>
+                Connect Gmail Account
               </button>
               
               <div class="mt-3">
