@@ -64,14 +64,22 @@ export class InboxComponent implements OnInit {
     // Check if we're returning from OAuth callback
     const oauthReturn = this.apiService.handleOAuthReturn();
     if (oauthReturn === true) {
-      // OAuth was successful, show success message
+      // OAuth was successful - set connected state and load emails
+      this.isGmailConnected = true;
+      this.isCheckingStatus = false;
+      
+      // Show brief success message
       Swal.fire({
         title: 'Gmail Connected!',
-        text: 'Successfully connected to your Gmail account',
+        text: 'Loading your emails...',
         icon: 'success',
-        timer: 2000,
+        timer: 1500,
         showConfirmButton: false
       });
+      
+      // Get Gmail status to get email address, then load messages
+      this.getGmailStatusAndLoadMessages();
+      
     } else if (oauthReturn === false) {
       // OAuth failed, show error message
       Swal.fire({
@@ -79,11 +87,11 @@ export class InboxComponent implements OnInit {
         text: 'Unable to connect to Gmail. Please try again.',
         icon: 'error'
       });
+      this.isCheckingStatus = false;
+    } else {
+      // No OAuth return, skip automatic status check to avoid initial connection error
+      this.isCheckingStatus = false;
     }
-    
-    // Skip automatic status check to avoid initial connection error
-    // this.checkGmailStatus();
-    this.isCheckingStatus = false;
   }
 
   ngOnDestroy(): void {
@@ -276,6 +284,35 @@ export class InboxComponent implements OnInit {
             });
           }
         });
+      }
+    });
+  }
+
+  /**
+   * Get Gmail status and then load messages
+   */
+  getGmailStatusAndLoadMessages(): void {
+    console.log('🔍 Getting Gmail status after OAuth success...');
+    
+    this.apiService.getGmailStatus().subscribe({
+      next: (response) => {
+        if (response.success && response.connected) {
+          this.isGmailConnected = true;
+          this.gmailEmail = response.email || 'Connected';
+          console.log('✅ Gmail status confirmed:', response.email);
+          
+          // Now load messages
+          this.loadGmailMessages();
+        } else {
+          console.warn('⚠️ Gmail not connected according to status check');
+          this.isGmailConnected = false;
+          this.isCheckingStatus = false;
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error getting Gmail status:', error);
+        // Still try to load messages since OAuth was successful
+        this.loadGmailMessages();
       }
     });
   }
