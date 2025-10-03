@@ -61,25 +61,25 @@ export class InboxComponent implements OnInit {
     this.editor = new Editor();
     this.breadCrumbItems = [{ label: 'Email' }, { label: 'Inbox', active: true }];
     
-    // Check if we're returning from OAuth callback
-    const oauthReturn = this.apiService.handleOAuthReturn();
-    if (oauthReturn === true) {
-      // OAuth was successful, show success message
-      Swal.fire({
-        title: 'Gmail Connected!',
-        text: 'Successfully connected to your Gmail account',
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
-      });
-    } else if (oauthReturn === false) {
-      // OAuth failed, show error message
-      Swal.fire({
-        title: 'Connection Failed',
-        text: 'Unable to connect to Gmail. Please try again.',
-        icon: 'error'
-      });
-    }
+    // Disable OAuth return handling until backend is ready
+    // const oauthReturn = this.apiService.handleOAuthReturn();
+    // if (oauthReturn === true) {
+    //   // OAuth was successful, show success message
+    //   Swal.fire({
+    //     title: 'Gmail Connected!',
+    //     text: 'Successfully connected to your Gmail account',
+    //     icon: 'success',
+    //     timer: 2000,
+    //     showConfirmButton: false
+    //   });
+    // } else if (oauthReturn === false) {
+    //   // OAuth failed, show error message
+    //   Swal.fire({
+    //     title: 'Connection Failed',
+    //     text: 'Unable to connect to Gmail. Please try again.',
+    //     icon: 'error'
+    //   });
+    // }
     
     // Skip automatic status check until OAuth backend is ready
     // this.checkGmailStatus();
@@ -216,23 +216,16 @@ export class InboxComponent implements OnInit {
   }
 
   /**
-   * Start Gmail OAuth flow
+   * Start Gmail OAuth flow (temporarily disabled)
    */
   connectGmail(): void {
-    console.log('🔗 Starting Gmail OAuth flow...');
+    console.log('🔗 Gmail OAuth temporarily disabled...');
     
     Swal.fire({
-      title: 'Connecting to Gmail',
-      text: 'You will be redirected to Google to authorize access to your Gmail account.',
+      title: 'OAuth Not Ready',
+      text: 'Gmail OAuth backend is not configured yet. Please wait for backend implementation.',
       icon: 'info',
-      showCancelButton: true,
-      confirmButtonText: 'Continue',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Start OAuth flow - this will redirect the page
-        this.apiService.startGmailOAuth();
-      }
+      confirmButtonText: 'OK'
     });
   }
 
