@@ -211,32 +211,3 @@
       </div>
     </div>
   </div>
-
-  <!-- Compose Modal Template -->
-  <ng-template #content let-modal>
-    <div class="modal-header">
-      <h5 class="modal-title" id="composemodalTitle">New Message</h5>
-      <button type="button" class="btn-close" (click)="modalRef?.hide()" aria-label="Close">
-      </button>
-    </div>
-    <div class="modal-body">
-      <form>
-        <div class="mb-3">
-          <input type="email" class="form-control" placeholder="To">
-        </div>
-        <div class="mb-3">
-          <input type="text" class="form-control" placeholder="Subject">
-        </div>
-        <div class="mb-3">
-          <!-- Editor -->
-          <ngx-editor-menu [editor]="editor"> </ngx-editor-menu>
-          <ngx-editor [editor]="editor" [ngModel]="html" [disabled]="false"
-            [placeholder]="'Type here...'"></ngx-editor>
-        </div>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
-      <button type="button" class="btn btn-primary">Send <i class="fab fa-telegram-plane ms-1"></i></button>
-    </div>
-  </ng-template>

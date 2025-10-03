@@ -81,8 +81,9 @@ export class InboxComponent implements OnInit {
       });
     }
     
-    // Check Gmail connection status
-    this.checkGmailStatus();
+    // Skip automatic status check until OAuth backend is ready
+    // this.checkGmailStatus();
+    this.isCheckingStatus = false;
   }
 
   ngOnDestroy(): void {
