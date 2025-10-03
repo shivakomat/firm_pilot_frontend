@@ -1312,33 +1312,53 @@ export class ApiService {
   }
 
   /**
-   * Login to Gmail with email and password
+   * Start Gmail OAuth flow by redirecting to backend OAuth endpoint
    */
-  loginGmail(loginData: GmailLoginRequest): Observable<GmailLoginResponse> {
+  startGmailOAuth(): void {
     const token = localStorage.getItem('authToken');
     
     if (!token) {
       console.error('❌ No auth token found in localStorage');
       this.router.navigate(['/account/login']);
-      throw new Error('No authentication token found. Please log in again.');
+      return;
     }
 
     if (!this.validateTokenAndRedirect(token)) {
-      throw new Error('Authentication token has expired. Redirecting to login.');
+      return;
     }
 
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
+    // Store current page URL to return after OAuth
+    localStorage.setItem('gmail_oauth_return_url', window.location.href);
+    
+    // Redirect to backend OAuth endpoint with JWT token
+    const oauthUrl = `${this.baseUrl}/gmail/login?token=${encodeURIComponent(token)}`;
+    console.log('🔗 Redirecting to Gmail OAuth:', oauthUrl);
+    
+    // Full page redirect to start OAuth flow
+    window.location.href = oauthUrl;
+  }
 
-    // Pass email and password as query parameters for GET request
-    const params = new URLSearchParams();
-    params.set('email', loginData.email);
-    params.set('password', loginData.password);
-
-    const url = `${this.baseUrl}/gmail/login?${params.toString()}`;
-    return this.http.get<GmailLoginResponse>(url, { headers });
+  /**
+   * Check if we're returning from OAuth callback
+   */
+  handleOAuthReturn(): boolean {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('oauth_success');
+    const error = urlParams.get('oauth_error');
+    
+    if (success === 'true') {
+      console.log('✅ Gmail OAuth successful');
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return true;
+    } else if (error) {
+      console.error('❌ Gmail OAuth error:', error);
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return false;
+    }
+    
+    return false;
   }
 
   /**

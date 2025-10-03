@@ -4,10 +4,11 @@
     <div class="col-12">
       <div class="email-leftbar card">
         <div class="d-flex gap-2 mb-3">
-          <button type="button" class="btn btn-danger flex-fill" data-toggle="modal" data-target="#composemodal"
+          <!-- Compose button temporarily disabled -->
+          <!-- <button type="button" class="btn btn-danger flex-fill" data-toggle="modal" data-target="#composemodal"
             (click)="open(content)">
             Compose
-          </button>
+          </button> -->
         </div>
         <div class="mail-list mt-4">
           <a href="javascript: void(0);" class="active" (click)="categoryFilter($event,'all')"><i
@@ -39,84 +40,6 @@
               class="mdi mdi-arrow-right-drop-circle text-success float-end"></span>Family</a>
         </div>
 
-        <h6 class="mt-4">Chat</h6>
-
-        <div class="mt-2">
-          <a href="javascript: void(0);" class="d-flex">
-            <div class="flex-shrink-0 me-3">
-              <img class="rounded-circle" src="assets/images/users/avatar-2.jpg" alt="Generic placeholder image"
-                height="36">
-            </div>
-            <div class="flex-grow-1 chat-user-box">
-              <p class="user-title m-0">Scott Median</p>
-              <p class="text-muted">Hello</p>
-            </div>
-          </a>
-
-          <a href="javascript: void(0);" class="d-flex">
-            <div class="flex-shrink-0 me-3">
-              <img class="rounded-circle" src="assets/images/users/avatar-3.jpg" alt="Generic placeholder image"
-                height="36">
-            </div>
-            <div class="flex-grow-1 chat-user-box">
-              <p class="user-title m-0">Julian Rosa</p>
-              <p class="text-muted">What about our next..</p>
-            </div>
-          </a>
-
-          <a href="javascript: void(0);" class="d-flex">
-            <div class="flex-shrink-0 me-3">
-              <img class="rounded-circle" src="assets/images/users/avatar-4.jpg" alt="Generic placeholder image"
-                height="36">
-            </div>
-            <div class="flex-grow-1 chat-user-box">
-              <p class="user-title m-0">David Medina</p>
-              <p class="text-muted">Yeah everything is fine</p>
-            </div>
-          </a>
-
-          <a href="javascript: void(0);" class="d-flex">
-            <div class="flex-shrink-0 me-3">
-              <img class="rounded-circle" src="assets/images/users/avatar-6.jpg" alt="Generic placeholder image"
-                height="36">
-            </div>
-            <div class="flex-grow-1 chat-user-box">
-              <p class="user-title m-0">Jay Baker</p>
-              <p class="text-muted">Wow that's great</p>
-            </div>
-          </a>
-        </div>
-        <ng-template #content let-modal>
-          <div class="modal-header">
-            <h5 class="modal-title" id="composemodalTitle">New Message</h5>
-            <button type="button" class="btn-close" (click)="modalRef?.hide()" aria-label="Close">
-
-            </button>
-          </div>
-          <div class="modal-body">
-            <form>
-              <div class="mb-3">
-                <input type="email" class="form-control" placeholder="To">
-              </div>
-              <div class="mb-3">
-                <input type="text" class="form-control" placeholder="Subject">
-              </div>
-              <div class="mb-3">
-                <!-- <ckeditor [editor]="Editor" data="<p>Content of the editor.</p>"></ckeditor> -->
-                <ngx-editor-menu [editor]="editor"> </ngx-editor-menu>
-                <ngx-editor [editor]="editor" [ngModel]="html" [disabled]="false"
-                  [placeholder]="'Type here...'"></ngx-editor>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
-            <button type="button" class="btn btn-primary">Send <i class="fab fa-telegram-plane ms-1"></i></button>
-          </div>
-        </ng-template>
-
-      </div>
-
       <div class="email-rightbar mb-3">
 
         <!-- Gmail Connection Status Card -->
@@ -129,7 +52,7 @@
               <p class="mt-2 text-muted">Checking Gmail connection...</p>
             </div>
             
-            <div *ngIf="!isCheckingStatus && !isGmailConnected && !showLoginForm" class="gmail-connect-section">
+            <div *ngIf="!isCheckingStatus && !isGmailConnected" class="gmail-connect-section">
               <i class="ri-mail-line font-size-48 text-muted mb-3 d-block"></i>
               <h4 class="mb-3">Connect Your Gmail Account</h4>
               <p class="text-muted mb-4">
@@ -140,82 +63,15 @@
               <button 
                 type="button" 
                 class="btn btn-primary btn-lg"
-                (click)="showGmailLogin()">
-                <i class="ri-mail-line me-2"></i>
-                Connect Gmail Account
+                (click)="connectGmail()">
+                <i class="ri-google-line me-2"></i>
+                Connect with Google
               </button>
               
               <div class="mt-3">
                 <small class="text-muted">
                   <i class="ri-shield-check-line me-1"></i>
-                  Your data is secure and we only access what you authorize
-                </small>
-              </div>
-            </div>
-
-            <!-- Gmail Login Form -->
-            <div *ngIf="!isCheckingStatus && !isGmailConnected && showLoginForm" class="gmail-login-section">
-              <i class="ri-mail-line font-size-48 text-primary mb-3 d-block"></i>
-              <h4 class="mb-3">Gmail Login</h4>
-              <p class="text-muted mb-4">
-                Enter your Gmail credentials to connect your account
-              </p>
-              
-              <form [formGroup]="gmailLoginForm" (ngSubmit)="loginGmail()" class="text-start">
-                <div class="mb-3">
-                  <label for="gmailEmail" class="form-label">Gmail Address</label>
-                  <input 
-                    type="email" 
-                    class="form-control"
-                    [class.is-invalid]="hasFieldError('email')"
-                    id="gmailEmail" 
-                    formControlName="email"
-                    placeholder="Enter your Gmail address"
-                    [disabled]="isLoadingGmail">
-                  <div class="invalid-feedback" *ngIf="hasFieldError('email')">
-                    {{ getFieldError('email') }}
-                  </div>
-                </div>
-                
-                <div class="mb-4">
-                  <label for="gmailPassword" class="form-label">Password</label>
-                  <input 
-                    type="password" 
-                    class="form-control"
-                    [class.is-invalid]="hasFieldError('password')"
-                    id="gmailPassword" 
-                    formControlName="password"
-                    placeholder="Enter your Gmail password"
-                    [disabled]="isLoadingGmail">
-                  <div class="invalid-feedback" *ngIf="hasFieldError('password')">
-                    {{ getFieldError('password') }}
-                  </div>
-                </div>
-                
-                <div class="d-flex gap-2 justify-content-center">
-                  <button 
-                    type="button" 
-                    class="btn btn-secondary"
-                    (click)="hideGmailLogin()"
-                    [disabled]="isLoadingGmail">
-                    Cancel
-                  </button>
-                  
-                  <button 
-                    type="submit" 
-                    class="btn btn-primary"
-                    [disabled]="isLoadingGmail || gmailLoginForm.invalid">
-                    <span *ngIf="isLoadingGmail" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                    <i *ngIf="!isLoadingGmail" class="ri-login-circle-line me-2"></i>
-                    {{ isLoadingGmail ? 'Connecting...' : 'Connect' }}
-                  </button>
-                </div>
-              </form>
-              
-              <div class="mt-3">
-                <small class="text-muted">
-                  <i class="ri-information-line me-1"></i>
-                  We recommend using an App Password instead of your main password for better security
+                  Secure OAuth authentication - you'll be redirected to Google
                 </small>
               </div>
             </div>
