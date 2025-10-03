@@ -1,93 +1,115 @@
 <div class="container-fluid">
-  <app-page-title title="Inbox" [breadcrumbItems]="breadCrumbItems"></app-page-title>
-  <div class="row">
+  <app-page-title title="Email" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+  
+  <!-- Gmail Connection Screen - Show ONLY this until connected -->
+  <div class="row" *ngIf="!isGmailConnected">
     <div class="col-12">
-      <div class="email-leftbar card">
-        <div class="d-flex gap-2 mb-3">
-          <!-- Compose button temporarily disabled -->
-          <!-- <button type="button" class="btn btn-danger flex-fill" data-toggle="modal" data-target="#composemodal"
-            (click)="open(content)">
-            Compose
-          </button> -->
-        </div>
-        <div class="mail-list mt-4">
-          <a href="javascript: void(0);" class="active" (click)="categoryFilter($event,'all')"><i
-              class="mdi mdi-email-outline me-2"></i> Inbox <span class="ms-1 float-end">(18)</span></a>
-          <a href="javascript: void(0);" (click)="categoryFilter($event,'starred')"><i
-              class="mdi mdi-star-outline me-2"></i>Starred</a>
-          <a href="javascript: void(0);" (click)="categoryFilter($event,'important')"><i
-              class="mdi mdi-diamond-stone me-2"></i>Important</a>
-          <a href="javascript: void(0);" (click)="categoryFilter($event,'draft')"><i
-              class="mdi mdi-file-outline me-2"></i>Draft</a>
-          <a href="javascript: void(0);" (click)="categoryFilter($event,'sent-mail')"><i
-              class="mdi mdi-email-check-outline me-2"></i>Sent Mail</a>
-          <a href="javascript: void(0);" (click)="categoryFilter($event,'trash')"><i
-              class="mdi mdi-trash-can-outline me-2"></i>Trash</a>
-        </div>
-
-        <h6 class="mt-4">Labels</h6>
-
-        <div class="mail-list mt-1">
-          <a href="javascript: void(0);"><span class="mdi mdi-arrow-right-drop-circle text-info float-end"></span>Theme
-            Support</a>
-          <a href="javascript: void(0);"><span
-              class="mdi mdi-arrow-right-drop-circle text-warning float-end"></span>Freelance</a>
-          <a href="javascript: void(0);"><span
-              class="mdi mdi-arrow-right-drop-circle text-primary float-end"></span>Social</a>
-          <a href="javascript: void(0);"><span
-              class="mdi mdi-arrow-right-drop-circle text-danger float-end"></span>Friends</a>
-          <a href="javascript: void(0);"><span
-              class="mdi mdi-arrow-right-drop-circle text-success float-end"></span>Family</a>
-        </div>
-
-      <div class="email-rightbar mb-3">
-
-        <!-- Gmail Connection Status Card -->
-        <div class="card mb-3" *ngIf="!isGmailConnected">
-          <div class="card-body text-center py-5">
-            <div *ngIf="isCheckingStatus" class="mb-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Checking connection...</span>
-              </div>
-              <p class="mt-2 text-muted">Checking Gmail connection...</p>
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <div *ngIf="isCheckingStatus" class="mb-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Checking connection...</span>
             </div>
+            <p class="mt-2 text-muted">Checking Gmail connection...</p>
+          </div>
+          
+          <div *ngIf="!isCheckingStatus" class="gmail-connect-section">
+            <i class="ri-mail-line font-size-64 text-primary mb-4 d-block"></i>
+            <h2 class="mb-3">Connect Your Gmail Account</h2>
+            <p class="text-muted mb-4 lead">
+              Connect your Gmail account to access and manage your emails directly from the accountant portal. 
+              You'll be able to view, send, and organize your emails seamlessly.
+            </p>
             
-            <div *ngIf="!isCheckingStatus && !isGmailConnected" class="gmail-connect-section">
-              <i class="ri-mail-line font-size-48 text-muted mb-3 d-block"></i>
-              <h4 class="mb-3">Connect Your Gmail Account</h4>
-              <p class="text-muted mb-4">
-                Connect your Gmail account to manage emails directly from the accountant portal. 
-                You'll be able to view, send, and organize your emails seamlessly.
-              </p>
-              
-              <button 
-                type="button" 
-                class="btn btn-primary btn-lg"
-                (click)="connectGmail()">
-                <i class="ri-google-line me-2"></i>
-                Connect with Google
-              </button>
-              
-              <div class="mt-3">
-                <small class="text-muted">
-                  <i class="ri-shield-check-line me-1"></i>
-                  Secure OAuth authentication - you'll be redirected to Google
-                </small>
-              </div>
+            <button 
+              type="button" 
+              class="btn btn-primary btn-lg px-5 py-3"
+              (click)="connectGmail()">
+              <i class="ri-google-line me-2"></i>
+              Connect with Google
+            </button>
+            
+            <div class="mt-4">
+              <small class="text-muted">
+                <i class="ri-shield-check-line me-1"></i>
+                Secure OAuth authentication - you'll be redirected to Google for authorization
+              </small>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Gmail Connected Status -->
-        <div class="alert alert-success d-flex align-items-center mb-3" *ngIf="isGmailConnected">
-          <i class="ri-checkbox-circle-line me-2"></i>
-          <div class="flex-grow-1">
-            <strong>Gmail Connected:</strong> {{ gmailEmail }}
+  <!-- Full Email Interface - Show ONLY after Gmail is connected -->
+  <div class="row" *ngIf="isGmailConnected">
+    <div class="col-lg-3">
+      <!-- Left Sidebar -->
+      <div class="card">
+        <div class="card-body">
+          <!-- Gmail Connected Status -->
+          <div class="alert alert-success d-flex align-items-center mb-3">
+            <i class="ri-checkbox-circle-line me-2"></i>
+            <div class="flex-grow-1">
+              <small><strong>Connected:</strong> {{ gmailEmail }}</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="disconnectGmail()">
+              <i class="ri-logout-circle-line"></i>
+            </button>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-danger" (click)="disconnectGmail()">
-            <i class="ri-logout-circle-line me-1"></i>Disconnect
+
+          <!-- Compose Button -->
+          <button type="button" class="btn btn-danger w-100 mb-4" (click)="open(content)">
+            <i class="ri-edit-line me-2"></i>Compose
           </button>
+
+          <!-- Mail Navigation -->
+          <div class="mail-list">
+            <a href="javascript: void(0);" class="active" (click)="categoryFilter($event,'all')">
+              <i class="mdi mdi-email-outline me-2"></i> Inbox 
+              <span class="ms-1 float-end">({{ gmailMessages.length }})</span>
+            </a>
+            <a href="javascript: void(0);" (click)="categoryFilter($event,'starred')">
+              <i class="mdi mdi-star-outline me-2"></i>Starred
+            </a>
+            <a href="javascript: void(0);" (click)="categoryFilter($event,'important')">
+              <i class="mdi mdi-diamond-stone me-2"></i>Important
+            </a>
+            <a href="javascript: void(0);" (click)="categoryFilter($event,'draft')">
+              <i class="mdi mdi-file-outline me-2"></i>Draft
+            </a>
+            <a href="javascript: void(0);" (click)="categoryFilter($event,'sent-mail')">
+              <i class="mdi mdi-email-check-outline me-2"></i>Sent Mail
+            </a>
+            <a href="javascript: void(0);" (click)="categoryFilter($event,'trash')">
+              <i class="mdi mdi-trash-can-outline me-2"></i>Trash
+            </a>
+          </div>
+
+          <h6 class="mt-4">Labels</h6>
+          <div class="mail-list mt-1">
+            <a href="javascript: void(0);">
+              <span class="mdi mdi-arrow-right-drop-circle text-info float-end"></span>Theme Support
+            </a>
+            <a href="javascript: void(0);">
+              <span class="mdi mdi-arrow-right-drop-circle text-warning float-end"></span>Freelance
+            </a>
+            <a href="javascript: void(0);">
+              <span class="mdi mdi-arrow-right-drop-circle text-primary float-end"></span>Social
+            </a>
+            <a href="javascript: void(0);">
+              <span class="mdi mdi-arrow-right-drop-circle text-danger float-end"></span>Friends
+            </a>
+            <a href="javascript: void(0);">
+              <span class="mdi mdi-arrow-right-drop-circle text-success float-end"></span>Family
+            </a>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <!-- Main Email Content -->
 
         <div class="card">
           <div class="btn-toolbar p-3" role="toolbar">
@@ -189,4 +211,32 @@
       </div>
     </div>
   </div>
-</div>
+
+  <!-- Compose Modal Template -->
+  <ng-template #content let-modal>
+    <div class="modal-header">
+      <h5 class="modal-title" id="composemodalTitle">New Message</h5>
+      <button type="button" class="btn-close" (click)="modalRef?.hide()" aria-label="Close">
+      </button>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="mb-3">
+          <input type="email" class="form-control" placeholder="To">
+        </div>
+        <div class="mb-3">
+          <input type="text" class="form-control" placeholder="Subject">
+        </div>
+        <div class="mb-3">
+          <!-- Editor -->
+          <ngx-editor-menu [editor]="editor"> </ngx-editor-menu>
+          <ngx-editor [editor]="editor" [ngModel]="html" [disabled]="false"
+            [placeholder]="'Type here...'"></ngx-editor>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button type="button" class="btn btn-primary">Send <i class="fab fa-telegram-plane ms-1"></i></button>
+    </div>
+  </ng-template>
