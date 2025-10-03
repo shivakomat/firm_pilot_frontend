@@ -1214,9 +1214,9 @@ export class ApiService {
   }
 
   /**
-   * Login to Gmail with email and password
+   * Start Gmail OAuth authentication
    */
-  loginGmail(loginData: GmailLoginRequest): Observable<GmailLoginResponse> {
+  startGmailAuth(): Observable<{ success: boolean; authUrl?: string; message?: string }> {
     const token = localStorage.getItem('authToken');
     
     if (!token) {
@@ -1225,16 +1225,12 @@ export class ApiService {
       throw new Error('No authentication token found. Please log in again.');
     }
 
-    if (!this.validateTokenAndRedirect(token)) {
-      throw new Error('Authentication token has expired. Redirecting to login.');
-    }
-
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.post<GmailLoginResponse>(`${this.baseUrl}/gmail/login`, loginData, { headers });
+    return this.http.get<{ success: boolean; authUrl?: string; message?: string }>(`${this.baseUrl}/auth/google`, { headers });
   }
 
   /**
@@ -1313,6 +1309,36 @@ export class ApiService {
     });
 
     return this.http.get<{ success: boolean; message?: GmailMessage; error?: string }>(`${this.baseUrl}/gmail/messages/${messageId}`, { headers });
+  }
+
+  /**
+   * Login to Gmail with email and password
+   */
+  loginGmail(loginData: GmailLoginRequest): Observable<GmailLoginResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    // Pass email and password as query parameters for GET request
+    const params = new URLSearchParams();
+    params.set('email', loginData.email);
+    params.set('password', loginData.password);
+
+    const url = `${this.baseUrl}/gmail/login?${params.toString()}`;
+    return this.http.get<GmailLoginResponse>(url, { headers });
   }
 
   /**

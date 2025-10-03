@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild, TemplateRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Editor } from 'ngx-editor';
 import Swal from 'sweetalert2';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
@@ -9,14 +8,14 @@ import { LoaderComponent } from 'src/app/shared/ui/loader/loader.component';
 import { NgxEditorModule } from 'ngx-editor';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ModalModule } from 'ngx-bootstrap/modal';
-import { ApiService, GmailMessage, GmailStatusResponse, GmailLoginRequest } from '../../../core/services/api.service';
+import { ApiService, GmailMessage, GmailStatusResponse } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-inbox',
   templateUrl: './inbox.component.html',
   styleUrls: ['./inbox.component.scss'],
   standalone:true,
-  imports:[CommonModule,ReactiveFormsModule,NgxEditorModule,BsDropdownModule,ModalModule],
+  imports:[CommonModule,NgxEditorModule,BsDropdownModule,ModalModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 
@@ -51,18 +50,8 @@ export class InboxComponent implements OnInit {
   isLoadingGmail: boolean = false;
   isCheckingStatus: boolean = true;
   gmailMessages: GmailMessage[] = [];
-  gmailLoginForm: FormGroup;
-  showLoginForm: boolean = false;
 
-  constructor(
-    private modalService: BsModalService, 
-    private apiService: ApiService,
-    private formBuilder: FormBuilder
-  ) {
-    this.gmailLoginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
-    });
+  constructor(private modalService: BsModalService, private apiService: ApiService) {
   }
 
   ngOnInit() {
@@ -203,75 +192,36 @@ export class InboxComponent implements OnInit {
   }
 
   /**
-   * Show Gmail login form
+   * Connect to Gmail
    */
-  showGmailLogin(): void {
-    this.showLoginForm = true;
-  }
-
-  /**
-   * Hide Gmail login form
-   */
-  hideGmailLogin(): void {
-    this.showLoginForm = false;
-    this.gmailLoginForm.reset();
-  }
-
-  /**
-   * Login to Gmail with email and password
-   */
-  loginGmail(): void {
-    if (this.gmailLoginForm.invalid) {
-      // Mark all fields as touched to show validation errors
-      Object.keys(this.gmailLoginForm.controls).forEach(key => {
-        this.gmailLoginForm.get(key)?.markAsTouched();
-      });
-      return;
-    }
-
+  connectGmail(): void {
     this.isLoadingGmail = true;
-    console.log('🔗 Logging into Gmail...');
+    console.log('🔗 Starting Gmail authentication...');
     
-    const loginData: GmailLoginRequest = {
-      email: this.gmailLoginForm.get('email')?.value,
-      password: this.gmailLoginForm.get('password')?.value
-    };
-    
-    this.apiService.loginGmail(loginData).subscribe({
+    this.apiService.startGmailAuth().subscribe({
       next: (response) => {
-        this.isLoadingGmail = false;
-        
-        if (response.success) {
-          this.isGmailConnected = true;
-          this.gmailEmail = response.email || loginData.email;
-          this.showLoginForm = false;
-          this.gmailLoginForm.reset();
+        if (response.success && response.authUrl) {
+          // Open Gmail OAuth in new window
+          window.open(response.authUrl, 'gmail-auth', 'width=600,height=600');
           
-          // Load Gmail messages
-          this.loadGmailMessages();
-          
-          Swal.fire({
-            title: 'Connected!',
-            text: `Successfully connected to ${this.gmailEmail}`,
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-          });
+          // Listen for OAuth completion
+          this.listenForOAuthCompletion();
         } else {
+          this.isLoadingGmail = false;
           Swal.fire({
-            title: 'Login Failed',
-            text: response.message || 'Invalid email or password',
+            title: 'Authentication Error',
+            text: response.message || 'Failed to start Gmail authentication',
             icon: 'error'
           });
         }
       },
       error: (error) => {
         this.isLoadingGmail = false;
-        console.error('❌ Error logging into Gmail:', error);
+        console.error('❌ Error starting Gmail auth:', error);
         
         Swal.fire({
           title: 'Connection Failed',
-          text: 'Unable to connect to Gmail. Please check your credentials and try again.',
+          text: 'Unable to connect to Gmail. Please try again.',
           icon: 'error'
         });
       }
@@ -279,30 +229,29 @@ export class InboxComponent implements OnInit {
   }
 
   /**
-   * Get form field error message
+   * Listen for OAuth completion
    */
-  getFieldError(fieldName: string): string {
-    const field = this.gmailLoginForm.get(fieldName);
-    if (field?.errors && field?.touched) {
-      if (field.errors['required']) {
-        return `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
-      }
-      if (field.errors['email']) {
-        return 'Please enter a valid email address';
-      }
-      if (field.errors['minlength']) {
-        return 'Password must be at least 6 characters long';
-      }
-    }
-    return '';
-  }
+  private listenForOAuthCompletion(): void {
+    const checkInterval = setInterval(() => {
+      this.checkGmailStatus();
+    }, 2000);
 
-  /**
-   * Check if field has error
-   */
-  hasFieldError(fieldName: string): boolean {
-    const field = this.gmailLoginForm.get(fieldName);
-    return !!(field?.errors && field?.touched);
+    // Stop checking after 2 minutes
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      this.isLoadingGmail = false;
+    }, 120000);
+
+    // Also listen for window messages (if backend sends them)
+    const messageListener = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'GMAIL_AUTH_SUCCESS') {
+        clearInterval(checkInterval);
+        this.isLoadingGmail = false;
+        this.checkGmailStatus();
+        window.removeEventListener('message', messageListener);
+      }
+    };
+    window.addEventListener('message', messageListener);
   }
 
   /**
