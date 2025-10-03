@@ -8,6 +8,7 @@ import { LoaderComponent } from 'src/app/shared/ui/loader/loader.component';
 import { NgxEditorModule } from 'ngx-editor';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ModalModule } from 'ngx-bootstrap/modal';
+import { ApiService, GmailMessage, GmailStatusResponse } from '../../../core/services/api.service';
 
 @Component({
   selector: 'app-inbox',
@@ -43,34 +44,22 @@ export class InboxComponent implements OnInit {
   startIndex: number = 1;
   endIndex: number = 15;
 
-  constructor(private modalService: BsModalService) {
+  // Gmail integration properties
+  isGmailConnected: boolean = false;
+  gmailEmail: string = '';
+  isLoadingGmail: boolean = false;
+  isCheckingStatus: boolean = true;
+  gmailMessages: GmailMessage[] = [];
+
+  constructor(private modalService: BsModalService, private apiService: ApiService) {
   }
 
   ngOnInit() {
     this.editor = new Editor();
     this.breadCrumbItems = [{ label: 'Email' }, { label: 'Inbox', active: true }];
     
-    // Mock email data for now
-    this.emailData = [
-      {
-        id: 1,
-        name: 'John Doe',
-        subject: 'Tax Document Review',
-        message: 'Please review the attached tax documents...',
-        category: 'important',
-        time: '10:30 AM'
-      },
-      {
-        id: 2,
-        name: 'Jane Smith',
-        subject: 'Meeting Confirmation',
-        message: 'Confirming our meeting for tomorrow...',
-        category: 'all',
-        time: '9:15 AM'
-      }
-    ];
-    this.returnedArray = this.emailData;
-    this.totalRecords = this.emailData.length;
+    // Check Gmail connection status first
+    this.checkGmailStatus();
   }
 
   ngOnDestroy(): void {
@@ -159,5 +148,253 @@ export class InboxComponent implements OnInit {
     }
   }
 
+  // ===== GMAIL INTEGRATION METHODS =====
+
+  /**
+   * Check Gmail connection status
+   */
+  checkGmailStatus(): void {
+    this.isCheckingStatus = true;
+    console.log('📧 Checking Gmail connection status...');
+    
+    this.apiService.getGmailStatus().subscribe({
+      next: (response: GmailStatusResponse) => {
+        this.isCheckingStatus = false;
+        this.isGmailConnected = response.connected;
+        this.gmailEmail = response.email || '';
+        
+        console.log('✅ Gmail status:', response);
+        
+        if (this.isGmailConnected) {
+          // Load Gmail messages if connected
+          this.loadGmailMessages();
+        } else {
+          // Load mock data if not connected
+          this.loadMockData();
+        }
+      },
+      error: (error) => {
+        this.isCheckingStatus = false;
+        console.error('❌ Error checking Gmail status:', error);
+        
+        // Fallback to mock data
+        this.loadMockData();
+        
+        Swal.fire({
+          title: 'Connection Check Failed',
+          text: 'Unable to check Gmail connection status. Using offline mode.',
+          icon: 'warning',
+          timer: 3000,
+          showConfirmButton: false
+        });
+      }
+    });
+  }
+
+  /**
+   * Connect to Gmail
+   */
+  connectGmail(): void {
+    this.isLoadingGmail = true;
+    console.log('🔗 Starting Gmail authentication...');
+    
+    this.apiService.startGmailAuth().subscribe({
+      next: (response) => {
+        if (response.success && response.authUrl) {
+          // Open Gmail OAuth in new window
+          window.open(response.authUrl, 'gmail-auth', 'width=600,height=600');
+          
+          // Listen for OAuth completion
+          this.listenForOAuthCompletion();
+        } else {
+          this.isLoadingGmail = false;
+          Swal.fire({
+            title: 'Authentication Error',
+            text: response.message || 'Failed to start Gmail authentication',
+            icon: 'error'
+          });
+        }
+      },
+      error: (error) => {
+        this.isLoadingGmail = false;
+        console.error('❌ Error starting Gmail auth:', error);
+        
+        Swal.fire({
+          title: 'Connection Failed',
+          text: 'Unable to connect to Gmail. Please try again.',
+          icon: 'error'
+        });
+      }
+    });
+  }
+
+  /**
+   * Listen for OAuth completion
+   */
+  private listenForOAuthCompletion(): void {
+    const checkInterval = setInterval(() => {
+      this.checkGmailStatus();
+    }, 2000);
+
+    // Stop checking after 2 minutes
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      this.isLoadingGmail = false;
+    }, 120000);
+
+    // Also listen for window messages (if backend sends them)
+    const messageListener = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'GMAIL_AUTH_SUCCESS') {
+        clearInterval(checkInterval);
+        this.isLoadingGmail = false;
+        this.checkGmailStatus();
+        window.removeEventListener('message', messageListener);
+      }
+    };
+    window.addEventListener('message', messageListener);
+  }
+
+  /**
+   * Disconnect Gmail
+   */
+  disconnectGmail(): void {
+    Swal.fire({
+      title: 'Disconnect Gmail?',
+      text: 'This will remove access to your Gmail account.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, disconnect'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.apiService.disconnectGmail().subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.isGmailConnected = false;
+              this.gmailEmail = '';
+              this.gmailMessages = [];
+              this.loadMockData();
+              
+              Swal.fire({
+                title: 'Disconnected',
+                text: 'Gmail account has been disconnected.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+              });
+            }
+          },
+          error: (error) => {
+            console.error('❌ Error disconnecting Gmail:', error);
+            Swal.fire({
+              title: 'Disconnect Failed',
+              text: 'Unable to disconnect Gmail. Please try again.',
+              icon: 'error'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Load Gmail messages
+   */
+  loadGmailMessages(): void {
+    this.isLoadingGmail = true;
+    console.log('📬 Loading Gmail messages...');
+    
+    this.apiService.getGmailMessages(50).subscribe({
+      next: (response) => {
+        this.isLoadingGmail = false;
+        
+        if (response.success && response.messages) {
+          this.gmailMessages = response.messages;
+          this.convertGmailToEmailData();
+          console.log('✅ Loaded Gmail messages:', response.messages.length);
+        } else {
+          console.warn('⚠️ No Gmail messages found');
+          this.loadMockData();
+        }
+      },
+      error: (error) => {
+        this.isLoadingGmail = false;
+        console.error('❌ Error loading Gmail messages:', error);
+        
+        // Fallback to mock data
+        this.loadMockData();
+        
+        Swal.fire({
+          title: 'Load Failed',
+          text: 'Unable to load Gmail messages. Using offline mode.',
+          icon: 'warning',
+          timer: 3000,
+          showConfirmButton: false
+        });
+      }
+    });
+  }
+
+  /**
+   * Convert Gmail messages to email data format
+   */
+  private convertGmailToEmailData(): void {
+    this.emailData = this.gmailMessages.map((message, index) => {
+      const headers = message.payload.headers;
+      const fromHeader = headers.find(h => h.name.toLowerCase() === 'from');
+      const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject');
+      const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
+      
+      return {
+        id: index + 1,
+        gmailId: message.id,
+        title: fromHeader?.value || 'Unknown Sender',
+        subject: subjectHeader?.value || 'No Subject',
+        snippet: message.snippet,
+        date: dateHeader?.value ? new Date(dateHeader.value).toLocaleDateString() : 'Unknown Date',
+        time: dateHeader?.value ? new Date(dateHeader.value).toLocaleTimeString() : 'Unknown Time',
+        category: 'all',
+        unread: !message.labelIds.includes('UNREAD'),
+        isIcon: message.labelIds.includes('STARRED')
+      };
+    });
+    
+    this.returnedArray = this.emailData;
+    this.totalRecords = this.emailData.length;
+    this.onPageChange(1); // Reset to first page
+  }
+
+  /**
+   * Load mock data when Gmail is not connected
+   */
+  private loadMockData(): void {
+    this.emailData = [
+      {
+        id: 1,
+        title: 'John Doe',
+        subject: 'Tax Document Review',
+        snippet: 'Please review the attached tax documents for Q4 filing...',
+        category: 'important',
+        time: '10:30 AM',
+        date: new Date().toLocaleDateString(),
+        unread: true,
+        isIcon: false
+      },
+      {
+        id: 2,
+        title: 'Jane Smith',
+        subject: 'Meeting Confirmation',
+        snippet: 'Confirming our meeting for tomorrow at 2 PM...',
+        category: 'all',
+        time: '9:15 AM',
+        date: new Date().toLocaleDateString(),
+        unread: false,
+        isIcon: true
+      }
+    ];
+    this.returnedArray = this.emailData;
+    this.totalRecords = this.emailData.length;
+  }
 
 }

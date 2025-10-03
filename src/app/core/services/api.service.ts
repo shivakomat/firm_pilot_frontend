@@ -299,6 +299,73 @@ export interface AccountantIntakeFormsResponse {
   forms?: AccountantIntakeForm[];
 }
 
+// Gmail API Interfaces
+export interface GmailMessage {
+  id: string;
+  threadId: string;
+  labelIds: string[];
+  snippet: string;
+  historyId: string;
+  internalDate: string;
+  payload: {
+    partId: string;
+    mimeType: string;
+    filename: string;
+    headers: Array<{
+      name: string;
+      value: string;
+    }>;
+    body: {
+      size: number;
+      data?: string;
+    };
+    parts?: any[];
+  };
+  sizeEstimate: number;
+}
+
+export interface GmailMessagesResponse {
+  success: boolean;
+  messages?: GmailMessage[];
+  nextPageToken?: string;
+  resultSizeEstimate?: number;
+  message?: string;
+}
+
+export interface GmailProfile {
+  emailAddress: string;
+  messagesTotal: number;
+  threadsTotal: number;
+  historyId: string;
+}
+
+export interface GmailProfileResponse {
+  success: boolean;
+  profile?: GmailProfile;
+  message?: string;
+}
+
+export interface GmailStatusResponse {
+  success: boolean;
+  connected: boolean;
+  email?: string;
+  message?: string;
+}
+
+export interface GmailSendRequest {
+  to: string;
+  subject: string;
+  body: string;
+  cc?: string;
+  bcc?: string;
+}
+
+export interface GmailSendResponse {
+  success: boolean;
+  messageId?: string;
+  message?: string;
+}
+
 export interface Invitation {
   id: number;
   clientId: number;
@@ -1107,5 +1174,177 @@ export class ApiService {
     });
 
     return this.http.post<SubmitIntakeResponse>(`${this.baseUrl}/clients/${clientId}/intake/submit`, intakeData, { headers });
+  }
+
+  // ===== GMAIL API METHODS =====
+
+  /**
+   * Check Gmail connection status
+   */
+  getGmailStatus(): Observable<GmailStatusResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<GmailStatusResponse>(`${this.baseUrl}/gmail/status`, { headers });
+  }
+
+  /**
+   * Start Gmail OAuth authentication
+   */
+  startGmailAuth(): Observable<{ success: boolean; authUrl?: string; message?: string }> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<{ success: boolean; authUrl?: string; message?: string }>(`${this.baseUrl}/auth/google`, { headers });
+  }
+
+  /**
+   * Disconnect Gmail account
+   */
+  disconnectGmail(): Observable<{ success: boolean; message?: string }> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<{ success: boolean; message?: string }>(`${this.baseUrl}/auth/google/disconnect`, {}, { headers });
+  }
+
+  /**
+   * Get Gmail messages
+   */
+  getGmailMessages(maxResults: number = 50, pageToken?: string, q?: string): Observable<GmailMessagesResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    let params = new URLSearchParams();
+    params.set('maxResults', maxResults.toString());
+    if (pageToken) params.set('pageToken', pageToken);
+    if (q) params.set('q', q);
+
+    const url = `${this.baseUrl}/gmail/messages${params.toString() ? '?' + params.toString() : ''}`;
+    return this.http.get<GmailMessagesResponse>(url, { headers });
+  }
+
+  /**
+   * Get specific Gmail message details
+   */
+  getGmailMessage(messageId: string): Observable<{ success: boolean; message?: GmailMessage; error?: string }> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<{ success: boolean; message?: GmailMessage; error?: string }>(`${this.baseUrl}/gmail/messages/${messageId}`, { headers });
+  }
+
+  /**
+   * Send email via Gmail
+   */
+  sendGmailMessage(emailData: GmailSendRequest): Observable<GmailSendResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<GmailSendResponse>(`${this.baseUrl}/gmail/send`, emailData, { headers });
+  }
+
+  /**
+   * Get Gmail profile information
+   */
+  getGmailProfile(): Observable<GmailProfileResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<GmailProfileResponse>(`${this.baseUrl}/gmail/profile`, { headers });
   }
 }
