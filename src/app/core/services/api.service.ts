@@ -819,7 +819,7 @@ export class ApiService {
   }
 
   /**
-   * Get all intake forms for the logged-in accountant across all clients
+   * Get all intake forms for the logged-in accountant across all clients WITH client info
    */
   getAccountantIntakeForms(): Observable<AccountantIntakeFormsResponse> {
     const token = localStorage.getItem('authToken');
@@ -839,8 +839,8 @@ export class ApiService {
       'Authorization': `Bearer ${token}`
     });
 
-    // Simple GET request - user ID is automatically handled by JWT token
-    return this.http.get<AccountantIntakeFormsResponse>(`${this.baseUrl}/intake/forms`, { headers });
+    // Updated endpoint to get forms WITH client info
+    return this.http.get<AccountantIntakeFormsResponse>(`${this.baseUrl}/intake/forms/all`, { headers });
   }
 
   /**

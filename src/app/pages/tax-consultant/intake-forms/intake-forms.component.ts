@@ -86,7 +86,8 @@ export class IntakeFormsComponent implements OnInit {
       const matchesFormType = this.selectedFormType === 'all' || (form.formType || 'tax-intake') === this.selectedFormType;
       const matchesSearch = form.clientName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                            form.clientEmail.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           (form.formTitle && form.formTitle.toLowerCase().includes(this.searchTerm.toLowerCase()));
+                           (form.formTitle && form.formTitle.toLowerCase().includes(this.searchTerm.toLowerCase())) ||
+                           (form.projectName && form.projectName.toLowerCase().includes(this.searchTerm.toLowerCase()));
       return matchesStatus && matchesFormType && matchesSearch;
     });
   }
