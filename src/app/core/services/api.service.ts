@@ -366,6 +366,17 @@ export interface GmailSendResponse {
   message?: string;
 }
 
+export interface GmailLoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface GmailLoginResponse {
+  success: boolean;
+  message?: string;
+  email?: string;
+}
+
 export interface Invitation {
   id: number;
   clientId: number;
@@ -1203,9 +1214,9 @@ export class ApiService {
   }
 
   /**
-   * Start Gmail OAuth authentication
+   * Login to Gmail with email and password
    */
-  startGmailAuth(): Observable<{ success: boolean; authUrl?: string; message?: string }> {
+  loginGmail(loginData: GmailLoginRequest): Observable<GmailLoginResponse> {
     const token = localStorage.getItem('authToken');
     
     if (!token) {
@@ -1214,12 +1225,16 @@ export class ApiService {
       throw new Error('No authentication token found. Please log in again.');
     }
 
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
 
-    return this.http.get<{ success: boolean; authUrl?: string; message?: string }>(`${this.baseUrl}/auth/google`, { headers });
+    return this.http.post<GmailLoginResponse>(`${this.baseUrl}/gmail/login`, loginData, { headers });
   }
 
   /**
