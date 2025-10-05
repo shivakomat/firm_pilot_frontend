@@ -61,12 +61,15 @@ export class InboxComponent implements OnInit {
     this.editor = new Editor();
     this.breadCrumbItems = [{ label: 'Email' }, { label: 'Inbox', active: true }];
     
+    // Debug: Log current URL and parameters
+    console.log('📍 Current URL:', window.location.href);
+    console.log('📍 URL Search Params:', window.location.search);
+    
     // Check if we're returning from OAuth callback
     const oauthReturn = this.apiService.handleOAuthReturn();
     if (oauthReturn === true) {
-      // OAuth was successful - set connected state and load emails
-      this.isGmailConnected = true;
-      this.isCheckingStatus = false;
+      // OAuth was successful - fetch session data from backend
+      this.isCheckingStatus = true;
       
       // Show brief success message
       Swal.fire({
@@ -77,8 +80,8 @@ export class InboxComponent implements OnInit {
         showConfirmButton: false
       });
       
-      // Get Gmail status to get email address, then load messages
-      this.getGmailStatusAndLoadMessages();
+      // Fetch Gmail session data from backend
+      this.fetchGmailSessionAndLoadMessages();
       
     } else if (oauthReturn === false) {
       // OAuth failed, show error message
@@ -293,6 +296,66 @@ export class InboxComponent implements OnInit {
               icon: 'error'
             });
           }
+        });
+      }
+    });
+  }
+
+  /**
+   * Fetch Gmail session data from backend and then load messages
+   */
+  fetchGmailSessionAndLoadMessages(): void {
+    console.log('🔍 Fetching Gmail session data from backend...');
+    
+    this.apiService.getGmailSessionData().subscribe({
+      next: (response) => {
+        if (response.success && response.session) {
+          const session = response.session;
+          
+          // Store Gmail tokens and session data
+          if (session.gmail_access_token) {
+            localStorage.setItem('gmail_access_token', session.gmail_access_token);
+            console.log('💾 Stored Gmail access token');
+          }
+          
+          if (session.gmail_refresh_token) {
+            localStorage.setItem('gmail_refresh_token', session.gmail_refresh_token);
+            console.log('💾 Stored Gmail refresh token');
+          }
+          
+          if (session.gmail_expires_at) {
+            localStorage.setItem('gmail_expires_at', session.gmail_expires_at);
+            console.log('💾 Stored Gmail token expiration:', new Date(parseInt(session.gmail_expires_at)));
+          }
+          
+          if (session.user_id) {
+            localStorage.setItem('gmail_user_id', session.user_id);
+            console.log('💾 Stored Gmail user ID:', session.user_id);
+          }
+          
+          // Set connected state
+          this.isGmailConnected = true;
+          this.gmailEmail = session.email || 'Connected';
+          this.isCheckingStatus = false;
+          
+          console.log('✅ Gmail session data loaded successfully');
+          
+          // Now load messages
+          this.loadGmailMessages();
+        } else {
+          console.warn('⚠️ No Gmail session data found');
+          this.isGmailConnected = false;
+          this.isCheckingStatus = false;
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error fetching Gmail session data:', error);
+        this.isCheckingStatus = false;
+        
+        Swal.fire({
+          title: 'Session Error',
+          text: 'Unable to load Gmail session data. Please try connecting again.',
+          icon: 'error'
         });
       }
     });

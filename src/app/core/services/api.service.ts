@@ -1341,40 +1341,19 @@ export class ApiService {
   /**
    * Check if we're returning from OAuth callback and extract session data
    */
-  handleOAuthReturn(): boolean {
+  handleOAuthReturn(): boolean | null {
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get('oauth_success');
     const error = urlParams.get('oauth_error');
     
-    // Extract Gmail session data from URL parameters
-    const gmailAccessToken = urlParams.get('gmail_access_token');
-    const gmailRefreshToken = urlParams.get('gmail_refresh_token');
-    const gmailExpiresAt = urlParams.get('gmail_expires_at');
-    const userId = urlParams.get('user_id');
+    // Debug: Log all URL parameters
+    console.log('🔍 OAuth Return Debug:');
+    console.log('  - oauth_success:', success);
+    console.log('  - oauth_error:', error);
+    console.log('  - URL search:', window.location.search);
     
     if (success === 'true') {
-      console.log('✅ Gmail OAuth successful');
-      
-      // Store Gmail tokens and session data
-      if (gmailAccessToken) {
-        localStorage.setItem('gmail_access_token', gmailAccessToken);
-        console.log('💾 Stored Gmail access token');
-      }
-      
-      if (gmailRefreshToken) {
-        localStorage.setItem('gmail_refresh_token', gmailRefreshToken);
-        console.log('💾 Stored Gmail refresh token');
-      }
-      
-      if (gmailExpiresAt) {
-        localStorage.setItem('gmail_expires_at', gmailExpiresAt);
-        console.log('💾 Stored Gmail token expiration:', new Date(parseInt(gmailExpiresAt)));
-      }
-      
-      if (userId) {
-        localStorage.setItem('gmail_user_id', userId);
-        console.log('💾 Stored Gmail user ID:', userId);
-      }
+      console.log('✅ Gmail OAuth successful - will fetch session data from API');
       
       // Clean up URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -1386,7 +1365,33 @@ export class ApiService {
       return false;
     }
     
-    return false;
+    // No OAuth parameters found
+    return null;
+  }
+
+  /**
+   * Get Gmail session data after OAuth success
+   */
+  getGmailSessionData(): Observable<any> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      throw new Error('No authentication token found. Please log in again.');
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      throw new Error('Authentication token has expired. Redirecting to login.');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    console.log('📡 Fetching Gmail session data from backend...');
+    return this.http.get<any>(`${this.baseUrl}/gmail/session`, { headers });
   }
 
   /**
