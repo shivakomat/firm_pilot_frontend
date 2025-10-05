@@ -309,33 +309,34 @@ export class InboxComponent implements OnInit {
     
     this.apiService.getGmailSessionData().subscribe({
       next: (response) => {
-        if (response.success && response.session) {
-          const session = response.session;
+        if (response.success && response.connected) {
+          // Gmail is connected, extract session data if available
+          console.log('✅ Gmail status confirmed as connected');
           
-          // Store Gmail tokens and session data
-          if (session.gmail_access_token) {
-            localStorage.setItem('gmail_access_token', session.gmail_access_token);
+          // Store Gmail tokens if provided in the response
+          if (response.gmail_access_token) {
+            localStorage.setItem('gmail_access_token', response.gmail_access_token);
             console.log('💾 Stored Gmail access token');
           }
           
-          if (session.gmail_refresh_token) {
-            localStorage.setItem('gmail_refresh_token', session.gmail_refresh_token);
+          if (response.gmail_refresh_token) {
+            localStorage.setItem('gmail_refresh_token', response.gmail_refresh_token);
             console.log('💾 Stored Gmail refresh token');
           }
           
-          if (session.gmail_expires_at) {
-            localStorage.setItem('gmail_expires_at', session.gmail_expires_at);
-            console.log('💾 Stored Gmail token expiration:', new Date(parseInt(session.gmail_expires_at)));
+          if (response.gmail_expires_at) {
+            localStorage.setItem('gmail_expires_at', response.gmail_expires_at);
+            console.log('💾 Stored Gmail token expiration:', new Date(parseInt(response.gmail_expires_at)));
           }
           
-          if (session.user_id) {
-            localStorage.setItem('gmail_user_id', session.user_id);
-            console.log('💾 Stored Gmail user ID:', session.user_id);
+          if (response.user_id) {
+            localStorage.setItem('gmail_user_id', response.user_id);
+            console.log('💾 Stored Gmail user ID:', response.user_id);
           }
           
           // Set connected state
           this.isGmailConnected = true;
-          this.gmailEmail = session.email || 'Connected';
+          this.gmailEmail = response.email || 'Connected';
           this.isCheckingStatus = false;
           
           console.log('✅ Gmail session data loaded successfully');
@@ -343,7 +344,7 @@ export class InboxComponent implements OnInit {
           // Now load messages
           this.loadGmailMessages();
         } else {
-          console.warn('⚠️ No Gmail session data found');
+          console.warn('⚠️ Gmail not connected according to status check');
           this.isGmailConnected = false;
           this.isCheckingStatus = false;
         }

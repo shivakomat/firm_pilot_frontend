@@ -1391,7 +1391,10 @@ export class ApiService {
     });
 
     console.log('📡 Fetching Gmail session data from backend...');
-    return this.http.get<any>(`${this.baseUrl}/gmail/session`, { headers });
+    return this.http.get<any>(`${this.baseUrl}/gmail/status`, { 
+      headers,
+      withCredentials: true  // Important for session cookies
+    });
   }
 
   /**
