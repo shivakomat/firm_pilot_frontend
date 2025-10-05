@@ -305,61 +305,15 @@ export class InboxComponent implements OnInit {
    * Fetch Gmail session data from backend and then load messages
    */
   fetchGmailSessionAndLoadMessages(): void {
-    console.log('🔍 Fetching Gmail session data from backend...');
+    console.log('🔍 Skipping session check - going straight to loading Gmail messages...');
     
-    this.apiService.getGmailSessionData().subscribe({
-      next: (response) => {
-        if (response.success && response.connected) {
-          // Gmail is connected, extract session data if available
-          console.log('✅ Gmail status confirmed as connected');
-          
-          // Store Gmail tokens if provided in the response
-          if (response.gmail_access_token) {
-            localStorage.setItem('gmail_access_token', response.gmail_access_token);
-            console.log('💾 Stored Gmail access token');
-          }
-          
-          if (response.gmail_refresh_token) {
-            localStorage.setItem('gmail_refresh_token', response.gmail_refresh_token);
-            console.log('💾 Stored Gmail refresh token');
-          }
-          
-          if (response.gmail_expires_at) {
-            localStorage.setItem('gmail_expires_at', response.gmail_expires_at);
-            console.log('💾 Stored Gmail token expiration:', new Date(parseInt(response.gmail_expires_at)));
-          }
-          
-          if (response.user_id) {
-            localStorage.setItem('gmail_user_id', response.user_id);
-            console.log('💾 Stored Gmail user ID:', response.user_id);
-          }
-          
-          // Set connected state
-          this.isGmailConnected = true;
-          this.gmailEmail = response.email || 'Connected';
-          this.isCheckingStatus = false;
-          
-          console.log('✅ Gmail session data loaded successfully');
-          
-          // Now load messages
-          this.loadGmailMessages();
-        } else {
-          console.warn('⚠️ Gmail not connected according to status check');
-          this.isGmailConnected = false;
-          this.isCheckingStatus = false;
-        }
-      },
-      error: (error) => {
-        console.error('❌ Error fetching Gmail session data:', error);
-        this.isCheckingStatus = false;
-        
-        Swal.fire({
-          title: 'Session Error',
-          text: 'Unable to load Gmail session data. Please try connecting again.',
-          icon: 'error'
-        });
-      }
-    });
+    // Set connected state immediately after OAuth success
+    this.isGmailConnected = true;
+    this.gmailEmail = 'Connected';
+    this.isCheckingStatus = false;
+    
+    // Load messages directly using the backend API
+    this.loadGmailMessages();
   }
 
   /**

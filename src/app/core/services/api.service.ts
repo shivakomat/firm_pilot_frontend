@@ -1284,7 +1284,10 @@ export class ApiService {
     if (q) params.set('q', q);
 
     const url = `${this.baseUrl}/gmail/messages${params.toString() ? '?' + params.toString() : ''}`;
-    return this.http.get<GmailMessagesResponse>(url, { headers });
+    return this.http.get<GmailMessagesResponse>(url, { 
+      headers,
+      withCredentials: true  // Include session cookies
+    });
   }
 
   /**
