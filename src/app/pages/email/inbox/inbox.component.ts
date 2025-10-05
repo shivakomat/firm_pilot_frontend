@@ -354,55 +354,51 @@ export class InboxComponent implements OnInit {
   }
 
   /**
-   * Load Gmail messages
+   * Load Gmail messages with safe error handling
    */
-  loadGmailMessages(): void {
+  async loadGmailMessages(): Promise<void> {
     this.isLoadingGmail = true;
     console.log('📬 Loading Gmail messages...');
     
-    this.apiService.getGmailMessages(50).subscribe({
-      next: (response) => {
-        this.isLoadingGmail = false;
+    try {
+      const response = await this.apiService.getGmailMessages(50);
+      this.isLoadingGmail = false;
+      
+      if (response.success && response.messages) {
+        this.gmailMessages = response.messages;
+        this.convertGmailToEmailData();
+        console.log('✅ Loaded Gmail messages:', response.messages.length);
+      } else if (response.needsAuth) {
+        console.log('🔐 Gmail authentication required - showing connect button');
+        this.isGmailConnected = false;
+        this.gmailEmail = '';
+        this.loadMockData();
         
-        if (response.success && response.messages) {
-          this.gmailMessages = response.messages;
-          this.convertGmailToEmailData();
-          console.log('✅ Loaded Gmail messages:', response.messages.length);
-        } else {
-          console.warn('⚠️ No Gmail messages found');
-          this.loadMockData();
-        }
-      },
-      error: (error) => {
-        this.isLoadingGmail = false;
-        console.error('❌ Error loading Gmail messages:', error);
-        
-        // Check if it's an authentication error
-        if (error.status === 401 || error.status === 403) {
-          console.log('🔐 Authentication error - user may need to re-login');
-          this.isGmailConnected = false;
-          this.gmailEmail = '';
-          
-          Swal.fire({
-            title: 'Authentication Required',
-            text: 'Please log in again to access Gmail.',
-            icon: 'warning',
-            confirmButtonText: 'OK'
-          });
-        } else {
-          // Fallback to mock data for other errors
-          this.loadMockData();
-          
-          Swal.fire({
-            title: 'Load Failed',
-            text: 'Unable to load Gmail messages. Using offline mode.',
-            icon: 'warning',
-            timer: 3000,
-            showConfirmButton: false
-          });
-        }
+        Swal.fire({
+          title: 'Gmail Not Connected',
+          text: 'Please connect your Gmail account to view messages.',
+          icon: 'info',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        console.warn('⚠️ No Gmail messages found');
+        this.loadMockData();
       }
-    });
+    } catch (error) {
+      this.isLoadingGmail = false;
+      console.error('❌ Error loading Gmail messages:', error);
+      
+      // Fallback to mock data
+      this.loadMockData();
+      
+      Swal.fire({
+        title: 'Load Failed',
+        text: 'Unable to load Gmail messages. Using offline mode.',
+        icon: 'warning',
+        timer: 3000,
+        showConfirmButton: false
+      });
+    }
   }
 
   /**

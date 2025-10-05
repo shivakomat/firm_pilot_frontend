@@ -328,6 +328,8 @@ export interface GmailMessagesResponse {
   success: boolean;
   messages?: GmailMessage[];
   nextPageToken?: string;
+  error?: string;
+  needsAuth?: boolean;
   resultSizeEstimate?: number;
   message?: string;
 }
@@ -1270,36 +1272,63 @@ export class ApiService {
   }
 
   /**
-   * Get Gmail messages
+   * Safe Gmail API call wrapper
    */
-  getGmailMessages(maxResults: number = 50, pageToken?: string, q?: string): Observable<GmailMessagesResponse> {
-    const token = localStorage.getItem('authToken');
-    
-    if (!token) {
-      console.error('❌ No auth token found in localStorage');
-      this.router.navigate(['/account/login']);
-      throw new Error('No authentication token found. Please log in again.');
+  private async safeGmailCall(endpoint: string, options: any = {}): Promise<any> {
+    try {
+      const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        console.warn('❌ No auth token found for Gmail API call');
+        return { success: false, needsAuth: true, error: 'No authentication token' };
+      }
+
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+      });
+
+      const response: any = await this.http.get<any>(endpoint, {
+        headers,
+        withCredentials: true,
+        ...options
+      }).toPromise();
+
+      // Check if backend indicates Gmail auth is needed
+      if (response && response.needsAuth) {
+        console.log('🔐 Gmail authentication required');
+        return { success: false, needsAuth: true };
+      }
+
+      return response;
+    } catch (error: any) {
+      console.error('Gmail API error:', error);
+      
+      // Check for authentication errors
+      if (error.status === 401 || error.status === 403) {
+        return { success: false, needsAuth: true, error: 'Authentication required' };
+      }
+      
+      return { success: false, error: error.message || 'Unknown error' };
     }
+  }
 
-    if (!this.validateTokenAndRedirect(token)) {
-      throw new Error('Authentication token has expired. Redirecting to login.');
-    }
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-
+  /**
+   * Get Gmail messages with safe error handling
+   */
+  async getGmailMessages(maxResults: number = 50, pageToken?: string, q?: string): Promise<GmailMessagesResponse> {
     let params = new URLSearchParams();
     params.set('maxResults', maxResults.toString());
     if (pageToken) params.set('pageToken', pageToken);
     if (q) params.set('q', q);
 
-    const url = `${this.baseUrl}/gmail/messages${params.toString() ? '?' + params.toString() : ''}`;
-    return this.http.get<GmailMessagesResponse>(url, { 
-      headers,
-      withCredentials: true  // Include session cookies
-    });
+    const endpoint = `${this.baseUrl}/gmail/messages${params.toString() ? '?' + params.toString() : ''}`;
+    
+    const result = await this.safeGmailCall(endpoint);
+    
+    // Convert to Observable-like response for compatibility
+    return result;
   }
 
   /**
