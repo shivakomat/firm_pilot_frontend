@@ -13,8 +13,22 @@ export class ErrorInterceptor implements HttpInterceptor {
         return next.handle(request).pipe(catchError(err => {
             if (err.status === 401) {
                 // auto logout if 401 response returned from api
-                this.authenticationService.logout();
-                location.reload();
+                try {
+                    if (this.authenticationService && this.authenticationService.logout) {
+                        this.authenticationService.logout();
+                    } else {
+                        console.warn('AuthenticationService not available, clearing localStorage manually');
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('currentUser');
+                    }
+                } catch (logoutError) {
+                    console.error('Error during logout:', logoutError);
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('currentUser');
+                }
+                
+                // Redirect to login page
+                window.location.href = '/account/login';
             }
             const error = err.error.message || err.statusText;
             return throwError(error);
