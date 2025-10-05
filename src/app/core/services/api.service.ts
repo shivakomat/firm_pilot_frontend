@@ -457,7 +457,19 @@ export class ApiService {
         console.error('⏰ JWT token is EXPIRED - redirecting to login');
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
-        this.router.navigate(['/auth/auth/login']);
+        
+        // Safe router navigation with error handling
+        try {
+          if (this.router) {
+            this.router.navigate(['/account/login']);
+          } else {
+            console.warn('Router not available, using window.location');
+            window.location.href = '/account/login';
+          }
+        } catch (routerError) {
+          console.error('Router navigation failed:', routerError);
+          window.location.href = '/account/login';
+        }
         return false;
       }
       return true;

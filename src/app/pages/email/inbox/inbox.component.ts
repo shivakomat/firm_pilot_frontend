@@ -377,16 +377,30 @@ export class InboxComponent implements OnInit {
         this.isLoadingGmail = false;
         console.error('❌ Error loading Gmail messages:', error);
         
-        // Fallback to mock data
-        this.loadMockData();
-        
-        Swal.fire({
-          title: 'Load Failed',
-          text: 'Unable to load Gmail messages. Using offline mode.',
-          icon: 'warning',
-          timer: 3000,
-          showConfirmButton: false
-        });
+        // Check if it's an authentication error
+        if (error.status === 401 || error.status === 403) {
+          console.log('🔐 Authentication error - user may need to re-login');
+          this.isGmailConnected = false;
+          this.gmailEmail = '';
+          
+          Swal.fire({
+            title: 'Authentication Required',
+            text: 'Please log in again to access Gmail.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+          });
+        } else {
+          // Fallback to mock data for other errors
+          this.loadMockData();
+          
+          Swal.fire({
+            title: 'Load Failed',
+            text: 'Unable to load Gmail messages. Using offline mode.',
+            icon: 'warning',
+            timer: 3000,
+            showConfirmButton: false
+          });
+        }
       }
     });
   }
