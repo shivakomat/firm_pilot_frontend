@@ -1388,7 +1388,7 @@ export class ApiService {
   handleOAuthReturn(): boolean | null {
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get('oauth_success');
-    const error = urlParams.get('oauth_error');
+    const error = urlParams.get('oauth_error') || urlParams.get('error');
     
     // Debug: Log all URL parameters
     console.log('🔍 OAuth Return Debug:');
@@ -1402,8 +1402,14 @@ export class ApiService {
       // Clean up URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
       return true;
-    } else if (error) {
-      console.error('❌ Gmail OAuth error:', error);
+    } else if (success === 'false' || error) {
+      console.error('❌ Gmail OAuth failed:', error);
+      
+      // Check for specific database errors
+      if (error && error.includes('gmail_tokens') && error.includes('does not exist')) {
+        console.error('🗄️ Database table missing: gmail_tokens table not found');
+      }
+      
       // Clean up URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
       return false;

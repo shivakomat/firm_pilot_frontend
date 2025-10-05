@@ -85,10 +85,23 @@ export class InboxComponent implements OnInit {
       
     } else if (oauthReturn === false) {
       // OAuth failed, show error message
+      const urlParams = new URLSearchParams(window.location.search);
+      const error = urlParams.get('error') || urlParams.get('oauth_error');
+      
+      let errorMessage = 'Unable to connect to Gmail. Please try again.';
+      let errorTitle = 'Connection Failed';
+      
+      // Check for specific database error
+      if (error && error.includes('gmail_tokens') && error.includes('does not exist')) {
+        errorTitle = 'Database Configuration Issue';
+        errorMessage = 'The Gmail integration requires database setup. Please contact your administrator to create the gmail_tokens table.';
+      }
+      
       Swal.fire({
-        title: 'Connection Failed',
-        text: 'Unable to connect to Gmail. Please try again.',
-        icon: 'error'
+        title: errorTitle,
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
       this.isCheckingStatus = false;
     } else {
