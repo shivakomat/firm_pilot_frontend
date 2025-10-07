@@ -129,17 +129,17 @@ export const MENU: MenuItem[] = [
         icon: 'bx-folder-open',
         link: '/tax-consultant/projects',
     },
-    {
-        id: 10,
-        label: 'MENUITEMS.CALENDAR.TEXT',
-        icon: 'bx-calendar',
-        link: '/calendar',
-    },
-    {
-        id: 30,
-        label: 'MENUITEMS.EMAIL.TEXT',
-        icon: 'bx-mail-send',
-        link: '/email/inbox',
+    // {
+    //     id: 10,
+    //     label: 'MENUITEMS.CALENDAR.TEXT',
+    //     icon: 'bx-calendar',
+    //     link: '/calendar',
+    // },
+    // {
+    //     id: 30,
+    //     label: 'MENUITEMS.EMAIL.TEXT',
+    //     icon: 'bx-mail-send',
+    //     link: '/email/inbox',
         // subItems: [
         //     {
         //         id: 31,
@@ -183,7 +183,7 @@ export const MENU: MenuItem[] = [
         //         ]
         //     }
         // ]
-    },
+    // },
     // Temporarily hidden - will be added back later
     // {
     //     id: 37,
