@@ -415,26 +415,50 @@ export class InboxComponent implements OnInit {
   }
 
   /**
-   * Convert Gmail messages to email data format
+   * Convert Gmail messages to email data format with safe navigation
    */
   private convertGmailToEmailData(): void {
+    console.log('🔄 Converting Gmail messages:', this.gmailMessages);
+    
     this.emailData = this.gmailMessages.map((message, index) => {
-      const headers = message.payload.headers;
-      const fromHeader = headers.find(h => h.name.toLowerCase() === 'from');
-      const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject');
-      const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
+      // Safe navigation for message structure
+      const headers = message?.payload?.headers || [];
+      const fromHeader = headers.find ? headers.find(h => h.name?.toLowerCase() === 'from') : null;
+      const subjectHeader = headers.find ? headers.find(h => h.name?.toLowerCase() === 'subject') : null;
+      const dateHeader = headers.find ? headers.find(h => h.name?.toLowerCase() === 'date') : null;
+      
+      // Handle different backend message formats (using any type for flexibility)
+      const messageAny = message as any;
+      const fromValue = fromHeader?.value || messageAny?.from || messageAny?.sender || 'Unknown Sender';
+      const subjectValue = subjectHeader?.value || messageAny?.subject || 'No Subject';
+      const snippetValue = message?.snippet || messageAny?.preview || '';
+      const dateValue = dateHeader?.value || messageAny?.date || messageAny?.timestamp;
+      
+      // Safe date parsing
+      let parsedDate = new Date();
+      if (dateValue) {
+        try {
+          parsedDate = new Date(dateValue);
+          if (isNaN(parsedDate.getTime())) {
+            parsedDate = new Date();
+          }
+        } catch (e) {
+          console.warn('Date parsing failed for:', dateValue);
+          parsedDate = new Date();
+        }
+      }
       
       return {
         id: index + 1,
-        gmailId: message.id,
-        title: fromHeader?.value || 'Unknown Sender',
-        subject: subjectHeader?.value || 'No Subject',
-        snippet: message.snippet,
-        date: dateHeader?.value ? new Date(dateHeader.value).toLocaleDateString() : 'Unknown Date',
-        time: dateHeader?.value ? new Date(dateHeader.value).toLocaleTimeString() : 'Unknown Time',
+        gmailId: message?.id || `msg_${index}`,
+        title: fromValue,
+        subject: subjectValue,
+        snippet: snippetValue,
+        date: parsedDate.toLocaleDateString(),
+        time: parsedDate.toLocaleTimeString(),
         category: 'all',
-        unread: !message.labelIds.includes('UNREAD'),
-        isIcon: message.labelIds.includes('STARRED')
+        unread: message?.labelIds ? !message.labelIds.includes('UNREAD') : true,
+        isIcon: message?.labelIds ? message.labelIds.includes('STARRED') : false
       };
     });
     
