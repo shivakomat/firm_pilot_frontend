@@ -1351,27 +1351,11 @@ export class ApiService {
   }
 
   /**
-   * Get specific Gmail message details
+   * Get specific Gmail message details with safe error handling
    */
-  getGmailMessage(messageId: string): Observable<{ success: boolean; message?: GmailMessage; error?: string }> {
-    const token = localStorage.getItem('authToken');
-    
-    if (!token) {
-      console.error('❌ No auth token found in localStorage');
-      this.router.navigate(['/account/login']);
-      throw new Error('No authentication token found. Please log in again.');
-    }
-
-    if (!this.validateTokenAndRedirect(token)) {
-      throw new Error('Authentication token has expired. Redirecting to login.');
-    }
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-
-    return this.http.get<{ success: boolean; message?: GmailMessage; error?: string }>(`${this.baseUrl}/gmail/messages/${messageId}`, { headers });
+  async getGmailMessage(messageId: string): Promise<any> {
+    const endpoint = `${this.baseUrl}/gmail/messages/${messageId}`;
+    return await this.safeGmailCall(endpoint);
   }
 
   /**

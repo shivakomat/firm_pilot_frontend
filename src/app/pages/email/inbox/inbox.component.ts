@@ -9,6 +9,7 @@ import { NgxEditorModule } from 'ngx-editor';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { ApiService, GmailMessage, StandardGmailMessage, GmailStatusResponse } from 'src/app/core/services/api.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-inbox',
@@ -53,7 +54,8 @@ export class InboxComponent implements OnInit {
 
   constructor(
     private modalService: BsModalService, 
-    private apiService: ApiService
+    private apiService: ApiService,
+    private router: Router
   ) {
   }
 
@@ -499,6 +501,34 @@ export class InboxComponent implements OnInit {
     
     // 🔍 DEBUG: Log what gets displayed
     console.log('🖥️ Data for display (returnedArray):', this.returnedArray);
+  }
+
+  /**
+   * Open email details in the emailread component
+   */
+  openEmailDetails(email: any): void {
+    console.log('📧 Opening email details for Gmail ID:', email.gmailId);
+    
+    // Store the Gmail message ID for the emailread component to fetch full details
+    localStorage.setItem('selectedGmailId', email.gmailId);
+    
+    // Also store basic email info for immediate display
+    localStorage.setItem('selectedGmailPreview', JSON.stringify({
+      id: email.id,
+      gmailId: email.gmailId,
+      title: email.title,
+      subject: email.subject,
+      snippet: email.snippet,
+      date: email.date,
+      time: email.time,
+      unread: email.unread,
+      isIcon: email.isIcon,
+      hasAttachments: email.hasAttachments,
+      labels: email.labels
+    }));
+    
+    // Navigate to emailread component with the Gmail message ID
+    this.router.navigate(['/email/read', email.gmailId]);
   }
 
   /**

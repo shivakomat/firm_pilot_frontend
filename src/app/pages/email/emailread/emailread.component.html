@@ -103,49 +103,96 @@
           </div>
 
           <div class="card-body">
-            <div class="d-flex mb-4">
-              <div class="flex-shrink-0 me-3">
-                <img class="rounded-circle avatar-sm" src="assets/images/users/avatar-2.jpg" alt="Generic placeholder image">
+            <!-- Loading State -->
+            <div *ngIf="isLoadingGmailMessage" class="text-center py-5">
+              <div class="spinner-border text-primary mb-3" role="status">
+                <span class="sr-only">Loading email details...</span>
               </div>
-              <div class="flex-grow-1">
-                <h5 class="font-size-14 mt-1">Humberto D. Champion</h5>
-                <small class="text-muted">support&#64;domain.com</small>
-              </div>
+              <p class="text-muted">Loading email content...</p>
             </div>
 
-            <h4 class="mt-0 font-size-16">{{returnedArray[0].title}}</h4>
-
-            <p>Dear Lorem Ipsum,</p>
-            <p>
-              {{returnedArray[0].subject}}
-            </p>
-            <p>Sed elementum turpis eu lorem interdum, sed porttitor eros commodo. Nam eu venenatis tortor, id lacinia
-              diam. Sed aliquam in dui et porta. Sed bibendum orci non tincidunt ultrices. Vivamus fringilla, mi lacinia
-              dapibus condimentum, ipsum urna lacinia lacus, vel tincidunt mi nibh sit amet lorem.</p>
-            <p>Sincerly,</p>
-            <hr />
-
-            <div class="row">
-              <div class="col-xl-2 col-6">
-                <div class="card">
-                  <img class="card-img-top img-fluid" src="assets/images/small/img-3.jpg" alt="Card image cap">
-                  <div class="py-2 text-center">
-                    <a href="javascript: void(0);" class="fw-medium" download>Download</a>
+            <!-- Email Content -->
+            <div *ngIf="!isLoadingGmailMessage && gmailMessageDetails">
+              <div class="d-flex mb-4">
+                <div class="flex-shrink-0 me-3">
+                  <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="ri-user-line text-white"></i>
+                  </div>
+                </div>
+                <div class="flex-grow-1">
+                  <h5 class="font-size-14 mt-1">{{ gmailMessageDetails.fromName || 'Unknown Sender' }}</h5>
+                  <small class="text-muted">{{ gmailMessageDetails.fromEmail }}</small>
+                  <div class="mt-1">
+                    <small class="text-muted">
+                      <i class="ri-time-line me-1"></i>
+                      {{ gmailMessageDetails.receivedAt | date:'medium' }}
+                    </small>
+                    <span *ngIf="gmailMessageDetails.hasAttachments" class="badge bg-info ms-2">
+                      <i class="ri-attachment-line me-1"></i>Attachments
+                    </span>
+                    <span *ngIf="gmailMessageDetails.isStarred" class="text-warning ms-2">
+                      <i class="ri-star-fill"></i>
+                    </span>
                   </div>
                 </div>
               </div>
-              <div class="col-xl-2 col-6">
-                <div class="card">
-                  <img class="card-img-top img-fluid" src="assets/images/small/img-4.jpg" alt="Card image cap">
-                  <div class="py-2 text-center">
-                    <a href="javascript: void(0);" class="fw-medium" download>Download</a>
+
+              <h4 class="mt-0 font-size-16">{{ gmailMessageDetails.subject || 'No Subject' }}</h4>
+
+              <!-- Email Labels -->
+              <div class="mb-3" *ngIf="gmailMessageDetails.labels && gmailMessageDetails.labels.length > 0">
+                <span *ngFor="let label of gmailMessageDetails.labels" 
+                      class="badge bg-light text-dark me-1">{{ label }}</span>
+              </div>
+
+              <!-- Email Body -->
+              <div class="email-content">
+                <p>{{ gmailMessageDetails.snippet || gmailMessageDetails.bodyPreview }}</p>
+              </div>
+
+              <!-- Attachments Section (if any) -->
+              <div *ngIf="gmailMessageDetails.hasAttachments" class="mt-4">
+                <hr />
+                <h6 class="mb-3">
+                  <i class="ri-attachment-line me-2"></i>Attachments
+                </h6>
+                <div class="row">
+                  <div class="col-xl-2 col-6">
+                    <div class="card">
+                      <div class="card-body text-center">
+                        <i class="ri-file-line font-size-24 text-muted"></i>
+                        <p class="mt-2 mb-1 font-size-12">Attachment</p>
+                        <a href="javascript: void(0);" class="fw-medium" download>Download</a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Action Buttons -->
+              <div class="mt-4">
+                <a href="javascript: void(0);" class="btn btn-secondary me-2">
+                  <i class="mdi mdi-reply"></i> Reply
+                </a>
+                <a href="javascript: void(0);" class="btn btn-light">
+                  <i class="mdi mdi-reply-all"></i> Reply All
+                </a>
+              </div>
             </div>
 
-            <a href="javascript: void(0);" class="btn btn-secondary mt-4"><i class="mdi mdi-reply"></i>
-              Reply</a>
+            <!-- Fallback for when Gmail details are not available -->
+            <div *ngIf="!isLoadingGmailMessage && !gmailMessageDetails && emailPreview" class="text-center py-4">
+              <div class="text-muted">
+                <i class="ri-mail-line font-size-48 mb-3 d-block"></i>
+                <h5>Unable to load email details</h5>
+                <p>Showing preview information:</p>
+                <div class="text-start">
+                  <h6>{{ emailPreview.subject }}</h6>
+                  <p><strong>From:</strong> {{ emailPreview.title }}</p>
+                  <p>{{ emailPreview.snippet }}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
