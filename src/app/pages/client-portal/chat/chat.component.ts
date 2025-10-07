@@ -20,8 +20,8 @@ import { marked } from 'marked';
 export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
   
-  // Chat mode: 'accountant' or 'ai' - Default to AI for client portal
-  chatMode: 'accountant' | 'ai' = 'ai';
+  // Chat mode: 'accountant' or 'ai' - Default to accountant (AI temporarily disabled)
+  chatMode: 'accountant' | 'ai' = 'accountant';
   
   // Accountant chat
   messages: ChatMessage[] = [];
@@ -78,12 +78,13 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     // Set initialization flag to false until everything is loaded
     this.isInitialized = false;
     
-    // Load data and mark as initialized when done
+    // Load data and mark as initialized when done (AI temporarily disabled)
     Promise.all([
-      this.loadMessagesPromise(),
-      this.loadAIConversationsPromise()
+      this.loadMessagesPromise()
+      // AI conversations loading temporarily disabled
+      // this.loadAIConversationsPromise()
     ]).then(() => {
-      console.log('✅ All data loaded successfully, setting isInitialized = true');
+      console.log('✅ Accountant chat loaded successfully, setting isInitialized = true');
       this.isInitialized = true;
     }).catch((error) => {
       console.error('❌ Error during initialization:', error);
@@ -605,9 +606,12 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   // === AI CHAT METHODS ===
 
   switchChatMode(mode: 'accountant' | 'ai'): void {
-    this.chatMode = mode;
+    // AI mode temporarily disabled - always use accountant mode
+    this.chatMode = 'accountant';
     this.showConversationsList = false;
     
+    // AI functionality preserved for future use
+    /*
     if (mode === 'ai') {
       if (this.aiConversations.length === 0) {
         this.loadAIConversations();
@@ -617,6 +621,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.selectAIConversation(this.aiConversations[0]);
       }
     }
+    */
   }
 
   loadAIConversations(): void {

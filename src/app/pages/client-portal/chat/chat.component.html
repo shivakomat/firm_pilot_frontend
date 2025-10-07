@@ -1,16 +1,15 @@
 <div class="chat-container">
   <!-- Fixed Header Section -->
   <div class="chat-header-section">
-    <!-- Chat Mode Toggle -->
+    <!-- Chat Mode Toggle - AI Temporarily Disabled -->
     <div class="chat-mode-toggle mb-3">
       <div class="btn-group w-100" role="group">
         <button type="button" 
-                class="btn" 
-                [class.btn-primary]="chatMode === 'accountant'"
-                [class.btn-outline-primary]="chatMode !== 'accountant'"
-                (click)="switchChatMode('accountant')">
-          <i class="ri-user-3-line me-2"></i>Chat with Accountant
+                class="btn btn-primary w-100">
+          <i class="ri-user-3-line me-2"></i>Chat with Tax Consultant
         </button>
+        <!-- AI Assistant - Temporarily Hidden for Future Use -->
+        <!-- 
         <button type="button" 
                 class="btn" 
                 [class.btn-success]="chatMode === 'ai'"
@@ -18,6 +17,7 @@
                 (click)="switchChatMode('ai')">
           <i class="ri-robot-2-line me-2"></i>AI Tax Assistant
         </button>
+        -->
       </div>
     </div>
 
@@ -25,25 +25,23 @@
     <div class="chat-header">
     <div class="d-flex align-items-center">
       <div class="avatar-container me-3">
-        <div class="avatar-circle" 
-             [class.bg-primary]="chatMode === 'accountant'"
-             [class.bg-gradient-ai]="chatMode === 'ai'">
-          <i class="ri-user-line text-white" *ngIf="chatMode === 'accountant'"></i>
-          <i class="ri-robot-2-line text-white" *ngIf="chatMode === 'ai'"></i>
+        <div class="avatar-circle bg-primary">
+          <i class="ri-user-line text-white"></i>
+          <!-- AI icon hidden for future use -->
+          <!-- <i class="ri-robot-2-line text-white" *ngIf="chatMode === 'ai'"></i> -->
         </div>
-        <div class="status-indicator" [class.active]="chatMode === 'accountant'"></div>
+        <div class="status-indicator active"></div>
       </div>
       <div>
-        <h5 class="mb-0 chat-title">
-          <span *ngIf="chatMode === 'accountant'">Tax Consultant</span>
-          <span *ngIf="chatMode === 'ai'">AI Tax Assistant</span>
-        </h5>
-        <small class="text-muted">
-          <span *ngIf="chatMode === 'accountant'">Available during business hours</span>
-          <span *ngIf="chatMode === 'ai'">Always available</span>
-        </small>
+        <h5 class="mb-0 chat-title">Tax Consultant</h5>
+        <small class="text-muted">Available during business hours</small>
+        <!-- AI title hidden for future use -->
+        <!-- <span *ngIf="chatMode === 'ai'">AI Tax Assistant</span> -->
+        <!-- <span *ngIf="chatMode === 'ai'">Always available</span> -->
       </div>
     </div>
+    <!-- AI Chat Actions - Hidden for Future Use -->
+    <!-- 
     <div class="chat-actions" *ngIf="chatMode === 'ai'">
       <button class="btn btn-light btn-sm me-2" (click)="showConversations()">
         <i class="ri-chat-history-line"></i>
@@ -55,7 +53,10 @@
         <i class="ri-more-2-line"></i>
       </button>
     </div>
-    <div class="chat-actions" *ngIf="chatMode === 'accountant'">
+    -->
+    
+    <!-- Accountant Chat Actions -->
+    <div class="chat-actions">
       <button class="btn btn-light btn-sm me-2">
         <i class="ri-search-line"></i>
       </button>
