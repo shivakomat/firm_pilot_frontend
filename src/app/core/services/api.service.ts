@@ -324,13 +324,32 @@ export interface GmailMessage {
   sizeEstimate: number;
 }
 
+export interface StandardGmailMessage {
+  id: string;
+  threadId: string;
+  subject: string;
+  snippet: string;
+  fromEmail: string;
+  fromName: string;
+  toEmails: string[];
+  receivedAt: string;
+  isRead: boolean;
+  isStarred: boolean;
+  hasAttachments: boolean;
+  labels: string[];
+  bodyPreview: string;
+}
+
 export interface GmailMessagesResponse {
   success: boolean;
-  messages?: GmailMessage[];
-  nextPageToken?: string;
+  data?: {
+    messages: StandardGmailMessage[];
+    totalCount: number;
+    nextPageToken?: string;
+    hasMore: boolean;
+  };
   error?: string;
   needsAuth?: boolean;
-  resultSizeEstimate?: number;
   message?: string;
 }
 

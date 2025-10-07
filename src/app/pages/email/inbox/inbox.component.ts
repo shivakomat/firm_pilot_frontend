@@ -8,7 +8,7 @@ import { LoaderComponent } from 'src/app/shared/ui/loader/loader.component';
 import { NgxEditorModule } from 'ngx-editor';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ModalModule } from 'ngx-bootstrap/modal';
-import { ApiService, GmailMessage, GmailStatusResponse } from '../../../core/services/api.service';
+import { ApiService, GmailMessage, StandardGmailMessage, GmailStatusResponse } from 'src/app/core/services/api.service';
 
 @Component({
   selector: 'app-inbox',
@@ -49,7 +49,7 @@ export class InboxComponent implements OnInit {
   gmailEmail: string = '';
   isLoadingGmail: boolean = false;
   isCheckingStatus: boolean = true;
-  gmailMessages: GmailMessage[] = [];
+  gmailMessages: StandardGmailMessage[] = [];
 
   constructor(
     private modalService: BsModalService, 
@@ -377,10 +377,10 @@ export class InboxComponent implements OnInit {
       const response = await this.apiService.getGmailMessages(50);
       this.isLoadingGmail = false;
       
-      if (response.success && response.messages) {
-        this.gmailMessages = response.messages;
+      if (response.success && response.data?.messages) {
+        this.gmailMessages = response.data.messages;
         this.convertGmailToEmailData();
-        console.log('✅ Loaded Gmail messages:', response.messages.length);
+        console.log('✅ Loaded Gmail messages:', response.data.messages.length);
       } else if (response.needsAuth) {
         console.log('🔐 Gmail authentication required - showing connect button');
         this.isGmailConnected = false;
@@ -415,50 +415,44 @@ export class InboxComponent implements OnInit {
   }
 
   /**
-   * Convert Gmail messages to email data format with safe navigation
+   * Convert standardized Gmail messages to email data format
    */
   private convertGmailToEmailData(): void {
     console.log('🔄 Converting Gmail messages:', this.gmailMessages);
     
     this.emailData = this.gmailMessages.map((message, index) => {
-      // Safe navigation for message structure
-      const headers = message?.payload?.headers || [];
-      const fromHeader = headers.find ? headers.find(h => h.name?.toLowerCase() === 'from') : null;
-      const subjectHeader = headers.find ? headers.find(h => h.name?.toLowerCase() === 'subject') : null;
-      const dateHeader = headers.find ? headers.find(h => h.name?.toLowerCase() === 'date') : null;
-      
-      // Handle different backend message formats (using any type for flexibility)
-      const messageAny = message as any;
-      const fromValue = fromHeader?.value || messageAny?.from || messageAny?.sender || 'Unknown Sender';
-      const subjectValue = subjectHeader?.value || messageAny?.subject || 'No Subject';
-      const snippetValue = message?.snippet || messageAny?.preview || '';
-      const dateValue = dateHeader?.value || messageAny?.date || messageAny?.timestamp;
-      
-      // Safe date parsing
+      // Parse the receivedAt date
       let parsedDate = new Date();
-      if (dateValue) {
+      if (message.receivedAt) {
         try {
-          parsedDate = new Date(dateValue);
+          parsedDate = new Date(message.receivedAt);
           if (isNaN(parsedDate.getTime())) {
             parsedDate = new Date();
           }
         } catch (e) {
-          console.warn('Date parsing failed for:', dateValue);
+          console.warn('Date parsing failed for:', message.receivedAt);
           parsedDate = new Date();
         }
       }
       
+      // Create display name from fromName and fromEmail
+      const displayFrom = message.fromName 
+        ? `${message.fromName} <${message.fromEmail}>`
+        : message.fromEmail || 'Unknown Sender';
+      
       return {
         id: index + 1,
-        gmailId: message?.id || `msg_${index}`,
-        title: fromValue,
-        subject: subjectValue,
-        snippet: snippetValue,
+        gmailId: message.id,
+        title: displayFrom,
+        subject: message.subject || 'No Subject',
+        snippet: message.snippet || message.bodyPreview || '',
         date: parsedDate.toLocaleDateString(),
         time: parsedDate.toLocaleTimeString(),
         category: 'all',
-        unread: message?.labelIds ? !message.labelIds.includes('UNREAD') : true,
-        isIcon: message?.labelIds ? message.labelIds.includes('STARRED') : false
+        unread: !message.isRead,
+        isIcon: message.isStarred,
+        hasAttachments: message.hasAttachments,
+        labels: message.labels || []
       };
     });
     
