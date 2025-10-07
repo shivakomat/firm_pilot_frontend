@@ -377,7 +377,23 @@ export class InboxComponent implements OnInit {
       const response = await this.apiService.getGmailMessages(50);
       this.isLoadingGmail = false;
       
+      // 🔍 DEBUG: Log the complete response structure
+      console.log('📧 Raw Gmail API Response:', JSON.stringify(response, null, 2));
+      
       if (response.success && response.data?.messages) {
+        console.log('📊 Response data structure:', {
+          success: response.success,
+          dataExists: !!response.data,
+          messagesCount: response.data.messages.length,
+          totalCount: response.data.totalCount,
+          hasMore: response.data.hasMore
+        });
+        
+        // 🔍 DEBUG: Log first message structure
+        if (response.data.messages.length > 0) {
+          console.log('📧 First message structure:', JSON.stringify(response.data.messages[0], null, 2));
+        }
+        
         this.gmailMessages = response.data.messages;
         this.convertGmailToEmailData();
         console.log('✅ Loaded Gmail messages:', response.data.messages.length);
@@ -418,9 +434,21 @@ export class InboxComponent implements OnInit {
    * Convert standardized Gmail messages to email data format
    */
   private convertGmailToEmailData(): void {
-    console.log('🔄 Converting Gmail messages:', this.gmailMessages);
+    console.log('🔄 Converting Gmail messages count:', this.gmailMessages.length);
+    console.log('🔄 Raw Gmail messages array:', this.gmailMessages);
     
     this.emailData = this.gmailMessages.map((message, index) => {
+      // 🔍 DEBUG: Log each message being processed
+      console.log(`📧 Processing message ${index + 1}:`, {
+        id: message.id,
+        subject: message.subject,
+        fromName: message.fromName,
+        fromEmail: message.fromEmail,
+        snippet: message.snippet,
+        receivedAt: message.receivedAt,
+        isRead: message.isRead,
+        isStarred: message.isStarred
+      });
       // Parse the receivedAt date
       let parsedDate = new Date();
       if (message.receivedAt) {
@@ -440,7 +468,7 @@ export class InboxComponent implements OnInit {
         ? `${message.fromName} <${message.fromEmail}>`
         : message.fromEmail || 'Unknown Sender';
       
-      return {
+      const convertedMessage = {
         id: index + 1,
         gmailId: message.id,
         title: displayFrom,
@@ -454,11 +482,23 @@ export class InboxComponent implements OnInit {
         hasAttachments: message.hasAttachments,
         labels: message.labels || []
       };
+      
+      // 🔍 DEBUG: Log the converted message
+      console.log(`✅ Converted message ${index + 1}:`, convertedMessage);
+      
+      return convertedMessage;
     });
+    
+    // 🔍 DEBUG: Log final emailData array
+    console.log('📋 Final emailData array:', this.emailData);
+    console.log('📊 Final emailData count:', this.emailData.length);
     
     this.returnedArray = this.emailData;
     this.totalRecords = this.emailData.length;
     this.onPageChange(1); // Reset to first page
+    
+    // 🔍 DEBUG: Log what gets displayed
+    console.log('🖥️ Data for display (returnedArray):', this.returnedArray);
   }
 
   /**
