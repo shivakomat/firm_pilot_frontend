@@ -6,6 +6,7 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
 import { SimplebarAngularModule } from 'simplebar-angular';
 import { PagetitleComponent } from '../../shared/ui/pagetitle/pagetitle.component';
 import { ChatService } from '../../core/services/chat.service';
+import { ApiService } from '../../core/services/api.service';
 import { ChatMessage, ChatThread, SendMessageRequest, ApiThreadResponse, ApiMessage } from '../../core/models/chat.model';
 import { Subscription } from 'rxjs';
 
@@ -45,7 +46,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     public formBuilder: UntypedFormBuilder, 
-    private chatService: ChatService
+    private chatService: ChatService,
+    private apiService: ApiService
   ) {
     this.currentUser = this.chatService.getCurrentUser();
     this.isClient = this.chatService.isClient();
@@ -77,6 +79,48 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private loadAllThreads() {
     this.isLoading = true;
+    console.log('📋 Loading all client threads for accountant...');
+    
+    // First, load all clients to create potential threads
+    const clientsSub = this.apiService.getClients().subscribe({
+      next: (clientsResponse) => {
+        console.log('✅ Clients loaded:', clientsResponse);
+        
+        if (clientsResponse.success && clientsResponse.clients) {
+          // Convert clients to thread format for display
+          this.threads = clientsResponse.clients.map(client => ({
+            id: client.id,
+            clientId: client.id,
+            clientName: `${client.firstName} ${client.lastName}`.trim() || client.email,
+            clientEmail: client.email,
+            lastActivity: new Date(),
+            unreadCount: 0,
+            messages: [],
+            lastMessage: undefined // Will be populated when messages are loaded
+          }));
+          
+          console.log('📋 Created threads from clients:', this.threads);
+          
+          // Auto-select first client if available
+          if (this.threads.length > 0) {
+            this.selectThread(this.threads[0]);
+          }
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error loading clients:', error);
+        this.isLoading = false;
+        
+        // Fallback: try to load threads directly
+        this.loadThreadsDirectly();
+      }
+    });
+    this.subscriptions.push(clientsSub);
+  }
+  
+  private loadThreadsDirectly() {
+    console.log('🔄 Fallback: Loading threads directly...');
     const sub = this.chatService.getAllThreads().subscribe({
       next: (threads) => {
         this.threads = threads;
@@ -86,7 +130,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error loading threads:', error);
+        console.error('❌ Error loading threads directly:', error);
         this.isLoading = false;
       }
     });
@@ -133,9 +177,57 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectThread(thread: ChatThread) {
+    console.log('📋 Selecting thread for client:', thread.clientName);
     this.currentThread = thread;
-    this.messages = thread.messages || [];
+    this.messages = [];
+    
+    // Load messages for this client thread
+    this.loadMessagesForClient(thread.clientId);
     this.scrollToBottom();
+  }
+  
+  private loadMessagesForClient(clientId: number) {
+    console.log('📨 Loading messages for client ID:', clientId);
+    this.isLoading = true;
+    
+    const sub = this.chatService.getThread(clientId).subscribe({
+      next: (response: ApiThreadResponse) => {
+        console.log('✅ Thread messages response:', response);
+        
+        if (response.success && response.messages) {
+          // Convert API messages to our format
+          this.messages = response.messages.map((msg: ApiMessage) => ({
+            id: msg.id,
+            content: msg.body,
+            senderId: msg.senderId,
+            senderName: msg.senderId === clientId ? this.currentThread?.clientName || 'Client' : 'You',
+            senderType: msg.senderId === clientId ? 'CLIENT' : 'ACCOUNTANT',
+            timestamp: new Date(msg.createdAt),
+            threadId: msg.threadId
+          }));
+          
+          // Update the thread's last message
+          if (this.currentThread && this.messages.length > 0) {
+            this.currentThread.lastMessage = this.messages[this.messages.length - 1];
+            this.currentThread.messages = this.messages;
+          }
+          
+          console.log('📨 Loaded messages:', this.messages);
+        } else {
+          console.log('ℹ️ No messages found for this client yet');
+          this.messages = [];
+        }
+        
+        this.isLoading = false;
+        this.scrollToBottom();
+      },
+      error: (error) => {
+        console.error('❌ Error loading messages for client:', error);
+        this.messages = [];
+        this.isLoading = false;
+      }
+    });
+    this.subscriptions.push(sub);
   }
 
   ngAfterViewInit() {

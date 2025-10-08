@@ -56,7 +56,9 @@
                       </div>
                       <div class="flex-grow-1 overflow-hidden">
                         <h5 class="text-truncate font-size-13 mb-1">{{ data.clientName || 'Client' }}</h5>
-                        <p class="chat-user-message text-truncate mb-0">{{ data.lastMessage || 'No messages yet' }}</p>
+                        <p class="chat-user-message text-truncate mb-0">
+                          {{ data.lastMessage?.content || 'Click to start conversation' }}
+                        </p>
                       </div>
                       <div class="font-size-11">Now</div>
                     </div>
@@ -73,8 +75,13 @@
         <div class="p-4 border-bottom">
           <div class="row">
             <div class="col-md-4 col-9">
-              <h5 class="font-size-15 mb-1">Client Chat</h5>
-              <p class="text-muted mb-0"><i class="mdi mdi-circle text-success align-middle me-1"></i> Active now</p>
+              <h5 class="font-size-15 mb-1">
+                {{ currentThread?.clientName || 'Select a Client' }}
+              </h5>
+              <p class="text-muted mb-0">
+                <i class="mdi mdi-circle text-success align-middle me-1" *ngIf="currentThread"></i>
+                {{ currentThread ? 'Ready to chat' : 'Choose a client from the left panel' }}
+              </p>
             </div>
             <div class="col-md-8 col-3">
               <ul class="list-inline user-chat-nav text-end mb-0">
@@ -137,14 +144,64 @@
                     <span class="title">Today</span>
                   </div>
                 </li>
-                <li *ngFor="let message of messages">
+                <li *ngFor="let message of messages" 
+                    [ngClass]="{'right': message.senderType === 'ACCOUNTANT', 'left': message.senderType === 'CLIENT'}">
                   <div class="conversation-list">
-                    <div class="ctext-wrap">
-                      <div class="ctext-wrap-content">
-                        <p class="mb-0">{{message.content}}</p>
-                        <p class="chat-time mb-0">Now</p>
+                    <div class="d-flex">
+                      <!-- Avatar for client messages -->
+                      <div class="flex-shrink-0 me-3" *ngIf="message.senderType === 'CLIENT'">
+                        <div class="avatar-xs">
+                          <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
+                            {{ currentThread?.clientName?.charAt(0) || 'C' }}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div class="flex-grow-1">
+                        <div class="ctext-wrap" 
+                             [ngClass]="{'content': message.senderType === 'ACCOUNTANT', 'content-client': message.senderType === 'CLIENT'}">
+                          <div class="ctext-wrap-content">
+                            <h5 class="font-size-14 conversation-name mb-0" *ngIf="message.senderType === 'CLIENT'">
+                              {{ message.senderName }}
+                            </h5>
+                            <p class="mb-0">{{ message.content }}</p>
+                            <p class="chat-time mb-0">
+                              {{ message.timestamp | date:'short' }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Avatar for accountant messages -->
+                      <div class="flex-shrink-0 ms-3" *ngIf="message.senderType === 'ACCOUNTANT'">
+                        <div class="avatar-xs">
+                          <span class="avatar-title rounded-circle bg-success-subtle text-success">
+                            A
+                          </span>
+                        </div>
                       </div>
                     </div>
+                  </div>
+                </li>
+                
+                <!-- Empty state when no messages -->
+                <li *ngIf="messages.length === 0 && !isLoading">
+                  <div class="text-center py-4">
+                    <div class="text-muted">
+                      <i class="mdi mdi-chat-outline font-size-48 mb-3 d-block"></i>
+                      <h5>No messages yet</h5>
+                      <p>Start the conversation by sending a message below.</p>
+                    </div>
+                  </div>
+                </li>
+                
+                <!-- Loading state -->
+                <li *ngIf="isLoading">
+                  <div class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                      <span class="visually-hidden">Loading messages...</span>
+                    </div>
+                    <p class="text-muted mt-2 mb-0">Loading conversation...</p>
                   </div>
                 </li>
               </ul>
@@ -155,7 +212,13 @@
             <div class="row">
               <div class="col">
                 <div class="position-relative">
-                  <input type="text" class="form-control chat-input" placeholder="Enter Message..." [(ngModel)]="newMessageText" name="message">
+                  <input type="text" 
+                         class="form-control chat-input" 
+                         [placeholder]="currentThread ? 'Enter Message...' : 'Select a client to start chatting'"
+                         [(ngModel)]="newMessageText" 
+                         name="message"
+                         [disabled]="!currentThread"
+                         (keypress)="onKeyPress($event)">
                   <div class="chat-input-links">
                     <ul class="list-inline mb-0">
                       <li class="list-inline-item">
@@ -178,7 +241,10 @@
                 </div>
               </div>
               <div class="col-auto">
-                <button type="button" class="btn btn-primary btn-rounded chat-send w-md" (click)="sendMessage()">
+                <button type="button" 
+                        class="btn btn-primary btn-rounded chat-send w-md" 
+                        (click)="sendMessage()"
+                        [disabled]="!currentThread || !newMessageText?.trim()">
                   <span class="d-none d-sm-inline-block me-2">Send</span> 
                   <i class="mdi mdi-send"></i>
                 </button>
