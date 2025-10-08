@@ -176,7 +176,7 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const clientId = this.isClient ? this.currentUser?.id : this.currentThread.clientId;
     
-    const sub = this.chatService.sendMessage(clientId, messageRequest).subscribe({
+    const sub = this.chatService.sendMessage(clientId, messageRequest, this.currentThread?.id).subscribe({
       next: (newMessage) => {
         this.messages.push(newMessage);
         this.scrollToBottom();

@@ -128,7 +128,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         console.log('💼 Loading accountant chat messages from API');
         
         // Load accountant chat messages from real API
-        const clientId = this.currentUser?.id || 1;
+        const clientId = this.chatService.getCurrentUserClientId() || this.currentUser?.id || 1;
         this.loadAccountantMessages(clientId).then(() => {
           resolve();
         }).catch((error) => {
@@ -890,9 +890,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       senderType: 'CLIENT'
     };
 
-    const clientId = this.currentUser?.id || 1;
+    const clientId = this.chatService.getCurrentUserClientId() || this.currentUser?.id || 1;
     
-    const sub = this.chatService.sendMessage(clientId, messageRequest).subscribe({
+    const sub = this.chatService.sendMessage(clientId, messageRequest, this.currentThread?.id).subscribe({
       next: (response) => {
         console.log('✅ Accountant message API response:', response);
         

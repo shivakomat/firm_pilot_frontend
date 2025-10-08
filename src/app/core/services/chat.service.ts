@@ -57,16 +57,22 @@ export class ChatService {
   /**
    * Send message to a thread
    */
-  sendMessage(clientId: number, messageRequest: SendMessageRequest): Observable<ChatMessage> {
+  sendMessage(clientId: number, messageRequest: SendMessageRequest, threadId?: number): Observable<ChatMessage> {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
 
+    // Prepare request body to match backend API
+    const requestBody = {
+      threadId: threadId,
+      content: messageRequest.content
+    };
+
     return this.http.post<ChatMessage>(
       `${this.baseUrl}/threads/${clientId}/messages`, 
-      messageRequest, 
+      requestBody, 
       { headers }
     );
   }
@@ -135,6 +141,24 @@ export class ChatService {
     const roleType = user.roleType?.toLowerCase();
     
     return userRole === 'client' || userType === 'client' || roleType === 'client';
+  }
+
+  /**
+   * Get current user's client ID
+   * For clients: returns their own ID
+   * For accountants: returns null (they specify clientId when chatting)
+   */
+  getCurrentUserClientId(): number | null {
+    const user = this.getCurrentUser();
+    if (!user) return null;
+    
+    // If user is a client, return their ID
+    if (this.isClient()) {
+      return user.id || user.clientId || null;
+    }
+    
+    // If user is an accountant, they don't have a clientId
+    return null;
   }
 
   /**
