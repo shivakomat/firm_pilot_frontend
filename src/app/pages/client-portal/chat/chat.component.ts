@@ -1,466 +1,338 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { ChatService } from '../../../core/services/chat.service';
-import { AiChatService, AIConversation, AIMessage } from '../../../core/services/ai-chat.service';
-import { ChatMessage, ChatThread, SendMessageRequest, ApiThreadResponse, ApiMessage } from '../../../core/models/chat.model';
 import { AuthenticationService } from '../../../core/services/auth.service';
-import { Subscription, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import Swal from 'sweetalert2';
-import { marked } from 'marked';
+
+// Types based on the API structure from memories
+interface ChatMessage {
+  id?: number;
+  content: string;
+  senderId: number;
+  senderName: string;
+  senderType: 'CLIENT' | 'ACCOUNTANT';
+  timestamp: Date;
+  threadId: number;
+  status?: 'sending' | 'sent' | 'failed'; // Message delivery status
+  error?: string; // Error message for failed sends
+}
+
+interface ChatThread {
+  id: number;
+  clientId: number;
+  clientName: string;
+  clientEmail: string;
+  lastActivity: Date;
+  unreadCount: number;
+  messages: ChatMessage[];
+  lastMessage?: ChatMessage;
+}
+
+interface SendMessageRequest {
+  content: string;
+  senderType: 'CLIENT' | 'ACCOUNTANT';
+}
+
+interface ApiMessage {
+  id: number;
+  body: string;
+  senderId: number;
+  threadId: number;
+  createdAt: string;
+}
+
+interface ApiThread {
+  id: number;
+  clientId: number;
+}
+
+interface ApiThreadResponse {
+  success: boolean;
+  thread: ApiThread;
+  messages: ApiMessage[];
+}
 
 @Component({
   selector: 'app-chat',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss']
 })
-export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
-  @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
-  
-  // Chat mode: 'accountant' or 'ai' - Default to accountant (AI temporarily disabled)
-  chatMode: 'accountant' | 'ai' = 'accountant';
-  
-  // Accountant chat
+export class ChatComponent implements OnInit, OnDestroy {
+  @ViewChild('messagesContainer') messagesContainer!: ElementRef;
+
+  // Core properties for ClientChatManager approach
   messages: ChatMessage[] = [];
   currentThread: ChatThread | null = null;
-  
-  // AI chat
-  aiConversations: AIConversation[] = [];
-  currentAIConversation: AIConversation | null = null;
-  aiMessages: AIMessage[] = [];
-  showConversationsList = false;
-  
-  // Common
+  currentUser: any = null;
   newMessage: string = '';
-  currentUser: any;
-  isLoading = false;
-  isInitialized = false; // Add initialization flag
-  private subscriptions: Subscription[] = [];
-  private destroy$ = new Subject<void>();
+  isLoading: boolean = false;
+  isInitialized: boolean = false;
+  subscriptions: Subscription[] = [];
+  userJWT: string = '';
+  clientId: number = 0;
+
+  // UI state properties (for template compatibility)
+  showConversationsList: boolean = false;
+  chatMode: string = 'accountant'; // Always accountant mode for client portal
+  aiConversations: any[] = [];
+  currentAIConversation: any = null;
 
   constructor(
     private chatService: ChatService,
-    private aiChatService: AiChatService,
-    private authService: AuthenticationService
+    private authService: AuthenticationService,
+    private cdr: ChangeDetectorRef
   ) {
+    // Get current user and JWT token
     this.currentUser = this.authService.currentUser();
+    this.userJWT = localStorage.getItem('authToken') || '';
+    this.clientId = this.getCurrentUserClientId();
     
-    // Initialize message arrays to prevent undefined errors
-    this.messages = [];
-    this.aiMessages = [];
-    this.aiConversations = [];
-    
-    // Configure marked for better formatting
-    marked.setOptions({
-      breaks: true,
-      gfm: true
-    });
+    console.log('🔧 Chat Component initialized with client ID:', this.clientId);
   }
 
   ngOnInit(): void {
-    console.log('🚀 Chat Component ngOnInit started');
-    
-    // Ensure arrays are properly initialized to prevent race conditions
-    this.messages = this.messages || [];
-    this.aiMessages = this.aiMessages || [];
-    this.aiConversations = this.aiConversations || [];
-    
-    console.log('📊 Initial arrays state:', {
-      messages: this.messages,
-      aiMessages: this.aiMessages,
-      aiConversations: this.aiConversations,
-      chatMode: this.chatMode
-    });
-    
-    // Set initialization flag to false until everything is loaded
-    this.isInitialized = false;
-    
-    // Load data and mark as initialized when done (AI temporarily disabled)
-    Promise.all([
-      this.loadMessagesPromise()
-      // AI conversations loading temporarily disabled
-      // this.loadAIConversationsPromise()
-    ]).then(() => {
-      console.log('✅ Accountant chat loaded successfully, setting isInitialized = true');
-      this.isInitialized = true;
-    }).catch((error) => {
-      console.error('❌ Error during initialization:', error);
-      this.isInitialized = true; // Still mark as initialized to show UI
-    });
+    console.log('🔄 Client Chat Manager initializing...');
+    this.initializeChatWithPolling();
   }
 
-  private loadMessagesPromise(): Promise<void> {
-    console.log('📝 loadMessagesPromise started', {
-      chatMode: this.chatMode,
-      currentAIConversation: this.currentAIConversation,
-      currentUser: this.currentUser
-    });
-    
-    return new Promise((resolve) => {
-      if (this.chatMode === 'ai' && this.currentAIConversation) {
-        console.log('🤖 Loading AI conversation messages for ID:', this.currentAIConversation.id);
-        
-        // Load AI conversation messages from API
-        this.aiChatService.getConversation(this.currentAIConversation.id)
-          .pipe(takeUntil(this.destroy$))
-          .subscribe({
-            next: (response) => {
-              console.log('✅ AI messages API response:', response);
-              
-              this.aiMessages = response.messages.map(msg => ({
-                ...msg,
-                timestamp: this.safeTimestamp(msg.timestamp)
-              }));
-              
-              console.log('📋 Processed AI messages:', this.aiMessages);
-              resolve();
-            },
-            error: (error) => {
-              console.error('❌ Error loading AI messages:', error);
-              this.aiMessages = [];
-              resolve();
-            }
-          });
-      } else {
-        console.log('💼 Loading accountant chat messages from API');
-        
-        // Load accountant chat messages from real API
-        const clientId = this.chatService.getCurrentUserClientId() || this.currentUser?.id || 1;
-        this.loadAccountantMessages(clientId).then(() => {
-          resolve();
-        }).catch((error) => {
-          console.error('❌ Error loading accountant messages:', error);
-          resolve();
-        });
-      }
-    });
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  private loadAccountantMessages(clientId: number): Promise<void> {
-    console.log('💼 loadAccountantMessages called for clientId:', clientId);
+  // Initialize chat - load existing thread and messages (ClientChatManager approach)
+  async initializeChat(): Promise<void> {
+    this.isLoading = true;
     
-    return new Promise((resolve, reject) => {
-      // Use the real API endpoint: GET /threads/{clientId}
-      this.chatService.getThread(clientId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response: ApiThreadResponse) => {
-            console.log('✅ Thread API response:', response);
+    try {
+      console.log('📋 Loading chat for client ID:', this.clientId);
+      
+      const sub = this.chatService.getThread(this.clientId).subscribe({
+        next: (response: ApiThreadResponse) => {
+          console.log('✅ Chat initialization response:', response);
+          
+          if (response.success) {
+            // Store thread information
+            this.currentThread = {
+              id: response.thread.id,
+              clientId: this.clientId,
+              clientName: this.getClientDisplayName(),
+              clientEmail: this.currentUser?.email || '',
+              lastActivity: new Date(),
+              unreadCount: 0,
+              messages: []
+            };
             
-            if (response.success && response.thread) {
-              this.currentThread = {
-                id: response.thread.id,
-                clientId: response.thread.clientId,
-                clientName: this.currentUser?.firstName + ' ' + this.currentUser?.lastName || 'Client',
-                clientEmail: this.currentUser?.email || 'client@example.com',
-                lastActivity: new Date(response.thread.createdAt),
-                unreadCount: 0,
-                messages: []
-              };
-              
-              // Convert API messages to our format
+            // Convert and store messages
+            if (response.messages && response.messages.length > 0) {
               this.messages = response.messages.map((msg: ApiMessage) => ({
                 id: msg.id,
                 content: msg.body,
                 senderId: msg.senderId,
-                senderName: msg.senderId === clientId ? 'You' : 'Tax Consultant',
-                senderType: msg.senderId === clientId ? 'CLIENT' : 'ACCOUNTANT',
+                senderName: this.isMyMessage(msg.senderId) ? 'You' : 'Tax Consultant',
+                senderType: this.isMyMessage(msg.senderId) ? 'CLIENT' as const : 'ACCOUNTANT' as const,
                 timestamp: new Date(msg.createdAt),
                 threadId: msg.threadId
               }));
               
-              console.log('📋 Processed accountant messages:', this.messages);
+              this.currentThread.messages = [...this.messages]; // Create new array reference
+              console.log('📨 Loaded existing messages:', this.messages.length);
             } else {
-              console.log('⚠️ No thread found or API returned success=false');
-              console.log('📊 API response details:', {
-                success: response.success,
-                hasThread: !!response.thread,
-                messagesCount: response.messages?.length || 0
-              });
+              console.log('ℹ️ No existing messages - ready for new conversation');
               this.messages = [];
             }
-            
-            resolve();
-          },
-          error: (error) => {
-            console.error('❌ Error loading thread from API:', error);
-            console.log('🔄 Will create new thread when first message is sent');
-            // Initialize empty state if API fails
-            this.messages = [];
-            this.currentThread = null;
-            resolve();
+          } else {
+            console.log('⚠️ Creating new thread structure');
+            this.createNewThread();
           }
-        });
-    });
-  }
-
-  private loadAIConversationsPromise(): Promise<void> {
-    console.log('🗂️ loadAIConversationsPromise started');
-    
-    return new Promise((resolve) => {
-      this.isLoading = true;
-      
-      const sub = this.aiChatService.getConversations()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            console.log('✅ AI conversations API response:', response);
-            
-            // Handle the response properly - it might be an array or an object with conversations
-            const conversations = Array.isArray(response) ? response : (response?.conversations || []);
-            this.aiConversations = conversations;
-            this.isLoading = false;
-            
-            console.log('📋 Processed AI conversations:', this.aiConversations);
-            
-            // Auto-select first conversation if available
-            if (conversations && conversations.length > 0 && !this.currentAIConversation) {
-              console.log('🎯 Auto-selecting first conversation:', conversations[0]);
-              this.selectAIConversation(conversations[0]);
-            }
-            resolve();
-          },
-          error: (error) => {
-            console.error('❌ Error loading AI conversations:', error);
-            this.aiConversations = [];
-            this.isLoading = false;
-            resolve();
-          }
-        });
+          
+          this.isLoading = false;
+          this.isInitialized = true;
+          this.cdr.detectChanges(); // Ensure UI updates after initialization
+          this.scrollToBottom();
+        },
+        error: (error) => {
+          console.error('❌ Chat initialization error:', error);
+          this.createNewThread();
+          this.isLoading = false;
+          this.isInitialized = true;
+        }
+      });
       
       this.subscriptions.push(sub);
-    });
-  }
-
-  ngAfterViewChecked(): void {
-    this.scrollToBottom();
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-  }
-
-  loadMessages(): void {
-    console.log('📝 loadMessages called - fetching from API');
-    this.isLoading = true;
-    const clientId = this.currentUser?.id || 1;
-    
-    // Always fetch fresh data from API first
-    const sub = this.chatService.getThread(clientId).subscribe({
-      next: (response: ApiThreadResponse) => {
-        if (response.success && response.thread) {
-          // Convert API thread to our format
-          this.currentThread = {
-            id: response.thread.id,
-            clientId: response.thread.clientId,
-            clientName: this.currentUser?.firstName + ' ' + this.currentUser?.lastName || 'Client',
-            clientEmail: this.currentUser?.email || 'client@example.com',
-            lastActivity: new Date(response.thread.createdAt),
-            unreadCount: 0,
-            messages: []
-          };
-          
-          // Convert API messages to our format
-          this.messages = response.messages.map((msg: ApiMessage) => ({
-            id: msg.id,
-            content: msg.body,
-            senderId: msg.senderId,
-            senderName: msg.senderId === clientId ? 'You' : 'Tax Consultant',
-            senderType: msg.senderId === clientId ? 'CLIENT' : 'ACCOUNTANT',
-            timestamp: new Date(msg.createdAt),
-            threadId: msg.threadId
-          }));
-          
-          this.saveMessagesToStorage(clientId, this.messages);
-        }
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('❌ Error loading messages from API:', error);
-        
-        // Fallback to localStorage if API fails
-        const savedMessages = this.loadMessagesFromStorage(clientId);
-        if (savedMessages.length > 0) {
-          console.log('📦 Using saved messages from localStorage:', savedMessages);
-          this.messages = savedMessages;
-        } else {
-          console.log('📝 No saved messages, using mock data');
-          this.loadMockMessages();
-        }
-        
-        this.isLoading = false;
-      }
-    });
-    this.subscriptions.push(sub);
-  }
-
-  private loadMockMessages(): void {
-    this.messages = [
-      {
-        content: 'Hello! Welcome to our chat system. How can I help you today?',
-        senderId: 1,
-        senderName: 'Sarah Johnson, CPA',
-        senderType: 'ACCOUNTANT',
-        timestamp: new Date('2024-02-10T09:00:00'),
-        threadId: 1
-      },
-      {
-        content: 'Hi Sarah! I have a question about my quarterly tax payments.',
-        senderId: this.currentUser?.id || 2,
-        senderName: 'You',
-        senderType: 'CLIENT',
-        timestamp: new Date('2024-02-10T09:15:00'),
-        threadId: 1
-      },
-      {
-        content: 'Of course! I\'d be happy to help with your quarterly payments. What specific question do you have?',
-        senderId: 1,
-        senderName: 'Sarah Johnson, CPA',
-        senderType: 'ACCOUNTANT',
-        timestamp: new Date('2024-02-10T09:16:00'),
-        threadId: 1
-      }
-    ];
-  }
-
-  private loadMessagesFromStorage(clientId: number): ChatMessage[] {
-    try {
-      const storageKey = `chat_messages_client_${clientId}`;
-      const savedData = localStorage.getItem(storageKey);
-      if (savedData) {
-        const messages = JSON.parse(savedData);
-        // Convert timestamp strings back to Date objects
-        return messages.map((msg: any) => ({
-          ...msg,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
-        }));
-      }
+      
     } catch (error) {
-      console.error('Error loading messages from storage:', error);
-    }
-    return [];
-  }
-
-  private saveMessagesToStorage(clientId: number, messages: ChatMessage[]): void {
-    try {
-      const storageKey = `chat_messages_client_${clientId}`;
-      localStorage.setItem(storageKey, JSON.stringify(messages));
-    } catch (error) {
-      console.error('Error saving messages to storage:', error);
+      console.error('❌ Failed to initialize chat:', error);
+      this.createNewThread();
+      this.isLoading = false;
+      this.isInitialized = true;
     }
   }
 
-  sendMessage(): void {
-    if (!this.newMessage.trim()) return;
+  // Send message to accountant (ClientChatManager approach)
+  async sendMessage(): Promise<void> {
+    if (!this.newMessage.trim() || !this.currentThread) {
+      return;
+    }
     
-    if (this.chatMode === 'accountant') {
-      this.sendAccountantMessage();
-    } else {
-      this.sendAIMessage();
-    }
-  }
-
-  private addLocalMessage(): void {
-    const message: ChatMessage = {
-      content: this.newMessage.trim(),
-      senderId: this.currentUser?.id || 2,
+    const messageContent = this.newMessage.trim();
+    console.log('📤 Sending message:', messageContent);
+    
+    // Create optimistic message for immediate UI update
+    const optimisticMessage: ChatMessage = {
+      id: Date.now(), // Temporary ID
+      content: messageContent,
+      senderId: this.getCurrentUserId(),
       senderName: 'You',
       senderType: 'CLIENT',
       timestamp: new Date(),
-      threadId: this.currentThread?.id || 1
+      threadId: this.currentThread.id,
+      status: 'sending' // Show as sending initially
     };
     
-    this.messages.push(message);
-    this.newMessage = '';
+    // Immediately add to UI for fluid experience
+    this.messages.push(optimisticMessage);
+    this.newMessage = ''; // Clear input immediately
+    this.cdr.detectChanges(); // Force change detection
+    this.scrollToBottom();
     
-    // Simulate accountant response
-    setTimeout(() => {
-      this.simulateAccountantResponse();
-    }, 2000);
-  }
-
-  private simulateAccountantResponse(): void {
-    const responses = [
-      'Thank you for your message. I\'ll review this and get back to you shortly.',
-      'I understand your concern. Let me look into this for you.',
-      'That\'s a great question. I\'ll need to check a few things and respond within the hour.',
-      'I\'ve received your message and will provide a detailed response soon.'
-    ];
+    // Update thread's last message optimistically
+    if (this.currentThread) {
+      this.currentThread.lastMessage = optimisticMessage;
+      this.currentThread.messages = [...this.messages]; // Create new array reference
+    }
     
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-    
-    const response: ChatMessage = {
-      content: randomResponse,
-      senderId: 1,
-      senderName: 'Sarah Johnson, CPA',
-      senderType: 'ACCOUNTANT',
-      timestamp: new Date(),
-      threadId: this.currentThread?.id || 1
-    };
-    
-    this.messages.push(response);
-    const clientId = this.currentUser?.id || 1;
-    this.saveMessagesToStorage(clientId, this.messages);
-  }
-
-  private handleAIResponse(userMessage: string): void {
-    setTimeout(() => {
-      const aiResponses = [
-        "I understand you're asking about tax matters. Based on current tax regulations, here's what I can tell you: For quarterly payments, you should calculate 25% of your expected annual tax liability and submit by the quarterly deadlines.",
-        "That's a great tax question! Here's some guidance: Business expenses must be ordinary and necessary for your trade or business. Keep detailed records and receipts for all deductions.",
-        "I can help with that tax inquiry. Here's what you should know: The standard deduction for 2024 is $14,600 for single filers and $29,200 for married filing jointly.",
-        "Thank you for your tax question. Here's some helpful information: Self-employment tax is 15.3% of your net self-employment earnings, covering Social Security and Medicare taxes."
-      ];
-      
-      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
-      
-      const aiMessage: ChatMessage = {
-        content: randomResponse,
-        senderId: 0,
-        senderName: 'Tax AI Agent',
-        senderType: 'AI_AGENT',
-        timestamp: new Date(),
-        threadId: this.currentThread?.id || 1
+    try {
+      const messageRequest: SendMessageRequest = {
+        content: messageContent,
+        senderType: 'CLIENT'
       };
       
-      this.messages.push(aiMessage);
-      const clientId = this.currentUser?.id || 1;
-      this.saveMessagesToStorage(clientId, this.messages);
-      this.scrollToBottom();
-    }, 1500);
-  }
-
-  private triggerAIResponse(userMessage: string): void {
-    const sub = this.chatService.getAIResponse(userMessage).subscribe({
-      next: (aiResponse) => {
-        const aiMessage: ChatMessage = {
-          content: aiResponse.message,
-          senderId: 0,
-          senderName: 'Tax AI Agent',
-          senderType: 'AI_AGENT',
-          timestamp: new Date(),
-          threadId: this.currentThread?.id || 1
+      const sub = this.chatService.sendMessage(this.clientId, messageRequest, this.currentThread.id).subscribe({
+        next: (response) => {
+          console.log('✅ Message sent successfully:', response);
+          
+          // Find and update the optimistic message with server response
+          const messageIndex = this.messages.findIndex(msg => msg.id === optimisticMessage.id);
+          if (messageIndex !== -1 && response.id) {
+            this.messages[messageIndex] = {
+              ...this.messages[messageIndex],
+              id: response.id, // Update with real server ID
+              timestamp: response.timestamp || this.messages[messageIndex].timestamp,
+              status: 'sent' // Mark as successfully sent
+            };
+            
+            // Update thread's last message with real data
+            if (this.currentThread) {
+              this.currentThread.lastMessage = this.messages[messageIndex];
+              this.currentThread.messages = [...this.messages];
+            }
+            
+            this.cdr.detectChanges(); // Ensure UI updates
+          }
+        },
+        error: (error) => {
+          console.error('❌ Failed to send message:', error);
+          
+          // Mark the optimistic message as failed instead of removing it
+          const messageIndex = this.messages.findIndex(msg => msg.id === optimisticMessage.id);
+          if (messageIndex !== -1) {
+            this.messages[messageIndex] = {
+              ...this.messages[messageIndex],
+              status: 'failed',
+              error: 'Unable to send message. Please try again.'
+            };
+            this.cdr.detectChanges();
+            
+            // Update thread state
+            if (this.currentThread) {
+              this.currentThread.messages = [...this.messages];
+              this.currentThread.lastMessage = this.messages[this.messages.length - 1];
+            }
+          }
+        }
+      });
+      
+      this.subscriptions.push(sub);
+      
+    } catch (error) {
+      console.error('❌ Send message error:', error);
+      
+      // Mark optimistic message as failed on exception
+      const messageIndex = this.messages.findIndex(msg => msg.id === optimisticMessage.id);
+      if (messageIndex !== -1) {
+        this.messages[messageIndex] = {
+          ...this.messages[messageIndex],
+          status: 'failed',
+          error: 'Unable to send message. Please check your connection.'
         };
+        this.cdr.detectChanges();
         
-        this.messages.push(aiMessage);
-        const clientId = this.currentUser?.id || 1;
-        this.saveMessagesToStorage(clientId, this.messages);
-        this.scrollToBottom();
-      },
-      error: (error) => {
-        console.error('Error getting AI response:', error);
-        // Fallback to local AI response
-        this.handleAIResponse(userMessage);
+        // Update thread state
+        if (this.currentThread) {
+          this.currentThread.messages = [...this.messages];
+          this.currentThread.lastMessage = this.messages[this.messages.length - 1];
+        }
       }
-    });
-    this.subscriptions.push(sub);
+    }
   }
 
+  // Helper methods
+  private createNewThread(): void {
+    this.currentThread = {
+      id: 0, // Will be assigned when first message is sent
+      clientId: this.clientId,
+      clientName: this.getClientDisplayName(),
+      clientEmail: this.currentUser?.email || '',
+      lastActivity: new Date(),
+      unreadCount: 0,
+      messages: []
+    };
+    this.messages = [];
+  }
+  
+  private isMyMessage(senderId: number): boolean {
+    const currentUserId = this.getCurrentUserId();
+    return senderId === currentUserId;
+  }
+  
+  private getCurrentUserId(): number {
+    try {
+      if (this.userJWT) {
+        const payload = JSON.parse(atob(this.userJWT.split('.')[1]));
+        return payload.userId || payload.id || this.currentUser?.id || 0;
+      }
+    } catch (error) {
+      console.error('Error extracting user ID from JWT:', error);
+    }
+    return this.currentUser?.id || 0;
+  }
+  
+  private getCurrentUserClientId(): number {
+    const clientId = this.chatService.getCurrentUserClientId() || this.currentUser?.id || 0;
+    console.log('🆔 Client ID determined:', clientId);
+    return clientId;
+  }
+  
+  private getClientDisplayName(): string {
+    if (this.currentUser?.firstName || this.currentUser?.lastName) {
+      return `${this.currentUser.firstName || ''} ${this.currentUser.lastName || ''}`.trim();
+    }
+    return this.currentUser?.email || 'You';
+  }
+  
+  private scrollToBottom(): void {
+    try {
+      setTimeout(() => {
+        if (this.messagesContainer) {
+          const element = this.messagesContainer.nativeElement;
+          element.scrollTop = element.scrollHeight;
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Error scrolling to bottom:', error);
+    }
+  }
+
+  // Keyboard event handler
   onKeyPress(event: KeyboardEvent): void {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -468,644 +340,167 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
-  private scrollToBottom(): void {
+  // Format message timestamp
+  formatTime(timestamp: Date | string): string {
     try {
-      if (this.messagesContainer) {
-        this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
-      }
-    } catch (err) {
-      console.error('Error scrolling to bottom:', err);
-    }
-  }
-
-  formatTime(timestamp: Date | string | null | undefined): string {
-    if (!timestamp) {
-      return new Date().toLocaleTimeString('en-US', {
+      const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+      return date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
       });
-    }
-    
-    try {
-      const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
-      
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return new Date().toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-      }
-      
-      return new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }).format(date);
     } catch (error) {
-      console.error('Error formatting time:', error, timestamp);
-      return new Date().toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
+      return 'Now';
+    }
+  }
+
+  // Format message date
+  formatDate(timestamp: Date | string): string {
+    try {
+      const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
-    }
-  }
-
-  formatDate(timestamp: Date | string | null | undefined): string {
-    if (!timestamp) {
-      return 'Today';
-    }
-    
-    try {
-      const today = new Date();
-      const messageDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
-      
-      // Check if date is valid
-      if (isNaN(messageDate.getTime())) {
-        return 'Today';
-      }
-      
-      if (messageDate.toDateString() === today.toDateString()) {
-        return 'Today';
-      }
-      
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      if (messageDate.toDateString() === yesterday.toDateString()) {
-        return 'Yesterday';
-      }
-      
-      return messageDate.toLocaleDateString();
     } catch (error) {
-      console.error('Error formatting date:', error, timestamp);
       return 'Today';
     }
   }
 
-  shouldShowDateSeparator(index: number): boolean {
-    console.log('📅 shouldShowDateSeparator called:', {
-      index,
-      chatMode: this.chatMode,
-      aiMessagesLength: this.aiMessages?.length,
-      messagesLength: this.messages?.length
-    });
-    
-    if (index === 0) return true;
-    
-    const currentMessages = this.chatMode === 'ai' ? this.aiMessages : this.messages;
-    
-    console.log('📋 Current messages array:', currentMessages);
-    
-    // Extra safety checks
-    if (!currentMessages || currentMessages.length === 0) {
-      console.log('⚠️ No messages array or empty array');
-      return false;
-    }
-    if (index >= currentMessages.length || index < 0) {
-      console.log('⚠️ Index out of bounds:', { index, length: currentMessages.length });
-      return false;
-    }
-    
-    const currentMessage = currentMessages[index];
-    const previousMessage = currentMessages[index - 1];
-    
-    console.log('📨 Messages for comparison:', {
-      currentMessage,
-      previousMessage,
-      currentTimestamp: currentMessage?.timestamp,
-      previousTimestamp: previousMessage?.timestamp
-    });
-    
-    if (!currentMessage || !previousMessage || !currentMessage.timestamp || !previousMessage.timestamp) {
-      console.log('⚠️ Missing message or timestamp data');
-      return false;
-    }
-    
-    try {
-      const currentDate = currentMessage.timestamp instanceof Date ? 
-        currentMessage.timestamp : new Date(currentMessage.timestamp);
-      const previousDate = previousMessage.timestamp instanceof Date ? 
-        previousMessage.timestamp : new Date(previousMessage.timestamp);
-      
-      // Check if dates are valid
-      if (isNaN(currentDate.getTime()) || isNaN(previousDate.getTime())) {
-        return false;
+  // Check for new messages periodically (real-time updates)
+  private startMessagePolling(): void {
+    // Poll for new messages every 5 seconds
+    const pollInterval = setInterval(() => {
+      if (this.currentThread && this.isInitialized) {
+        this.checkForNewMessages();
       }
-      
-      return currentDate.toDateString() !== previousDate.toDateString();
-    } catch (error) {
-      console.error('Error in shouldShowDateSeparator:', error);
-      return false;
-    }
+    }, 5000);
+
+    // Clean up interval on component destroy
+    this.subscriptions.push({
+      unsubscribe: () => clearInterval(pollInterval)
+    } as Subscription);
   }
 
-  // === AI CHAT METHODS ===
+  private checkForNewMessages(): void {
+    if (!this.currentThread) return;
 
-  switchChatMode(mode: 'accountant' | 'ai'): void {
-    // AI mode temporarily disabled - always use accountant mode
-    this.chatMode = 'accountant';
-    this.showConversationsList = false;
-    
-    // AI functionality preserved for future use
-    /*
-    if (mode === 'ai') {
-      if (this.aiConversations.length === 0) {
-        this.loadAIConversations();
-      }
-      // If no current conversation is selected, try to select the first one
-      if (!this.currentAIConversation && this.aiConversations.length > 0) {
-        this.selectAIConversation(this.aiConversations[0]);
-      }
-    }
-    */
-  }
+    const sub = this.chatService.getThread(this.clientId).subscribe({
+      next: (response: ApiThreadResponse) => {
+        if (response.success && response.messages) {
+          const newMessages = response.messages.filter(apiMsg => 
+            !this.messages.some(existingMsg => existingMsg.id === apiMsg.id)
+          );
 
-  loadAIConversations(): void {
-    const sub = this.aiChatService.getConversations().subscribe({
-      next: (response) => {
-        this.aiConversations = response.conversations.map(conv => ({
-          ...conv,
-          createdAt: new Date(conv.createdAt),
-          updatedAt: new Date(conv.updatedAt)
-        }));
-        
-        // Auto-select the most recent conversation
-        if (this.aiConversations.length > 0 && !this.currentAIConversation) {
-          this.selectAIConversation(this.aiConversations[0]);
+          if (newMessages.length > 0) {
+            console.log('📨 Received new messages:', newMessages.length);
+            
+            const convertedMessages = newMessages.map((msg: ApiMessage) => ({
+              id: msg.id,
+              content: msg.body,
+              senderId: msg.senderId,
+              senderName: this.isMyMessage(msg.senderId) ? 'You' : 'Tax Consultant',
+              senderType: this.isMyMessage(msg.senderId) ? 'CLIENT' as const : 'ACCOUNTANT' as const,
+              timestamp: new Date(msg.createdAt),
+              threadId: msg.threadId
+            }));
+
+            this.messages.push(...convertedMessages);
+            
+            if (this.currentThread) {
+              this.currentThread.messages = [...this.messages]; // Create new array reference
+              this.currentThread.lastMessage = convertedMessages[convertedMessages.length - 1];
+            }
+            
+            this.cdr.detectChanges(); // Force change detection for new messages
+            this.scrollToBottom();
+          }
         }
       },
       error: (error) => {
-        console.error('Error loading AI conversations:', error);
+        console.error('❌ Failed to check for new messages:', error);
       }
     });
+
     this.subscriptions.push(sub);
   }
 
-  startNewConversation(): void {
-    const sub = this.aiChatService.createConversation({ title: 'New Tax Question' }).subscribe({
-      next: (response) => {
-        const newConversation: AIConversation = {
-          id: response.id,
-          title: response.title,
-          createdAt: new Date(response.createdAt),
-          updatedAt: new Date(response.createdAt),
-          messageCount: 0
-        };
-        
-        this.aiConversations.unshift(newConversation);
-        this.selectAIConversation(newConversation);
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'New Conversation Started',
-          text: 'You can now ask your tax questions to the AI assistant.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      },
-      error: (error) => {
-        console.error('Error creating conversation:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to create new conversation. Please try again.'
-        });
-      }
-    });
-    this.subscriptions.push(sub);
-  }
-
-  selectAIConversation(conversation: AIConversation): void {
-    this.currentAIConversation = conversation;
-    this.loadAIMessages(conversation.id);
-    this.showConversationsList = false;
-  }
-
-  loadAIMessages(conversationId: string): void {
-    this.isLoading = true;
-    const sub = this.aiChatService.getConversation(conversationId).subscribe({
-      next: (response) => {
-        this.aiMessages = response.messages.map(msg => ({
-          ...msg,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
-        }));
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading AI messages:', error);
-        this.aiMessages = [];
-        this.isLoading = false;
-      }
-    });
-    this.subscriptions.push(sub);
-  }
-
-  sendAIMessage(): void {
-    console.log('💬 sendAIMessage called:', {
-      currentAIConversation: this.currentAIConversation,
-      messageContent: this.newMessage.trim()
-    });
+  // Enhanced initialization with polling
+  async initializeChatWithPolling(): Promise<void> {
+    await this.initializeChat();
     
-    if (!this.currentAIConversation) {
-      // Create a new conversation first, then send the message
-      this.createConversationAndSendMessage();
+    // Start polling for new messages after successful initialization
+    if (this.isInitialized) {
+      this.startMessagePolling();
+      console.log('🔄 Message polling started');
+    }
+  }
+
+  // Retry failed message
+  retryMessage(message: ChatMessage): void {
+    if (message.status !== 'failed' || !this.currentThread) {
       return;
     }
-
-    const messageContent = this.newMessage.trim();
-    this.isLoading = true;
     
-    const sub = this.aiChatService.sendMessage(this.currentAIConversation.id, {
-      content: messageContent
-    }).subscribe({
-      next: (response) => {
-        console.log('✅ AI message API response:', response);
-        
-        // Safely handle user message
-        const userMessage = {
-          ...response.userMessage,
-          timestamp: this.safeTimestamp(response.userMessage?.timestamp)
-        };
-        
-        // Safely handle assistant message  
-        const assistantMessage = {
-          ...response.assistantMessage,
-          timestamp: this.safeTimestamp(response.assistantMessage?.timestamp)
-        };
-        
-        console.log('📨 Processed messages:', {
-          userMessage,
-          assistantMessage
-        });
-        
-        // Add both user and AI messages
-        this.aiMessages.push(userMessage);
-        this.aiMessages.push(assistantMessage);
-        
-        console.log('📋 Updated aiMessages array:', this.aiMessages);
-        
-        // Update conversation message count
-        if (this.currentAIConversation) {
-          this.currentAIConversation.messageCount += 2;
-          this.currentAIConversation.updatedAt = new Date();
-        }
-        
-        this.newMessage = '';
-        this.isLoading = false;
-        this.scrollToBottom();
-      },
-      error: (error) => {
-        console.error('Error sending AI message:', error);
-        this.isLoading = false;
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Message Failed',
-          text: 'Failed to send message to AI assistant. Please try again.'
-        });
-      }
-    });
-    this.subscriptions.push(sub);
-  }
-
-  private createConversationAndSendMessage(): void {
-    const messageContent = this.newMessage.trim();
-    this.isLoading = true;
+    console.log('🔄 Retrying failed message:', message.content);
     
-    const sub = this.aiChatService.createConversation({ 
-      title: `Tax Question: ${messageContent.substring(0, 30)}...` 
-    }).subscribe({
-      next: (response) => {
-        const newConversation: AIConversation = {
-          id: response.id,
-          title: response.title,
-          createdAt: new Date(response.createdAt),
-          updatedAt: new Date(response.createdAt),
-          messageCount: 0
-        };
-        
-        this.aiConversations.unshift(newConversation);
-        this.currentAIConversation = newConversation;
-        this.aiMessages = [];
-        
-        // Now send the message
-        this.sendAIMessageToConversation(messageContent);
-      },
-      error: (error) => {
-        console.error('Error creating conversation:', error);
-        this.isLoading = false;
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to create new conversation. Please try again.'
-        });
-      }
-    });
-    this.subscriptions.push(sub);
-  }
-
-  private sendAIMessageToConversation(messageContent: string): void {
-    if (!this.currentAIConversation) {
-      this.isLoading = false;
-      return;
-    }
-
-    const sub = this.aiChatService.sendMessage(this.currentAIConversation.id, {
-      content: messageContent
-    }).subscribe({
-      next: (response) => {
-        console.log('✅ AI message to conversation API response:', response);
-        
-        // Add both user and AI messages with safe timestamp handling
-        const userMessage = {
-          ...response.userMessage,
-          timestamp: this.safeTimestamp(response.userMessage?.timestamp)
-        };
-        
-        const assistantMessage = {
-          ...response.assistantMessage,
-          timestamp: this.safeTimestamp(response.assistantMessage?.timestamp)
-        };
-        
-        console.log('📨 Processed messages for conversation:', {
-          userMessage,
-          assistantMessage
-        });
-        
-        this.aiMessages.push(userMessage);
-        this.aiMessages.push(assistantMessage);
-        
-        // Update conversation message count
-        if (this.currentAIConversation) {
-          this.currentAIConversation.messageCount += 2;
-          this.currentAIConversation.updatedAt = new Date();
-        }
-        
-        this.newMessage = '';
-        this.isLoading = false;
-        this.scrollToBottom();
-      },
-      error: (error) => {
-        console.error('Error sending AI message:', error);
-        this.isLoading = false;
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Message Failed',
-          text: 'Failed to send message to AI assistant. Please try again.'
-        });
-      }
-    });
-    this.subscriptions.push(sub);
-  }
-
-  sendAccountantMessage(): void {
-    console.log('💼 sendAccountantMessage called:', {
-      currentThread: this.currentThread,
-      messageContent: this.newMessage.trim(),
-      currentUser: this.currentUser
-    });
-    
-    // Ensure we have a thread for accountant messages
-    if (!this.currentThread) {
-      this.currentThread = {
-        id: 1,
-        clientId: this.currentUser?.id || 1,
-        clientName: this.currentUser?.firstName + ' ' + this.currentUser?.lastName || 'Client',
-        clientEmail: this.currentUser?.email || 'client@example.com',
-        lastActivity: new Date(),
-        unreadCount: 0,
-        messages: []
+    // Update message status to sending
+    const messageIndex = this.messages.findIndex(msg => msg.id === message.id);
+    if (messageIndex !== -1) {
+      this.messages[messageIndex] = {
+        ...this.messages[messageIndex],
+        status: 'sending',
+        error: undefined
       };
-      console.log('📝 Created new thread for accountant chat:', this.currentThread);
+      this.cdr.detectChanges();
+      
+      // Retry the API call
+      const messageRequest: SendMessageRequest = {
+        content: message.content,
+        senderType: 'CLIENT'
+      };
+      
+      const sub = this.chatService.sendMessage(this.clientId, messageRequest, this.currentThread.id).subscribe({
+        next: (response) => {
+          console.log('✅ Message retry successful:', response);
+          
+          if (messageIndex !== -1 && response.id) {
+            this.messages[messageIndex] = {
+              ...this.messages[messageIndex],
+              id: response.id,
+              timestamp: response.timestamp || this.messages[messageIndex].timestamp,
+              status: 'sent'
+            };
+            this.cdr.detectChanges();
+          }
+        },
+        error: (error) => {
+          console.error('❌ Message retry failed:', error);
+          
+          if (messageIndex !== -1) {
+            this.messages[messageIndex] = {
+              ...this.messages[messageIndex],
+              status: 'failed',
+              error: 'Unable to send message. Please try again.'
+            };
+            this.cdr.detectChanges();
+          }
+        }
+      });
+      
+      this.subscriptions.push(sub);
     }
-
-    const messageRequest: SendMessageRequest = {
-      content: this.newMessage.trim(),
-      senderType: 'CLIENT'
-    };
-
-    const clientId = this.chatService.getCurrentUserClientId() || this.currentUser?.id || 1;
-    
-    const sub = this.chatService.sendMessage(clientId, messageRequest, this.currentThread?.id).subscribe({
-      next: (response) => {
-        console.log('✅ Accountant message API response:', response);
-        
-        const newMessage: ChatMessage = {
-          content: this.newMessage,
-          senderId: this.currentUser?.id || 2,
-          senderName: 'You',
-          senderType: 'CLIENT',
-          timestamp: new Date(),
-          threadId: this.currentThread?.id || 1
-        };
-        
-        console.log('📨 Adding message to chat:', newMessage);
-        this.messages.push(newMessage);
-        this.saveMessagesToStorage(clientId, this.messages);
-        this.newMessage = '';
-        this.scrollToBottom();
-      },
-      error: (error) => {
-        console.error('❌ Error sending accountant message:', error);
-        
-        // Still add the message locally even if API fails
-        const newMessage: ChatMessage = {
-          content: this.newMessage,
-          senderId: this.currentUser?.id || 2,
-          senderName: 'You',
-          senderType: 'CLIENT',
-          timestamp: new Date(),
-          threadId: this.currentThread?.id || 1
-        };
-        
-        console.log('📨 Adding message locally (API failed):', newMessage);
-        this.messages.push(newMessage);
-        this.saveMessagesToStorage(clientId, this.messages);
-        this.newMessage = '';
-        this.scrollToBottom();
-      }
-    });
-    this.subscriptions.push(sub);
   }
 
-  showConversations(): void {
-    this.showConversationsList = true;
-  }
-
+  // Template compatibility methods (for existing HTML)
   hideConversations(): void {
     this.showConversationsList = false;
   }
 
-  // Get current messages based on chat mode
-  getCurrentMessages(): (ChatMessage | AIMessage)[] {
-    if (this.chatMode === 'ai') {
-      return this.aiMessages;
-    }
-    return this.messages;
-  }
-
-  // Check if message is from current user
-  isMyAIMessage(message: AIMessage): boolean {
-    return message.role === 'user';
-  }
-
-  // Format AI message for display
-  formatAIMessage(message: AIMessage): any {
-    return {
-      content: message.content,
-      senderId: message.role === 'user' ? this.currentUser?.id || 2 : 0,
-      senderName: message.role === 'user' ? 'You' : 'AI Tax Assistant',
-      senderType: message.role === 'user' ? 'CLIENT' : 'AI_AGENT',
-      timestamp: message.timestamp ? new Date(message.timestamp) : new Date(),
-      threadId: 1
-    };
-  }
-
-  /**
-   * Format message content with markdown parsing for AI messages
-   */
-  formatMessageContent(message: any): string {
-    if (this.chatMode === 'ai' && message.role === 'assistant') {
-      return this.formatAIResponse(message.content);
-    } else if (this.chatMode === 'accountant' && this.isAIMessage(message)) {
-      return this.formatAIResponse(message.content);
-    }
-    
-    return this.formatPlainText(message.content);
-  }
-
-  /**
-   * Format AI response with proper paragraph breaks and structure
-   */
-  private formatAIResponse(content: string): string {
-    if (!content) return '';
-    
-    // First, normalize line breaks and clean up the text
-    let formatted = content.trim();
-    
-    // Replace multiple spaces with single spaces
-    formatted = formatted.replace(/\s+/g, ' ');
-    
-    // Split by common paragraph indicators and rejoin with proper breaks
-    formatted = formatted.replace(/\.\s+([A-Z])/g, '.</p><p>$1');
-    formatted = formatted.replace(/:\s+([A-Z])/g, ':</p><p>$1');
-    formatted = formatted.replace(/\?\s+([A-Z])/g, '?</p><p>$1');
-    formatted = formatted.replace(/!\s+([A-Z])/g, '!</p><p>$1');
-    
-    // Handle numbered lists
-    formatted = formatted.replace(/(\d+\.)\s+/g, '</p><p><strong>$1</strong> ');
-    
-    // Handle bullet points
-    formatted = formatted.replace(/[-•]\s+/g, '</p><p>• ');
-    
-    // Handle special formatting markers
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
-    
-    // Handle section headers (words followed by colon and capital letter)
-    formatted = formatted.replace(/([A-Z][a-z\s]+):\s*([A-Z])/g, '<strong>$1:</strong></p><p>$2');
-    
-    // Wrap in paragraph tags and clean up
-    formatted = '<p>' + formatted + '</p>';
-    
-    // Clean up empty paragraphs and fix multiple paragraph tags
-    formatted = formatted.replace(/<p><\/p>/g, '');
-    formatted = formatted.replace(/<\/p><p>/g, '</p><p>');
-    formatted = formatted.replace(/<p>\s*<p>/g, '<p>');
-    formatted = formatted.replace(/<\/p>\s*<\/p>/g, '</p>');
-    
-    return formatted;
-  }
-
-  /**
-   * Format plain text with basic formatting
-   */
-  private formatPlainText(content: string): string {
-    if (!content) return '';
-    
-    // Convert line breaks to HTML
-    let formatted = content.replace(/\n/g, '<br>');
-    
-    // Add basic formatting for common patterns
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Italic
-    formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>'); // Inline code
-    
-    // Format numbered lists
-    formatted = formatted.replace(/^(\d+\.\s)/gm, '<br><strong>$1</strong>');
-    
-    // Format bullet points
-    formatted = formatted.replace(/^[-•]\s/gm, '<br>• ');
-    
-    return formatted;
-  }
-
-  isMyMessage(message: any): boolean {
-    return message.senderId === this.currentUser?.id;
-  }
-
-  isUserMessage(message: any): boolean {
-    if (this.chatMode === 'ai') {
-      return message.role === 'user';
-    } else {
-      return message.senderId === this.currentUser?.id;
-    }
-  }
-
-  isAIMessage(message: any): boolean {
-    return message.senderType === 'AI_AGENT' || message.role === 'assistant';
-  }
-
-  trackByMessage(index: number, message: any): any {
-    return message ? (message.id || message.timestamp || index) : index;
-  }
-
-  getMessagesForCurrentMode(): any[] {
-    const result = this.chatMode === 'ai' ? (this.aiMessages || []) : (this.messages || []);
-    
-    console.log('📨 getMessagesForCurrentMode called:', {
-      chatMode: this.chatMode,
-      isInitialized: this.isInitialized,
-      aiMessages: this.aiMessages,
-      messages: this.messages,
-      result: result,
-      resultLength: result.length
-    });
-    
-    return result;
-  }
-
-  private safeTimestamp(timestamp: any): Date {
-    console.log('🕐 safeTimestamp called with:', timestamp);
-    
-    if (!timestamp) {
-      console.log('⚠️ No timestamp provided, using current date');
-      return new Date();
-    }
-    
-    if (timestamp instanceof Date) {
-      console.log('✅ Timestamp is already a Date object');
-      return timestamp;
-    }
-    
-    try {
-      const date = new Date(timestamp);
-      if (isNaN(date.getTime())) {
-        console.log('⚠️ Invalid timestamp, using current date');
-        return new Date();
-      }
-      console.log('✅ Successfully converted timestamp to Date');
-      return date;
-    } catch (error) {
-      console.error('❌ Error converting timestamp:', error);
-      return new Date();
-    }
+  selectAIConversation(conversation: any): void {
+    // Not used in client portal, but needed for template compatibility
+    console.log('AI conversation selection not available in client portal');
   }
 }

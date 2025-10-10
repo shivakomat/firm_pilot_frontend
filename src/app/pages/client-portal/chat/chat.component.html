@@ -114,7 +114,9 @@
         <div class="message-bubble" 
              [class.bubble-sent]="isUserMessage(message)"
              [class.bubble-received]="chatMode === 'accountant' && message.senderType === 'ACCOUNTANT'"
-             [class.bubble-ai]="chatMode === 'ai' || isAIMessage(message)">
+             [class.bubble-ai]="chatMode === 'ai' || isAIMessage(message)"
+             [class.message-failed]="message.status === 'failed'"
+             [class.message-sending]="message.status === 'sending'">
           
           <!-- Sender name for received messages -->
           <div class="message-sender" *ngIf="!isUserMessage(message)">
@@ -124,6 +126,31 @@
           
           <div class="message-text" [innerHTML]="formatMessageContent(message)"></div>
           <div class="message-time">{{message?.timestamp ? formatTime(message.timestamp) : 'Now'}}</div>
+          
+          <!-- Message Status Indicators -->
+          <div class="message-status" *ngIf="isUserMessage(message)">
+            <!-- Sending indicator -->
+            <div *ngIf="message.status === 'sending'" class="status-sending">
+              <i class="ri-time-line text-muted"></i>
+              <small class="text-muted ms-1">Sending...</small>
+            </div>
+            
+            <!-- Failed indicator with retry option -->
+            <div *ngIf="message.status === 'failed'" class="status-failed">
+              <i class="ri-error-warning-line text-danger"></i>
+              <small class="text-danger ms-1">{{message.error || 'Unable to send'}}</small>
+              <button class="btn btn-sm btn-link text-primary p-0 ms-2" 
+                      (click)="retryMessage(message)"
+                      title="Retry sending message">
+                <i class="ri-refresh-line"></i> Retry
+              </button>
+            </div>
+            
+            <!-- Sent indicator (optional - can be hidden for cleaner UI) -->
+            <div *ngIf="message.status === 'sent'" class="status-sent d-none">
+              <i class="ri-check-double-line text-success"></i>
+            </div>
+          </div>
         </div>
         
         <!-- Message options for received messages -->

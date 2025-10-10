@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ApiService, ClientDocument, Client, Project, AllDocumentsResponse } from '../../../core/services/api.service';
 import Swal from 'sweetalert2';
@@ -43,7 +44,10 @@ export class ClientDocumentsComponent implements OnInit, OnDestroy {
   // Available tags for filtering
   availableTags: string[] = [];
 
-  constructor(private apiService: ApiService) { }
+  constructor(
+    private apiService: ApiService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     this.loadDocuments();
@@ -408,5 +412,13 @@ export class ClientDocumentsComponent implements OnInit, OnDestroy {
       timer: 2000,
       showConfirmButton: false
     });
+  }
+
+  viewClientDetail(document: DocumentWithDetails): void {
+    // Find the client ID from the document's client information
+    const client = this.clients.find(c => c.firstName + ' ' + c.lastName === document.clientName || c.email === document.clientEmail);
+    if (client && client.id) {
+      this.router.navigate(['/clients/detail', client.id]);
+    }
   }
 }

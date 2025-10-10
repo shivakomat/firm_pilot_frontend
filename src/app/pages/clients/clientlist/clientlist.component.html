@@ -120,7 +120,13 @@
               <tbody>
                 @for(client of filteredClients; track client.id){
                 <tr>
-                  <td>{{client.firstName}}</td>
+                  <td>
+                    <a href="javascript:void(0)" class="text-primary fw-medium" 
+                       (click)="viewClientDetail(client)" 
+                       title="View client details">
+                      {{client.firstName}}
+                    </a>
+                  </td>
                   <td>{{client.lastName}}</td>
                   <td>{{client.email || 'N/A'}}</td>
                   <td>{{formatPhoneForDisplay(client.phone)}}</td>

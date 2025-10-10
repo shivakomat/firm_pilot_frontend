@@ -138,6 +138,12 @@ export class AllProjectsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/tax-consultant/project-detail', project.id]);
   }
 
+  viewClientDetail(project: Project): void {
+    if (project.clientId) {
+      this.router.navigate(['/clients/detail', project.clientId]);
+    }
+  }
+
   viewClient(project: Project): void {
     this.router.navigate(['/clients/detail', project.clientId]);
   }

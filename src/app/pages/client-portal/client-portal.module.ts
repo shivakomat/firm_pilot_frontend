@@ -7,6 +7,7 @@ import { DocumentsComponent } from './documents/documents.component';
 import { IntakeComponent } from './intake/intake.component';
 import { TaxIntakeComponent } from './tax-intake/tax-intake.component';
 import { ClientProjectsComponent } from './projects/projects.component';
+import { ChatComponent } from './chat/chat.component';
 
 // UI Components
 import { PagetitleComponent } from '../../shared/ui/pagetitle/pagetitle.component';
@@ -23,7 +24,8 @@ import { DropzoneModule } from 'ngx-dropzone-wrapper';
     DocumentsComponent,
     IntakeComponent,
     TaxIntakeComponent,
-    ClientProjectsComponent
+    ClientProjectsComponent,
+    ChatComponent
   ],
   imports: [
     CommonModule,

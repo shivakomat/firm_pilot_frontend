@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -47,7 +47,8 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     public formBuilder: UntypedFormBuilder, 
     private chatService: ChatService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private cdr: ChangeDetectorRef
   ) {
     this.currentUser = this.chatService.getCurrentUser();
     this.isClient = this.chatService.isClient();
@@ -61,6 +62,9 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.initializeChat();
+    
+    // Start real-time polling for new messages
+    this.startMessagePolling();
   }
 
   ngOnDestroy() {
@@ -268,11 +272,27 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const clientId = this.isClient ? this.currentUser?.id : this.currentThread.clientId;
     
+    // Immediately add message to UI for better UX
+    const optimisticMessage: ChatMessage = {
+      content: messageContent,
+      senderId: this.isClient ? this.currentUser?.id : 0, // 0 for accountant
+      senderName: this.isClient ? 'You' : 'You',
+      senderType: this.isClient ? 'CLIENT' : 'ACCOUNTANT',
+      timestamp: new Date(),
+      threadId: this.currentThread?.id || 0
+    };
+    
+    this.messages.push(optimisticMessage);
+    this.scrollToBottom();
+    this.newMessageText = '';
+
     const sub = this.chatService.sendMessage(clientId, messageRequest, this.currentThread?.id).subscribe({
       next: (newMessage) => {
-        this.messages.push(newMessage);
-        this.scrollToBottom();
-        this.newMessageText = '';
+        // Replace optimistic message with server response if it has an ID
+        if (newMessage.id) {
+          const lastIndex = this.messages.length - 1;
+          this.messages[lastIndex] = newMessage;
+        }
         
         // Check if we should trigger AI response
         if (!this.isClient && messageContent.toLowerCase().includes('@ai')) {
@@ -280,7 +300,10 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error sending message:', error);
+        console.error('❌ Error sending message:', error);
+        // Remove the optimistic message on error
+        this.messages.pop();
+        this.newMessageText = messageContent; // Restore the message text
       }
     });
     this.subscriptions.push(sub);
@@ -389,6 +412,66 @@ export class ChatComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     })
+  }
+
+  // Real-time message polling for accountant portal
+  private startMessagePolling(): void {
+    // Poll for new messages every 5 seconds
+    const pollInterval = setInterval(() => {
+      if (this.currentThread && !this.isClient) {
+        this.checkForNewMessages();
+      }
+    }, 5000);
+
+    // Clean up interval on component destroy
+    this.subscriptions.push({
+      unsubscribe: () => clearInterval(pollInterval)
+    } as Subscription);
+    
+    console.log('🔄 Message polling started for accountant portal');
+  }
+
+  private checkForNewMessages(): void {
+    if (!this.currentThread) return;
+
+    const sub = this.chatService.getThread(this.currentThread.clientId).subscribe({
+      next: (response: ApiThreadResponse) => {
+        if (response.success && response.messages) {
+          const newMessages = response.messages.filter(apiMsg => 
+            !this.messages.some(existingMsg => existingMsg.id === apiMsg.id)
+          );
+
+          if (newMessages.length > 0) {
+            console.log('📨 Received new messages:', newMessages.length);
+            
+            const convertedMessages = newMessages.map((msg: ApiMessage) => ({
+              id: msg.id,
+              content: msg.body,
+              senderId: msg.senderId,
+              senderName: msg.senderId === this.currentThread?.clientId ? this.currentThread?.clientName || 'Client' : 'You',
+              senderType: msg.senderId === this.currentThread?.clientId ? 'CLIENT' as const : 'ACCOUNTANT' as const,
+              timestamp: new Date(msg.createdAt),
+              threadId: msg.threadId
+            }));
+
+            this.messages.push(...convertedMessages);
+            
+            if (this.currentThread) {
+              this.currentThread.messages = [...this.messages]; // Create new array reference
+              this.currentThread.lastMessage = convertedMessages[convertedMessages.length - 1];
+            }
+            
+            this.cdr.detectChanges(); // Force change detection for new messages
+            this.scrollToBottom();
+          }
+        }
+      },
+      error: (error) => {
+        console.error('❌ Failed to check for new messages:', error);
+      }
+    });
+
+    this.subscriptions.push(sub);
   }
 
 }

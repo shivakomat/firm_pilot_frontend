@@ -524,3 +524,67 @@
     padding: 12px 16px;
   }
 }
+
+// Message Status Indicators
+.message-status {
+  margin-top: 4px;
+  font-size: 11px;
+  
+  .status-sending {
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+    
+    i {
+      font-size: 12px;
+    }
+  }
+  
+  .status-failed {
+    display: flex;
+    align-items: center;
+    
+    i {
+      font-size: 12px;
+    }
+    
+    .btn-link {
+      font-size: 11px;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+      
+      i {
+        font-size: 10px;
+      }
+    }
+  }
+  
+  .status-sent {
+    display: flex;
+    align-items: center;
+    opacity: 0.6;
+    
+    i {
+      font-size: 12px;
+    }
+  }
+}
+
+// Failed message styling
+.message-bubble {
+  &.message-failed {
+    border-left: 3px solid #dc3545;
+    background-color: #fff5f5;
+  }
+}
+
+// Sending message styling
+.bubble-sent {
+  &.message-sending {
+    opacity: 0.7;
+    background-color: #f8f9fa;
+  }
+}
