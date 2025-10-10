@@ -98,7 +98,7 @@ export class InvitationManagementComponent implements OnInit {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(invitation => 
         invitation.clientName?.toLowerCase().includes(term) ||
-        invitation.clientEmail?.toLowerCase().includes(term)
+        invitation.email?.toLowerCase().includes(term)
       );
     }
 

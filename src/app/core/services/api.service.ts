@@ -401,14 +401,16 @@ export interface GmailLoginResponse {
 export interface Invitation {
   id: number;
   clientId: number;
+  accountantId: number;
+  email: string;
   clientName: string;
-  clientEmail: string;
+  invitationToken: string;
   status: 'pending' | 'sent' | 'accepted' | 'expired';
-  sentAt?: string;
-  acceptedAt?: string;
-  expiresAt?: string;
-  token?: string;
-  message?: string;
+  invitedAt: string;
+  acceptedAt?: string | null;
+  expiresAt: string;
+  resentCount: number;
+  lastResentAt?: string | null;
 }
 
 export interface GetInvitationsResponse {
