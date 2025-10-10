@@ -1,0 +1,11 @@
+// Statistics cards hover effect
+.card:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0 1rem 2rem rgba(18, 38, 63, 0.1);
+}
+
+// Smooth transition for all cards
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}

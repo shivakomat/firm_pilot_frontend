@@ -1,7 +1,5 @@
 <div class="container-fluid">
-  <div class="mt-5 pt-4">
-    <app-page-title title="Clients List" [breadcrumbItems]="breadCrumbItems"></app-page-title>
-  </div>
+  <app-page-title title="Clients List" [breadcrumbItems]="breadCrumbItems"></app-page-title>
 
   <!-- Statistics Cards -->
   <div class="row mb-4">
@@ -124,10 +122,10 @@
                     <a href="javascript:void(0)" class="text-primary fw-medium" 
                        (click)="viewClientDetail(client)" 
                        title="View client details">
-                      {{client.firstName}}
+                      {{client.firstName || 'No First Name'}}
                     </a>
                   </td>
-                  <td>{{client.lastName}}</td>
+                  <td>{{client.lastName || 'No Last Name'}}</td>
                   <td>{{client.email || 'N/A'}}</td>
                   <td>{{formatPhoneForDisplay(client.phone)}}</td>
                   <td>

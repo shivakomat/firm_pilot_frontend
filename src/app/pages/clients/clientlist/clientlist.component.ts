@@ -236,7 +236,16 @@ export class ClientlistComponent implements OnInit {
     this.apiService.getClients().subscribe({
       next: (response) => {
         console.log('Clients response:', response);
+        console.log('Response type:', typeof response);
+        console.log('Response keys:', Object.keys(response || {}));
+        
         if (response.success && response.clients) {
+          console.log('Clients array:', response.clients);
+          console.log('Clients count:', response.clients.length);
+          if (response.clients.length > 0) {
+            console.log('First client sample:', response.clients[0]);
+            console.log('First client keys:', Object.keys(response.clients[0] || {}));
+          }
           this.clients = response.clients;
           this.applyFilters();
         } else {
