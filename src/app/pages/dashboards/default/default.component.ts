@@ -144,9 +144,18 @@ export class DefaultComponent implements OnInit {
     // Load clients data
     this.apiService.getClients().subscribe({
       next: (response) => {
+        console.log('Dashboard - Clients loaded:', response.clients.length);
+        if (response.clients.length > 0) {
+          console.log('Dashboard - Sample client status:', response.clients[0].status);
+          console.log('Dashboard - All client statuses:', response.clients.map(c => c.status));
+        }
+        
         this.totalClients = response.clients.length;
-        this.activeClients = response.clients.filter(client => client.status === 'ACTIVE').length;
-        this.numberOfLeads = response.clients.filter(client => client.status === 'LEAD').length;
+        this.activeClients = response.clients.filter(client => client.status === 'active').length;
+        this.numberOfLeads = response.clients.filter(client => client.status === 'lead').length;
+        
+        console.log('Dashboard - Active clients count:', this.activeClients);
+        console.log('Dashboard - Leads count:', this.numberOfLeads);
       },
       error: (error) => {
         console.error('Error loading clients:', error);
