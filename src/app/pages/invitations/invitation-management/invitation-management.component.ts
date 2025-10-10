@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
@@ -29,7 +30,10 @@ export class InvitationManagementComponent implements OnInit {
     { value: 'expired', label: 'Expired' }
   ];
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.breadCrumbItems = [
@@ -116,32 +120,46 @@ export class InvitationManagementComponent implements OnInit {
   }
 
   /**
+   * Check if invitation can be resent
+   */
+  canResendInvitation(invitation: Invitation): boolean {
+    return invitation.status === 'pending' || invitation.status === 'expired';
+  }
+
+  /**
    * Resend an invitation
    */
   resendInvitation(invitation: Invitation): void {
-    if (!invitation.id) return;
+    console.log('Resending invitation:', invitation);
+    
+    if (!invitation.id) {
+      console.error('No invitation ID provided');
+      return;
+    }
 
-    const resendData = {
-      message: invitation.message // Use existing message or could be customized
-    };
-
-    this.apiService.resendInvitation(invitation.id, resendData).subscribe({
+    this.apiService.resendInvitation(invitation.id).subscribe({
       next: (response) => {
-        console.log('Invitation resent:', response);
         if (response.success) {
           this.loadInvitations(); // Refresh the list
           console.log('Invitation resent successfully!');
+          // Show success message
+          alert('Invitation resent successfully!');
         }
       },
       error: (error) => {
         console.error('Error resending invitation:', error);
-        
-        // Handle authentication errors
-        if (error.status === 401 || error.status === 403) {
-          console.error('Authentication failed. Please log in again.');
-        }
+        alert('Failed to resend invitation. Please try again.');
       }
     });
+  }
+
+  /**
+   * Navigate to client detail page
+   */
+  viewClientDetail(invitation: Invitation): void {
+    if (invitation.clientId) {
+      this.router.navigate(['/clients/detail', invitation.clientId]);
+    }
   }
 
   /**
@@ -180,12 +198,6 @@ export class InvitationManagementComponent implements OnInit {
     }
   }
 
-  /**
-   * Check if invitation can be resent
-   */
-  canResendInvitation(invitation: Invitation): boolean {
-    return invitation.status === 'pending' || invitation.status === 'sent' || invitation.status === 'expired';
-  }
 
   /**
    * Get summary statistics

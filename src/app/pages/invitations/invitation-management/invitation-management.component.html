@@ -114,23 +114,12 @@
               <i class="bx bx-error-circle me-2"></i>{{error}}
             </div>
           } @else {
-            <!-- Debug Information -->
-            <div class="alert alert-info mb-3" style="font-size: 12px;">
-              <strong>Debug Info:</strong><br>
-              Total Invitations: {{invitations.length}}<br>
-              Filtered Invitations: {{filteredInvitations.length}}<br>
-              Status Filter: {{statusFilter}}<br>
-              Search Term: "{{searchTerm}}"<br>
-              Loading: {{loading}}<br>
-              Error: {{error || 'None'}}
-            </div>
-            
             <div class="table-responsive">
               <table class="table table-nowrap align-middle">
                 <thead class="table-light">
                   <tr>
                     <th>Client Name</th>
-                    <th>Email</th>
+                    <th>Client Info</th>
                     <th>Status</th>
                     <th>Sent Date</th>
                     <th>Expires Date</th>
@@ -142,10 +131,18 @@
                   @for(invitation of filteredInvitations; track invitation.id) {
                     <tr>
                       <td>
-                        <h5 class="font-size-14 mb-1">{{invitation.clientName}}</h5>
-                        <p class="text-muted mb-0">ID: {{invitation.clientId}}</p>
+                        <h5 class="font-size-14 mb-1">
+                          <a href="javascript:void(0)" class="text-primary fw-medium" 
+                             (click)="viewClientDetail(invitation)" 
+                             title="View client details">
+                            {{invitation.clientName}}
+                          </a>
+                        </h5>
+                        <p class="text-muted mb-0 font-size-12">{{invitation.clientEmail}}</p>
                       </td>
-                      <td>{{invitation.clientEmail}}</td>
+                      <td>
+                        <span class="text-muted font-size-12">Client ID: {{invitation.clientId}}</span>
+                      </td>
                       <td>
                         <span class="badge" [ngClass]="getInvitationStatusClass(invitation.status)">
                           {{getInvitationStatusText(invitation.status)}}
