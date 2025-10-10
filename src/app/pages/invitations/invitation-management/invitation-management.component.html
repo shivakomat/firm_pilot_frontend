@@ -114,6 +114,17 @@
               <i class="bx bx-error-circle me-2"></i>{{error}}
             </div>
           } @else {
+            <!-- Debug Information -->
+            <div class="alert alert-info mb-3" style="font-size: 12px;">
+              <strong>Debug Info:</strong><br>
+              Total Invitations: {{invitations.length}}<br>
+              Filtered Invitations: {{filteredInvitations.length}}<br>
+              Status Filter: {{statusFilter}}<br>
+              Search Term: "{{searchTerm}}"<br>
+              Loading: {{loading}}<br>
+              Error: {{error || 'None'}}
+            </div>
+            
             <div class="table-responsive">
               <table class="table table-nowrap align-middle">
                 <thead class="table-light">

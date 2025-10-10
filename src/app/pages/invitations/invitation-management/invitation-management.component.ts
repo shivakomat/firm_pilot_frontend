@@ -49,10 +49,19 @@ export class InvitationManagementComponent implements OnInit {
 
     this.apiService.getInvitations().subscribe({
       next: (response) => {
-        console.log('Invitations loaded:', response);
-        if (response.success && response.invitations) {
+        console.log('Invitations API Response:', response);
+        console.log('Response type:', typeof response);
+        console.log('Response keys:', Object.keys(response || {}));
+        
+        if (response && response.success && response.invitations) {
+          console.log('Invitations array:', response.invitations);
+          console.log('Invitations count:', response.invitations.length);
           this.invitations = response.invitations;
           this.applyFilters();
+        } else {
+          console.warn('No invitations found in response or response format unexpected');
+          this.invitations = [];
+          this.filteredInvitations = [];
         }
         this.loading = false;
       },
