@@ -130,10 +130,15 @@ export class InvitationManagementComponent implements OnInit {
    * Resend an invitation
    */
   resendInvitation(invitation: Invitation): void {
-    console.log('Resending invitation:', invitation);
+    console.log('Sending invitation to:', invitation.clientName);
     
     if (!invitation.id) {
       console.error('No invitation ID provided');
+      return;
+    }
+
+    // Show confirmation before sending
+    if (!confirm(`Send invitation email to ${invitation.clientName || invitation.email}?`)) {
       return;
     }
 
@@ -141,14 +146,13 @@ export class InvitationManagementComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.loadInvitations(); // Refresh the list
-          console.log('Invitation resent successfully!');
-          // Show success message
-          alert('Invitation resent successfully!');
+          console.log('Invitation sent successfully!');
+          alert(`Invitation email sent successfully to ${invitation.clientName || invitation.email}!`);
         }
       },
       error: (error) => {
-        console.error('Error resending invitation:', error);
-        alert('Failed to resend invitation. Please try again.');
+        console.error('Error sending invitation:', error);
+        alert('Failed to send invitation email. Please try again.');
       }
     });
   }

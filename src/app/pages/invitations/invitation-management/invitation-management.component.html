@@ -170,17 +170,12 @@
                         <div class="d-flex gap-2">
                           @if(canResendInvitation(invitation)) {
                             <button type="button" 
-                                    class="btn btn-sm btn-outline-warning" 
-                                    title="Resend Invitation"
+                                    class="btn btn-sm btn-outline-primary" 
+                                    title="Send Invitation Email"
                                     (click)="resendInvitation(invitation)">
-                              <i class="bx bx-refresh"></i>
+                              <i class="bx bx-mail-send"></i>
                             </button>
                           }
-                          <button type="button" 
-                                  class="btn btn-sm btn-outline-info" 
-                                  title="View Details">
-                            <i class="bx bx-show"></i>
-                          </button>
                         </div>
                       </td>
                     </tr>

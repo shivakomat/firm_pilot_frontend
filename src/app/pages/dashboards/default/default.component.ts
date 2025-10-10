@@ -36,9 +36,8 @@ export class DefaultComponent implements OnInit {
   statData: any;
   
   // New dashboard metrics
-  clientsInProgress: number = 0;
+  activeClients: number = 0;
   numberOfLeads: number = 0;
-  upcomingMeetings: number = 0;
   totalProjects: number = 0;
   totalClients: number = 0;
   config:any = {
@@ -146,14 +145,14 @@ export class DefaultComponent implements OnInit {
     this.apiService.getClients().subscribe({
       next: (response) => {
         this.totalClients = response.clients.length;
-        this.clientsInProgress = response.clients.filter(client => client.status === 'ACTIVE').length;
+        this.activeClients = response.clients.filter(client => client.status === 'ACTIVE').length;
         this.numberOfLeads = response.clients.filter(client => client.status === 'LEAD').length;
       },
       error: (error) => {
         console.error('Error loading clients:', error);
         // Fallback to mock data
         this.totalClients = 18;
-        this.clientsInProgress = 24;
+        this.activeClients = 24;
         this.numberOfLeads = 42;
       }
     });
@@ -176,8 +175,7 @@ export class DefaultComponent implements OnInit {
       }
     });
 
-    // Mock data for meetings - would be replaced with actual API calls
-    this.upcomingMeetings = 7;
+    // Removed upcomingMeetings KPI as requested
   }
   opencenterModal(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template);
