@@ -159,6 +159,17 @@
                 <dropzone class="dropzone" [config]="dropzoneConfig" [message]="'Drop files here or click to upload.'" (success)="onUploadSuccess($event)">
                 </dropzone>
                 
+                <!-- Fallback file input -->
+                <div class="mt-2">
+                  <small class="text-muted">Having trouble? Use the </small>
+                  <input type="file" #fileInput (change)="onFileSelected($event)" 
+                         accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple style="display: none;">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="fileInput.click()">
+                    <i class="ri-upload-line me-1"></i>Browse Files
+                  </button>
+                  <small class="text-muted"> option instead.</small>
+                </div>
+                
                 <!-- Uploaded Files Preview -->
                 <div *ngIf="uploadedFiles.length > 0">
                   <h6 class="mt-3">Selected Files:</h6>

@@ -56,14 +56,17 @@ export class DocumentsComponent implements OnInit {
   
   // Dropzone configuration
   public dropzoneConfig: DropzoneConfigInterface = {
-    url: '/upload', // Mock URL for client-side handling
+    url: 'javascript:void(0)', // Dummy URL since we handle uploads manually
     clickable: true,
     addRemoveLinks: false,
     previewsContainer: false,
     acceptedFiles: '.pdf,.jpg,.jpeg,.png,.doc,.docx',
     maxFilesize: 10, // 10MB
     maxFiles: 10,
-    autoProcessQueue: false // Prevent automatic upload
+    autoProcessQueue: false, // Prevent automatic upload
+    uploadMultiple: false,
+    parallelUploads: 1,
+    createImageThumbnails: false
   };
 
   constructor(
@@ -217,6 +220,8 @@ export class DocumentsComponent implements OnInit {
   }
 
   uploadDocument(): void {
+    console.log('🚀 Upload Document button clicked');
+    
     // Reset form
     this.selectedFile = null;
     this.uploadForm = {
@@ -232,6 +237,7 @@ export class DocumentsComponent implements OnInit {
     
     // Show modal
     this.showUploadModal = true;
+    console.log('📋 Upload modal should now be visible:', this.showUploadModal);
   }
   
   closeUploadModal(): void {
@@ -239,13 +245,28 @@ export class DocumentsComponent implements OnInit {
   }
   
   onUploadSuccess(event: any): void {
+    console.log('📁 File upload success event:', event);
     setTimeout(() => {
       this.uploadedFiles.push(event[0]);
+      console.log('📂 Files in upload queue:', this.uploadedFiles.length);
     }, 0);
   }
   
   removeUploadedFile(index: number): void {
     this.uploadedFiles.splice(index, 1);
+  }
+
+  onFileSelected(event: any): void {
+    console.log('📁 File input change event:', event);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log('📂 Adding file via input:', file.name);
+        this.uploadedFiles.push(file);
+      }
+      console.log('📂 Total files in queue:', this.uploadedFiles.length);
+    }
   }
   
   formatFileSize(bytes: number): string {
