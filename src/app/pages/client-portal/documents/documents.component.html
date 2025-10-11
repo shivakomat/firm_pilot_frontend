@@ -35,6 +35,7 @@
             <th>Type</th>
             <th>Size</th>
             <th>Upload Date</th>
+            <th>Tags</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -51,18 +52,39 @@
             <td>{{doc.size}}</td>
             <td>{{doc.uploadDate | date:'shortDate'}}</td>
             <td>
+              <div class="tags-container" *ngIf="doc.tags && doc.tags.length > 0; else noTags">
+                <span class="badge bg-light text-dark me-1 mb-1" *ngFor="let tag of doc.tags">
+                  <i class="ri-price-tag-3-line me-1"></i>{{tag}}
+                </span>
+              </div>
+              <ng-template #noTags>
+                <span class="text-muted">No tags</span>
+              </ng-template>
+            </td>
+            <td>
               <span [class]="getStatusClass(doc.status)">
                 {{doc.status | titlecase}}
               </span>
             </td>
             <td>
-              <button type="button" class="btn btn-sm btn-outline-primary" (click)="downloadDocument(doc)">
-                <i class="ri-download-line"></i>
-              </button>
+              <div class="btn-group" role="group">
+                <button type="button" 
+                        class="btn btn-sm btn-outline-success" 
+                        (click)="downloadDocument(doc)"
+                        title="Download document">
+                  <i class="ri-download-line"></i>
+                </button>
+                <button type="button" 
+                        class="btn btn-sm btn-outline-danger" 
+                        (click)="deleteDocument(doc)"
+                        title="Delete document">
+                  <i class="ri-delete-bin-line"></i>
+                </button>
+              </div>
             </td>
           </tr>
           <tr *ngIf="filteredDocuments.length === 0">
-            <td colspan="6" class="text-center text-muted py-4">
+            <td colspan="7" class="text-center text-muted py-4">
               No documents found matching your criteria.
             </td>
           </tr>
@@ -150,6 +172,77 @@
                   <textarea id="documentDescription" class="form-control" rows="2"
                            [(ngModel)]="uploadForm.description" name="description" 
                            placeholder="Add any additional notes about this document..."></textarea>
+                </div>
+              </div>
+
+              <!-- Document Tags -->
+              <div class="row" *ngIf="uploadForm.category">
+                <div class="col-12 mb-3">
+                  <label class="form-label">
+                    <i class="ri-price-tag-3-line me-1"></i>Document Tags
+                  </label>
+                  <p class="text-muted small mb-2">Select relevant tags to help organize and find your documents</p>
+                  
+                  <!-- Predefined Tags -->
+                  <div class="predefined-tags mb-3" *ngIf="getCurrentCategoryTags().length > 0">
+                    <h6 class="small text-muted mb-2">Suggested Tags:</h6>
+                    <div class="tag-buttons">
+                      <button type="button" 
+                              *ngFor="let tag of getCurrentCategoryTags()"
+                              class="btn btn-sm me-2 mb-2"
+                              [class]="isTagSelected(tag) ? 'btn-primary' : 'btn-outline-primary'"
+                              (click)="toggleTag(tag)">
+                        <i class="ri-price-tag-3-line me-1"></i>{{tag}}
+                        <i class="ri-check-line ms-1" *ngIf="isTagSelected(tag)"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Custom Tag Input -->
+                  <div class="custom-tag-section">
+                    <div class="d-flex align-items-center mb-2">
+                      <button type="button" 
+                              class="btn btn-sm btn-outline-secondary"
+                              (click)="showCustomTagInput = !showCustomTagInput">
+                        <i class="ri-add-line me-1"></i>Add Custom Tag
+                      </button>
+                    </div>
+                    
+                    <div class="input-group mb-2" *ngIf="showCustomTagInput">
+                      <input type="text" 
+                             class="form-control form-control-sm"
+                             [(ngModel)]="uploadForm.customTag"
+                             name="customTag"
+                             placeholder="Enter custom tag..."
+                             (keyup.enter)="addCustomTag()">
+                      <button type="button" 
+                              class="btn btn-sm btn-primary"
+                              (click)="addCustomTag()"
+                              [disabled]="!uploadForm.customTag.trim()">
+                        <i class="ri-add-line"></i>
+                      </button>
+                      <button type="button" 
+                              class="btn btn-sm btn-outline-secondary"
+                              (click)="showCustomTagInput = false; uploadForm.customTag = ''">
+                        <i class="ri-close-line"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Selected Tags Display -->
+                  <div class="selected-tags" *ngIf="selectedTags.length > 0">
+                    <h6 class="small text-muted mb-2">Selected Tags:</h6>
+                    <div class="selected-tag-badges">
+                      <span class="badge bg-primary me-2 mb-2" *ngFor="let tag of selectedTags">
+                        <i class="ri-price-tag-3-line me-1"></i>{{tag}}
+                        <button type="button" 
+                                class="btn-close btn-close-white ms-2"
+                                (click)="removeTag(tag)"
+                                style="font-size: 0.6em;"
+                                title="Remove tag"></button>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
               

@@ -15,6 +15,7 @@ interface Document {
   uploadDate: string;
   status: 'pending' | 'reviewed' | 'approved';
   category: 'tax-documents' | 'financial-statements' | 'receipts' | 'other';
+  tags?: string[]; // New field for document tags
 }
 
 @Component({
@@ -43,8 +44,21 @@ export class DocumentsComponent implements OnInit {
     category: '',
     description: '',
     title: '',
-    year: null as number | null
+    year: null as number | null,
+    tags: [] as string[],
+    customTag: ''
   };
+
+  // Predefined tags based on category
+  predefinedTags = {
+    'tax-documents': ['Income', 'Mortgage', 'Deductions', 'W-2', '1099', 'Investment', 'Business Expense'],
+    'financial-statements': ['Bank Statement', 'Credit Card', 'Investment Account', 'Loan Statement', 'Insurance'],
+    'receipts': ['Business Meal', 'Office Supplies', 'Travel', 'Equipment', 'Software', 'Professional Services'],
+    'other': ['Notice', 'Correspondence', 'Legal Document', 'Contract', 'Invoice', 'Receipt']
+  };
+
+  selectedTags: string[] = [];
+  showCustomTagInput: boolean = false;
 
   // Document suggestion properties
   currentSuggestion: DocumentSuggestion | null = null;
@@ -171,9 +185,7 @@ export class DocumentsComponent implements OnInit {
     });
   }
 
-  onCategoryChange(): void {
-    this.filterDocuments();
-  }
+  // Removed duplicate - using enhanced version below
 
   onSearchChange(): void {
     this.filterDocuments();
@@ -221,8 +233,12 @@ export class DocumentsComponent implements OnInit {
       category: '',
       description: '',
       title: '',
-      year: null
+      year: null,
+      tags: [],
+      customTag: ''
     };
+    this.selectedTags = [];
+    this.showCustomTagInput = false;
     
     // Reset suggestions
     this.currentSuggestion = null;
@@ -251,8 +267,99 @@ export class DocumentsComponent implements OnInit {
     this.uploadedFiles.splice(index, 1);
   }
 
-  // File handling is now managed by the FileUploadComponent
-  // These methods are no longer needed as the component handles validation internally
+  // Tag management methods
+  onCategoryChange(): void {
+    // Reset tags when category changes
+    this.selectedTags = [];
+    this.showCustomTagInput = false;
+    this.uploadForm.customTag = '';
+    this.filterDocuments();
+  }
+
+  toggleTag(tag: string): void {
+    const index = this.selectedTags.indexOf(tag);
+    if (index > -1) {
+      this.selectedTags.splice(index, 1);
+    } else {
+      this.selectedTags.push(tag);
+    }
+    this.uploadForm.tags = [...this.selectedTags];
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags.includes(tag);
+  }
+
+  addCustomTag(): void {
+    const customTag = this.uploadForm.customTag.trim();
+    if (customTag && !this.selectedTags.includes(customTag)) {
+      this.selectedTags.push(customTag);
+      this.uploadForm.tags = [...this.selectedTags];
+      this.uploadForm.customTag = '';
+      this.showCustomTagInput = false;
+    }
+  }
+
+  removeTag(tag: string): void {
+    const index = this.selectedTags.indexOf(tag);
+    if (index > -1) {
+      this.selectedTags.splice(index, 1);
+      this.uploadForm.tags = [...this.selectedTags];
+    }
+  }
+
+  getCurrentCategoryTags(): string[] {
+    return this.predefinedTags[this.uploadForm.category as keyof typeof this.predefinedTags] || [];
+  }
+
+  // Document action methods
+  deleteDocument(doc: Document): void {
+    Swal.fire({
+      title: 'Delete Document?',
+      text: `Are you sure you want to delete "${doc.name}"? This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.performDeleteDocument(doc);
+      }
+    });
+  }
+
+  performDeleteDocument(doc: Document): void {
+    console.log('🗑️ Deleting document:', doc.name);
+    
+    // TODO: Replace with actual API call
+    // this.apiService.deleteDocument(doc.id).subscribe({
+    //   next: (response) => {
+    //     if (response.success) {
+    //       this.loadDocuments();
+    //       Swal.fire('Deleted!', 'Document has been deleted.', 'success');
+    //     }
+    //   },
+    //   error: (error) => {
+    //     this.showErrorMessage('Failed to delete document. Please try again.');
+    //   }
+    // });
+
+    // Temporary: Remove from local array for demo
+    const index = this.documents.findIndex(d => d.id === doc.id);
+    if (index > -1) {
+      this.documents.splice(index, 1);
+      this.filterDocuments();
+      Swal.fire({
+        title: 'Deleted!',
+        text: 'Document has been deleted.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+  }
 
   getFileIcon(fileName: string): string {
     const extension = fileName.toLowerCase().split('.').pop();
@@ -332,8 +439,12 @@ export class DocumentsComponent implements OnInit {
           category: '',
           description: '',
           title: '',
-          year: null
+          year: null,
+          tags: [],
+          customTag: ''
         };
+        this.selectedTags = [];
+        this.showCustomTagInput = false;
         
         // Reset suggestions
         this.currentSuggestion = null;
