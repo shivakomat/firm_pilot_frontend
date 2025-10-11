@@ -15,7 +15,7 @@ interface Document {
   size: string;
   uploadDate: string;
   status: 'pending' | 'reviewed' | 'approved';
-  category: 'tax-documents' | 'financial-statements' | 'receipts' | 'other';
+  category: 'tax-documents' | 'business-documents' | 'supporting-documents' | 'completed-work' | 'other';
   tags?: string[]; // New field for document tags
 }
 
@@ -38,18 +38,18 @@ export class DocumentsComponent implements OnInit {
       uploadDate: '2024-01-15',
       status: 'approved',
       category: 'tax-documents',
-      tags: ['Income', 'W-2', '2023']
+      tags: ['W2_Form', '2023']
     },
     {
       id: 2,
-      title: 'Mortgage Interest Statement',
-      name: 'mortgage_statement_jan2024.pdf',
+      title: 'Bank Statement January 2024',
+      name: 'bank_statement_jan2024.pdf',
       type: 'PDF',
       size: '180 KB',
       uploadDate: '2024-02-01',
       status: 'pending',
-      category: 'tax-documents',
-      tags: ['Mortgage', 'Interest']
+      category: 'business-documents',
+      tags: ['Bank_Statement']
     },
     {
       id: 3,
@@ -59,8 +59,8 @@ export class DocumentsComponent implements OnInit {
       size: '95 KB',
       uploadDate: '2024-02-10',
       status: 'reviewed',
-      category: 'receipts',
-      tags: ['Office Supplies', 'Business Expense']
+      category: 'business-documents',
+      tags: ['Receipt', 'Office_Supplies']
     }
   ];
   filteredDocuments: Document[] = [];
@@ -87,10 +87,11 @@ export class DocumentsComponent implements OnInit {
 
   // Predefined tags based on category
   predefinedTags = {
-    'tax-documents': ['Income', 'Mortgage', 'Deductions', 'W-2', '1099', 'Investment', 'Business Expense'],
-    'financial-statements': ['Bank Statement', 'Credit Card', 'Investment Account', 'Loan Statement', 'Insurance'],
-    'receipts': ['Business Meal', 'Office Supplies', 'Travel', 'Equipment', 'Software', 'Professional Services'],
-    'other': ['Notice', 'Correspondence', 'Legal Document', 'Contract', 'Invoice', 'Receipt']
+    'tax-documents': ['W2_Form', '1099_MISC', '1099_NEC', '1040_Tax_Return', 'Schedule_C', 'Schedule_D'],
+    'business-documents': ['Bank_Statement', 'Receipt', 'Invoice', 'Expense_Report', 'Business_License'],
+    'supporting-documents': ['ID_Document', 'SSN_Card', 'Proof_of_Address', 'Insurance_Document'],
+    'completed-work': ['Completed_Tax_Return', 'Draft_Return', 'Client_Copy', 'IRS_Filing_Copy'],
+    'other': ['Notice']
   };
 
   selectedTags: string[] = [];
@@ -189,7 +190,7 @@ export class DocumentsComponent implements OnInit {
             size: this.formatFileSize(doc.sizeBytes),
             uploadDate: new Date(doc.uploadedAt).toLocaleDateString(),
             status: doc.required ? 'approved' : 'pending' as 'pending' | 'reviewed' | 'approved',
-            category: doc.tag as 'tax-documents' | 'financial-statements' | 'receipts' | 'other',
+            category: doc.tag as 'tax-documents' | 'business-documents' | 'supporting-documents' | 'completed-work' | 'other',
             tags: (doc as any).tags || [] // Include tags if available from backend
           }));
           console.log('✅ Documents loaded:', this.documents.length);

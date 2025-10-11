@@ -14,8 +14,9 @@
         <select id="categoryFilter" class="form-select" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
           <option value="all">All Categories</option>
           <option value="tax-documents">Tax Documents</option>
-          <option value="financial-statements">Financial Statements</option>
-          <option value="receipts">Receipts</option>
+          <option value="business-documents">Business Documents</option>
+          <option value="supporting-documents">Supporting Documents</option>
+          <option value="completed-work">Completed Work</option>
           <option value="other">Other</option>
         </select>
       </div>
@@ -108,23 +109,24 @@
               <h5 class="card-title mb-0">Upload Document</h5>
               <button type="button" class="btn-close" (click)="closeUploadModal()" aria-label="Close"></button>
             </div>
-          </div>
           <div class="card-body">
             <form>
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="documentCategory" class="form-label">Document Category *</label>
-                  <select id="documentCategory" class="form-select" [(ngModel)]="uploadForm.category" name="category" required>
+                  <select id="documentCategory" class="form-select" 
+                          [(ngModel)]="uploadForm.category" name="category" 
+                          (change)="onCategoryChange()" required>
                     <option value="">Select Category</option>
                     <option value="tax-documents">Tax Documents</option>
-                    <option value="financial-statements">Financial Statements</option>
-                    <option value="receipts">Receipts</option>
+                    <option value="business-documents">Business Documents</option>
+                    <option value="supporting-documents">Supporting Documents</option>
+                    <option value="completed-work">Completed Work</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="documentYear" class="form-label">Year (Optional)</label>
-                  <input type="number" id="documentYear" class="form-control" 
                          [(ngModel)]="uploadForm.year" name="year" 
                          placeholder="e.g., 2024" min="2016" max="2030">
                 </div>
