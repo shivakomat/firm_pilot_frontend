@@ -40,6 +40,7 @@ export class DefaultComponent implements OnInit {
   numberOfLeads: number = 0;
   totalProjects: number = 0;
   totalClients: number = 0;
+  conversionRate: string = '0.0';
   config:any = {
     backdrop: true,
     ignoreBackdropClick: true
@@ -154,15 +155,26 @@ export class DefaultComponent implements OnInit {
         this.activeClients = response.clients.filter(client => client.status === 'active').length;
         this.numberOfLeads = response.clients.filter(client => client.status === 'lead').length;
         
+        // Calculate conversion rate: (active clients / total clients) * 100
+        this.conversionRate = this.totalClients > 0 
+          ? (this.activeClients / this.totalClients * 100).toFixed(1)
+          : '0.0';
+        
         console.log('Dashboard - Active clients count:', this.activeClients);
         console.log('Dashboard - Leads count:', this.numberOfLeads);
+        console.log('Dashboard - Conversion rate:', this.conversionRate + '%');
       },
       error: (error) => {
         console.error('Error loading clients:', error);
         // Fallback to mock data
-        this.totalClients = 18;
+        this.totalClients = 85;
         this.activeClients = 24;
         this.numberOfLeads = 42;
+        
+        // Calculate conversion rate for fallback data
+        this.conversionRate = this.totalClients > 0 
+          ? (this.activeClients / this.totalClients * 100).toFixed(1)
+          : '0.0';
       }
     });
 
