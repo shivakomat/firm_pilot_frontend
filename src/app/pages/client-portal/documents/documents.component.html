@@ -94,10 +94,62 @@
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">
+                  <label for="documentYear" class="form-label">Year (Optional)</label>
+                  <input type="number" id="documentYear" class="form-control" 
+                         [(ngModel)]="uploadForm.year" name="year" 
+                         placeholder="e.g., 2024" min="2016" max="2030">
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="documentTitle" class="form-label">Document Title *</label>
+                  <input type="text" id="documentTitle" class="form-control" 
+                         [(ngModel)]="uploadForm.title" name="title" 
+                         (input)="onTitleChange($any($event.target).value)"
+                         placeholder="Enter a descriptive title for your document..."
+                         required>
+                  <div class="form-text">
+                    <small class="text-muted">Enter a descriptive title separate from the filename. This helps with organization and suggestions.</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document Suggestions -->
+              <div class="row" *ngIf="showSuggestion || isConfirmedBySuggestion()">
+                <div class="col-12 mb-3">
+                  <div class="alert alert-info d-flex align-items-center" role="alert" *ngIf="showSuggestion">
+                    <i class="ri-search-line me-2"></i>
+                    <div class="flex-grow-1">
+                      <strong>🔎 Suggested:</strong> {{getSuggestionText()}}
+                    </div>
+                    <div class="btn-group btn-group-sm ms-3" role="group" aria-label="Suggestion actions">
+                      <button type="button" class="btn btn-outline-secondary" 
+                              (click)="keepCurrentValues()"
+                              aria-label="Keep current values">
+                        Keep
+                      </button>
+                      <button type="button" class="btn btn-primary" 
+                              (click)="applySuggestion()"
+                              aria-label="Apply suggestion">
+                        Switch
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="alert alert-success d-flex align-items-center" role="alert" *ngIf="isConfirmedBySuggestion() && !showSuggestion">
+                    <i class="ri-check-line me-2"></i>
+                    <span><strong>✓ Confirmed by title:</strong> {{getSuggestionText()}}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12 mb-3">
                   <label for="documentDescription" class="form-label">Description (Optional)</label>
-                  <input type="text" id="documentDescription" class="form-control" 
-                         [(ngModel)]="uploadForm.description" name="description" 
-                         placeholder="Add notes about this document...">
+                  <textarea id="documentDescription" class="form-control" rows="2"
+                           [(ngModel)]="uploadForm.description" name="description" 
+                           placeholder="Add any additional notes about this document..."></textarea>
                 </div>
               </div>
               
@@ -141,7 +193,7 @@
             <div class="d-flex justify-content-end gap-2">
               <button type="button" class="btn btn-secondary" (click)="closeUploadModal()">Cancel</button>
               <button type="button" class="btn btn-primary" (click)="submitUpload()" 
-                      [disabled]="uploadedFiles.length === 0 || !uploadForm.category || isUploading">
+                      [disabled]="uploadedFiles.length === 0 || !uploadForm.category || !uploadForm.title || isUploading">
                 <span *ngIf="isUploading" class="spinner-border spinner-border-sm me-2" role="status"></span>
                 {{isUploading ? 'Uploading...' : 'Upload ' + uploadedFiles.length + ' File(s)'}}
               </button>

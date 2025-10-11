@@ -1,6 +1,10 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import Swal from 'sweetalert2';
 import { DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { DocumentSuggestionUtil, DocumentSuggestion, DocumentSuggestionConfig } from '../../../shared/utils/doc-suggest.util';
+import { AnalyticsService } from '../../../core/services/analytics.service';
+import { environment } from '../../../../environments/environment';
 
 interface Document {
   id: number;
@@ -32,8 +36,18 @@ export class DocumentsComponent implements OnInit {
   uploadedFiles: any[] = [];
   uploadForm = {
     category: '',
-    description: ''
+    description: '',
+    title: '',
+    year: null as number | null
   };
+
+  // Document suggestion properties
+  currentSuggestion: DocumentSuggestion | null = null;
+  showSuggestion: boolean = false;
+  titleSubject = new Subject<string>();
+  
+  // Feature flags from environment
+  suggestionConfig: DocumentSuggestionConfig = environment.documentSuggestions;
   
   // Dropzone configuration
   public dropzoneConfig: DropzoneConfigInterface = {
@@ -47,7 +61,15 @@ export class DocumentsComponent implements OnInit {
     autoProcessQueue: false // Prevent automatic upload
   };
 
-  constructor() { }
+  constructor(private analyticsService: AnalyticsService) { 
+    // Set up debounced title parsing
+    this.titleSubject.pipe(
+      debounceTime(200),
+      distinctUntilChanged()
+    ).subscribe(title => {
+      this.parseTitleForSuggestions(title);
+    });
+  }
 
   ngOnInit(): void {
     this.loadDocuments();
@@ -129,8 +151,14 @@ export class DocumentsComponent implements OnInit {
     this.selectedFile = null;
     this.uploadForm = {
       category: '',
-      description: ''
+      description: '',
+      title: '',
+      year: null
     };
+    
+    // Reset suggestions
+    this.currentSuggestion = null;
+    this.showSuggestion = false;
     
     // Show modal
     this.showUploadModal = true;
@@ -159,11 +187,28 @@ export class DocumentsComponent implements OnInit {
   }
   
   submitUpload(): void {
-    if (!this.selectedFile || !this.uploadForm.category) {
+    if (this.uploadedFiles.length === 0 || !this.uploadForm.category || !this.uploadForm.title) {
       return;
     }
     
     this.isUploading = true;
+    
+    // Prepare upload data including uiSuggestion for analytics
+    const uploadData = {
+      category: this.uploadForm.category,
+      title: this.uploadForm.title,
+      year: this.uploadForm.year,
+      description: this.uploadForm.description,
+      files: this.uploadedFiles,
+      uiSuggestion: this.currentSuggestion ? {
+        tag: this.currentSuggestion.tag,
+        year: this.currentSuggestion.year,
+        confidence: this.currentSuggestion.confidence,
+        source: this.currentSuggestion.source
+      } : null
+    };
+    
+    console.log('📤 Uploading document with data:', uploadData);
     
     // Simulate upload process
     setTimeout(() => {
@@ -215,5 +260,109 @@ export class DocumentsComponent implements OnInit {
       case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': return 'Document';
       default: return 'File';
     }
+  }
+
+  // Document Suggestion Methods
+
+  /**
+   * Handle title input change with debouncing
+   */
+  onTitleChange(title: string): void {
+    this.uploadForm.title = title;
+    this.titleSubject.next(title);
+  }
+
+  /**
+   * Parse title for suggestions
+   */
+  parseTitleForSuggestions(title: string): void {
+    const suggestion = DocumentSuggestionUtil.parseTitleForSuggestions(title, this.suggestionConfig);
+    
+    if (suggestion.confidence > 0) {
+      this.currentSuggestion = suggestion;
+      this.showSuggestion = !this.suggestionMatchesCurrentForm(suggestion);
+      
+      // Track suggestion shown
+      this.analyticsService.trackDocumentSuggestionShown(
+        suggestion.tag,
+        suggestion.year,
+        suggestion.confidence
+      );
+    } else {
+      this.currentSuggestion = null;
+      this.showSuggestion = false;
+    }
+  }
+
+  /**
+   * Check if suggestion matches current form values
+   */
+  suggestionMatchesCurrentForm(suggestion: DocumentSuggestion): boolean {
+    return DocumentSuggestionUtil.suggestionMatchesForm(
+      suggestion,
+      this.uploadForm.category,
+      this.uploadForm.year
+    );
+  }
+
+  /**
+   * Apply suggestion to form (Switch action)
+   */
+  applySuggestion(): void {
+    if (!this.currentSuggestion) return;
+
+    const fromCategory = this.uploadForm.category;
+    const fromYear = this.uploadForm.year;
+
+    // Apply suggestion to form
+    if (this.currentSuggestion.category) {
+      this.uploadForm.category = DocumentSuggestionUtil.mapSuggestionToFormCategory(this.currentSuggestion);
+    }
+    if (this.currentSuggestion.year) {
+      this.uploadForm.year = this.currentSuggestion.year;
+    }
+
+    // Track switch action
+    this.analyticsService.trackDocumentSuggestionSwitch(
+      fromCategory,
+      this.uploadForm.category,
+      fromYear,
+      this.uploadForm.year
+    );
+
+    // Hide suggestion after applying
+    this.showSuggestion = false;
+  }
+
+  /**
+   * Keep current form values (Keep action)
+   */
+  keepCurrentValues(): void {
+    if (!this.currentSuggestion) return;
+
+    // Track keep action
+    this.analyticsService.trackDocumentSuggestionKept(
+      this.currentSuggestion.tag,
+      this.currentSuggestion.year
+    );
+
+    // Hide suggestion
+    this.showSuggestion = false;
+  }
+
+  /**
+   * Get formatted suggestion text for display
+   */
+  getSuggestionText(): string {
+    if (!this.currentSuggestion) return '';
+    return DocumentSuggestionUtil.formatSuggestionText(this.currentSuggestion);
+  }
+
+  /**
+   * Check if current form matches suggestion (for "Confirmed" display)
+   */
+  isConfirmedBySuggestion(): boolean {
+    if (!this.currentSuggestion) return false;
+    return this.suggestionMatchesCurrentForm(this.currentSuggestion);
   }
 }
