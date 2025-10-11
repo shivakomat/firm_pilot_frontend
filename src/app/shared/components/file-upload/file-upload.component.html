@@ -1,0 +1,77 @@
+<div class="file-upload-container">
+  <!-- Upload Area -->
+  <div class="upload-area" 
+       [class.drag-over]="isDragOver"
+       [class.disabled]="disabled"
+       (dragover)="onDragOver($event)"
+       (dragleave)="onDragLeave($event)"
+       (drop)="onDrop($event)">
+    <div class="upload-content">
+      <div class="upload-icon mb-3">
+        <i class="ri-upload-cloud-2-line" 
+           [class]="isDragOver ? 'text-primary animate-bounce' : 'text-muted'"></i>
+      </div>
+      <h5 class="upload-title mb-2" 
+          [class]="isDragOver ? 'text-primary' : 'text-dark'">
+        {{ isDragOver ? 'Drop files here!' : placeholder }}
+      </h5>
+      <p class="upload-subtitle text-muted mb-3">
+        or click the button below to browse
+      </p>
+      <div class="upload-info mb-3">
+        <small class="text-muted">
+          <i class="ri-information-line me-1"></i>
+          Max: {{ formatFileSize(config.maxFileSize!) }} each • Up to {{ config.maxFiles }} files
+        </small>
+      </div>
+      <input type="file" 
+             #fileInput 
+             (change)="onFileSelected($event)" 
+             [accept]="config.acceptedTypes?.join(',')"
+             [multiple]="config.allowMultiple"
+             [disabled]="disabled"
+             style="display: none;">
+      <button type="button" 
+              class="btn btn-primary btn-lg px-4" 
+              (click)="fileInput.click()"
+              [disabled]="disabled || uploadedFiles.length >= config.maxFiles!">
+        <i class="ri-folder-open-line me-2"></i>
+        {{ disabled ? 'Disabled' : (uploadedFiles.length >= config.maxFiles! ? 'Max Files Reached' : 'Browse Files') }}
+      </button>
+    </div>
+  </div>
+  
+  <!-- Selected Files Preview -->
+  <div *ngIf="uploadedFiles.length > 0" class="mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h6 class="mb-0">
+        <i class="ri-file-list-3-line me-2 text-success"></i>
+        Selected Files ({{ uploadedFiles.length }}/{{ config.maxFiles }})
+      </h6>
+      <button type="button" 
+              class="btn btn-sm btn-outline-secondary" 
+              (click)="clearAll()">
+        <i class="ri-delete-bin-line me-1"></i>Clear All
+      </button>
+    </div>
+    <div class="selected-files">
+      <div class="file-item" *ngFor="let fileInfo of uploadedFiles; let i = index">
+        <div class="file-icon">
+          <i [class]="getFileIcon(fileInfo.name)"></i>
+        </div>
+        <div class="file-info">
+          <div class="file-name">{{ fileInfo.name }}</div>
+          <div class="file-size">{{ formatFileSize(fileInfo.size) }}</div>
+        </div>
+        <div class="file-actions">
+          <button type="button" 
+                  class="btn btn-sm btn-outline-danger rounded-circle"
+                  (click)="removeFile(i)"
+                  title="Remove file">
+            <i class="ri-close-line"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

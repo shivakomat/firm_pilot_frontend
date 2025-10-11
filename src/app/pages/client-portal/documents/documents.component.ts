@@ -5,6 +5,7 @@ import { DocumentSuggestionUtil, DocumentSuggestion, DocumentSuggestionConfig } 
 import { AnalyticsService } from '../../../core/services/analytics.service';
 import { ApiService, ClientDocument } from '../../../core/services/api.service';
 import { environment } from '../../../../environments/environment';
+import { FileUploadConfig, UploadedFileInfo } from '../../../shared/components/file-upload/file-upload.component';
 
 interface Document {
   id: number;
@@ -53,13 +54,13 @@ export class DocumentsComponent implements OnInit {
   // Feature flags from environment
   suggestionConfig: DocumentSuggestionConfig = environment.documentSuggestions;
   
-  // Drag and drop state
-  isDragOver: boolean = false;
-  
-  // File upload configuration
-  acceptedFileTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
-  maxFileSize = 10 * 1024 * 1024; // 10MB in bytes
-  maxFiles = 10;
+  // File upload configuration for reusable component
+  fileUploadConfig: FileUploadConfig = {
+    acceptedTypes: ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'],
+    maxFileSize: 10 * 1024 * 1024, // 10MB in bytes
+    maxFiles: 10,
+    allowMultiple: true
+  };
 
   constructor(
     private analyticsService: AnalyticsService,
@@ -236,89 +237,22 @@ export class DocumentsComponent implements OnInit {
     this.showUploadModal = false;
   }
   
-  // Drag and drop event handlers
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver = true;
-  }
-
-  onDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver = false;
-  }
-
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver = false;
+  // Handle files selected from the reusable FileUploadComponent
+  onFilesSelected(fileInfos: UploadedFileInfo[]): void {
+    console.log('📂 Files selected from FileUploadComponent:', fileInfos.length);
     
-    const files = event.dataTransfer?.files;
-    if (files) {
-      this.handleFiles(files);
-    }
+    // Convert UploadedFileInfo[] back to File[] for compatibility with existing upload logic
+    this.uploadedFiles = fileInfos.map(info => info.file);
+    
+    console.log('📂 Updated uploadedFiles array:', this.uploadedFiles.length);
   }
   
   removeUploadedFile(index: number): void {
     this.uploadedFiles.splice(index, 1);
   }
 
-  onFileSelected(event: any): void {
-    console.log('📁 File input change event:', event);
-    const files = event.target.files;
-    if (files) {
-      this.handleFiles(files);
-    }
-  }
-
-  handleFiles(files: FileList): void {
-    console.log('📂 Processing files:', files.length);
-    
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      // Validate file type
-      if (!this.isValidFileType(file)) {
-        this.showErrorMessage(`File "${file.name}" is not a supported format. Please use PDF, JPG, PNG, DOC, or DOCX files.`);
-        continue;
-      }
-      
-      // Validate file size
-      if (file.size > this.maxFileSize) {
-        this.showErrorMessage(`File "${file.name}" is too large. Maximum size is 10MB.`);
-        continue;
-      }
-      
-      // Check if we've reached max files
-      if (this.uploadedFiles.length >= this.maxFiles) {
-        this.showErrorMessage(`Maximum ${this.maxFiles} files allowed.`);
-        break;
-      }
-      
-      // Check for duplicates
-      if (this.uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
-        this.showErrorMessage(`File "${file.name}" is already selected.`);
-        continue;
-      }
-      
-      console.log('✅ Adding valid file:', file.name);
-      this.uploadedFiles.push(file);
-    }
-    
-    console.log('📂 Total files in queue:', this.uploadedFiles.length);
-    
-    // Show success message for valid files
-    if (this.uploadedFiles.length > 0) {
-      const fileText = this.uploadedFiles.length === 1 ? 'file' : 'files';
-      console.log(`🎉 ${this.uploadedFiles.length} ${fileText} ready for upload!`);
-    }
-  }
-
-  isValidFileType(file: File): boolean {
-    const fileName = file.name.toLowerCase();
-    return this.acceptedFileTypes.some(type => fileName.endsWith(type.substring(1)));
-  }
+  // File handling is now managed by the FileUploadComponent
+  // These methods are no longer needed as the component handles validation internally
 
   getFileIcon(fileName: string): string {
     const extension = fileName.toLowerCase().split('.').pop();

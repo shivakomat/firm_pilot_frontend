@@ -18,6 +18,9 @@ import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 
+// Shared components
+import { SharedComponentsModule } from '../../shared/components/shared-components.module';
+
 @NgModule({
   declarations: [
     DocumentsComponent,
@@ -35,7 +38,8 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
     LoaderComponent,
     BsDropdownModule,
     ModalModule,
-    TabsModule
+    TabsModule,
+    SharedComponentsModule
   ]
 })
 export class ClientPortalModule { }
