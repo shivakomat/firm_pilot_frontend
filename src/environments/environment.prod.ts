@@ -11,5 +11,10 @@ export const environment = {
     messagingSenderId: '',
     appId: '',
     measurementId: ''
+  },
+  // Document suggestion feature flags
+  documentSuggestions: {
+    FILENAME_SUGGESTION: true,
+    YEAR_PARSE: true
   }
 };

@@ -1536,4 +1536,121 @@ export class ApiService {
 
     return this.http.get<GmailProfileResponse>(`${this.baseUrl}/gmail/profile`, { headers });
   }
+
+  // Client Document Management Methods
+
+  /**
+   * Upload document for a client
+   * @param clientId - ID of the client
+   * @param file - File to upload
+   * @param title - Document title
+   * @param category - Document category
+   * @param year - Document year (optional)
+   * @param description - Optional description
+   * @param uiSuggestion - Optional UI suggestion data for analytics
+   */
+  uploadClientDocument(
+    clientId: number, 
+    file: File, 
+    title: string, 
+    category: string, 
+    year?: number | null, 
+    description?: string,
+    uiSuggestion?: any
+  ): Observable<UploadDocumentResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('title', title);
+    formData.append('category', category);
+    
+    if (year) {
+      formData.append('year', year.toString());
+    }
+    if (description) {
+      formData.append('description', description);
+    }
+    if (uiSuggestion) {
+      formData.append('uiSuggestion', JSON.stringify(uiSuggestion));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+      // Don't set Content-Type for FormData - browser will set it with boundary
+    });
+
+    return this.http.post<UploadDocumentResponse>(`${this.baseUrl}/clients/${clientId}/documents`, formData, { headers });
+  }
+
+  /**
+   * Get client documents list
+   * @param clientId - ID of the client
+   */
+  getClientDocuments(clientId: number): Observable<{ success: boolean; documents: ClientDocument[] }> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<{ success: boolean; documents: ClientDocument[] }>(`${this.baseUrl}/clients/${clientId}/documents`, { headers });
+  }
+
+  /**
+   * Upload document for a project (enhanced version)
+   * @param projectId - ID of the project
+   * @param file - File to upload
+   * @param title - Document title
+   * @param category - Document category
+   * @param year - Document year (optional)
+   * @param description - Optional description
+   * @param uiSuggestion - Optional UI suggestion data for analytics
+   */
+  uploadProjectDocumentEnhanced(
+    projectId: number, 
+    file: File, 
+    title: string, 
+    category: string, 
+    year?: number | null, 
+    description?: string,
+    uiSuggestion?: any
+  ): Observable<UploadDocumentResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('title', title);
+    formData.append('category', category);
+    
+    if (year) {
+      formData.append('year', year.toString());
+    }
+    if (description) {
+      formData.append('description', description);
+    }
+    if (uiSuggestion) {
+      formData.append('uiSuggestion', JSON.stringify(uiSuggestion));
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+      // Don't set Content-Type for FormData - browser will set it with boundary
+    });
+
+    return this.http.post<UploadDocumentResponse>(`${this.baseUrl}/projects/${projectId}/documents`, formData, { headers });
+  }
 }

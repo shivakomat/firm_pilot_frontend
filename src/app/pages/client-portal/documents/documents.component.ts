@@ -4,6 +4,7 @@ import { DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { DocumentSuggestionUtil, DocumentSuggestion, DocumentSuggestionConfig } from '../../../shared/utils/doc-suggest.util';
 import { AnalyticsService } from '../../../core/services/analytics.service';
+import { ApiService, ClientDocument } from '../../../core/services/api.service';
 import { environment } from '../../../../environments/environment';
 
 interface Document {
@@ -28,6 +29,10 @@ export class DocumentsComponent implements OnInit {
   filteredDocuments: Document[] = [];
   selectedCategory: string = 'all';
   searchTerm: string = '';
+  
+  // Client ID for API calls
+  clientId: number = 0;
+  currentUser: any;
   
   // Upload form properties
   selectedFile: File | null = null;
@@ -61,7 +66,10 @@ export class DocumentsComponent implements OnInit {
     autoProcessQueue: false // Prevent automatic upload
   };
 
-  constructor(private analyticsService: AnalyticsService) { 
+  constructor(
+    private analyticsService: AnalyticsService,
+    private apiService: ApiService
+  ) { 
     // Set up debounced title parsing
     this.titleSubject.pipe(
       debounceTime(200),
@@ -72,41 +80,91 @@ export class DocumentsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.initializeClientData();
     this.loadDocuments();
   }
 
-  loadDocuments(): void {
-    // Mock data - in real app, this would come from API
-    this.documents = [
-      {
-        id: 1,
-        name: 'W2_2024.pdf',
-        type: 'PDF',
-        size: '245 KB',
-        uploadDate: '2024-01-15',
-        status: 'approved',
-        category: 'tax-documents'
-      },
-      {
-        id: 2,
-        name: 'Bank_Statement_Jan2024.pdf',
-        type: 'PDF',
-        size: '1.2 MB',
-        uploadDate: '2024-02-01',
-        status: 'reviewed',
-        category: 'financial-statements'
-      },
-      {
-        id: 3,
-        name: 'Receipt_Office_Supplies.jpg',
-        type: 'Image',
-        size: '890 KB',
-        uploadDate: '2024-02-10',
-        status: 'pending',
-        category: 'receipts'
+  initializeClientData(): void {
+    // Get current user and client ID
+    this.currentUser = this.getCurrentUser();
+    this.clientId = this.getCurrentUserClientId();
+    
+    console.log('📄 Documents Component initialized with client ID:', this.clientId);
+  }
+
+  private getCurrentUser(): any {
+    const currentUser = localStorage.getItem('currentUser');
+    return currentUser ? JSON.parse(currentUser) : null;
+  }
+
+  private getCurrentUserClientId(): number {
+    try {
+      const userJWT = localStorage.getItem('authToken');
+      if (userJWT) {
+        const payload = JSON.parse(atob(userJWT.split('.')[1]));
+        return payload.userId || payload.id || this.currentUser?.id || 0;
       }
-    ];
-    this.filteredDocuments = [...this.documents];
+    } catch (error) {
+      console.error('Error extracting user ID from JWT:', error);
+    }
+    return this.currentUser?.id || 0;
+  }
+
+  private showErrorMessage(message: string): void {
+    Swal.fire({
+      title: 'Error',
+      text: message,
+      icon: 'error',
+      confirmButtonText: 'OK'
+    });
+  }
+
+  loadDocuments(): void {
+    if (!this.clientId) {
+      console.error('❌ No client ID available for loading documents');
+      this.documents = [];
+      this.filterDocuments();
+      return;
+    }
+
+    console.log('📋 Loading documents for client ID:', this.clientId);
+
+    this.apiService.getClientDocuments(this.clientId).subscribe({
+      next: (response) => {
+        if (response.success) {
+          // Map ClientDocument to local Document interface
+          this.documents = response.documents.map(doc => ({
+            id: doc.id,
+            name: doc.filename,
+            type: this.getFileTypeFromMimeType(doc.mimeType),
+            size: this.formatFileSize(doc.sizeBytes),
+            uploadDate: new Date(doc.uploadedAt).toLocaleDateString(),
+            status: doc.required ? 'approved' : 'pending' as 'pending' | 'reviewed' | 'approved',
+            category: doc.tag as 'tax-documents' | 'financial-statements' | 'receipts' | 'other'
+          }));
+          console.log('✅ Documents loaded:', this.documents.length);
+          this.filterDocuments();
+        } else {
+          console.error('❌ Failed to load documents:', response);
+          this.showErrorMessage('Failed to load documents');
+          this.documents = [];
+          this.filterDocuments();
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error loading documents:', error);
+        this.showErrorMessage('Error loading documents. Please try again.');
+        this.documents = [];
+        this.filterDocuments();
+      }
+    });
+  }
+
+  private getFileTypeFromMimeType(mimeType: string): string {
+    if (mimeType.includes('pdf')) return 'PDF';
+    if (mimeType.includes('image')) return 'Image';
+    if (mimeType.includes('word') || mimeType.includes('document')) return 'Document';
+    return 'File';
   }
 
   filterDocuments(): void {
@@ -135,15 +193,27 @@ export class DocumentsComponent implements OnInit {
   }
 
   downloadDocument(doc: Document): void {
-    // In real app, this would trigger actual download
-    Swal.fire({
-      title: 'Download Started',
-      text: `Downloading ${doc.name}...`,
-      icon: 'info',
-      timer: 2000,
-      showConfirmButton: false
+    console.log('📥 Downloading document:', doc.name);
+    
+    this.apiService.downloadDocument(doc.id).subscribe({
+      next: (blob: Blob) => {
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('✅ Document downloaded successfully');
+      },
+      error: (error) => {
+        console.error('❌ Download error:', error);
+        this.showErrorMessage('Failed to download document. Please try again.');
+      }
     });
-    console.log('Downloading document:', doc.name);
   }
 
   uploadDocument(): void {
@@ -190,64 +260,86 @@ export class DocumentsComponent implements OnInit {
     if (this.uploadedFiles.length === 0 || !this.uploadForm.category || !this.uploadForm.title) {
       return;
     }
+
+    if (!this.clientId) {
+      this.showErrorMessage('Client ID not available. Please refresh and try again.');
+      return;
+    }
     
     this.isUploading = true;
     
-    // Prepare upload data including uiSuggestion for analytics
-    const uploadData = {
-      category: this.uploadForm.category,
-      title: this.uploadForm.title,
-      year: this.uploadForm.year,
-      description: this.uploadForm.description,
-      files: this.uploadedFiles,
-      uiSuggestion: this.currentSuggestion ? {
-        tag: this.currentSuggestion.tag,
-        year: this.currentSuggestion.year,
-        confidence: this.currentSuggestion.confidence,
-        source: this.currentSuggestion.source
-      } : null
-    };
+    // Prepare uiSuggestion data for analytics
+    const uiSuggestion = this.currentSuggestion ? {
+      tag: this.currentSuggestion.tag,
+      year: this.currentSuggestion.year,
+      confidence: this.currentSuggestion.confidence,
+      source: this.currentSuggestion.source
+    } : null;
     
-    console.log('📤 Uploading document with data:', uploadData);
+    console.log('📤 Uploading documents for client ID:', this.clientId);
+    console.log('📋 Upload form data:', this.uploadForm);
+    console.log('💡 UI suggestion:', uiSuggestion);
     
-    // Simulate upload process
-    setTimeout(() => {
-      // Create new document entries for each uploaded file
-      this.uploadedFiles.forEach(file => {
-        const newDoc: Document = {
-          id: this.documents.length + 1,
-          name: file.name,
-          type: this.getFileTypeDisplay(file.type),
-          size: this.formatFileSize(file.size),
-          uploadDate: new Date().toISOString(),
-          status: 'pending',
-          category: this.uploadForm.category as any
+    // Upload each file individually using the real API
+    const uploadPromises = this.uploadedFiles.map(file => {
+      return this.apiService.uploadClientDocument(
+        this.clientId,
+        file,
+        this.uploadForm.title,
+        this.uploadForm.category,
+        this.uploadForm.year,
+        this.uploadForm.description,
+        uiSuggestion
+      ).toPromise();
+    });
+
+    Promise.all(uploadPromises).then(responses => {
+      console.log('✅ All uploads completed:', responses);
+      
+      // Check if all uploads were successful
+      const allSuccessful = responses.every(response => response?.success);
+      
+      if (allSuccessful) {
+        // Reload documents to get the latest list
+        this.loadDocuments();
+        
+        // Clear form and uploaded files
+        this.uploadedFiles = [];
+        this.uploadForm = {
+          category: '',
+          description: '',
+          title: '',
+          year: null
         };
         
-        // Add to documents list
-        this.documents.unshift(newDoc);
-      });
-      
-      this.filterDocuments();
-      
-      // Clear uploaded files
-      this.uploadedFiles = [];
+        // Reset suggestions
+        this.currentSuggestion = null;
+        this.showSuggestion = false;
+        
+        // Close modal
+        this.showUploadModal = false;
+        
+        // Show success message
+        Swal.fire({
+          title: 'Upload Successful!',
+          text: `${responses.length} document(s) uploaded successfully and are pending review.`,
+          icon: 'success',
+          timer: 3000,
+          showConfirmButton: false
+        });
+      } else {
+        // Some uploads failed
+        const failedCount = responses.filter(response => !response?.success).length;
+        this.showErrorMessage(`${failedCount} out of ${responses.length} uploads failed. Please try again.`);
+      }
       
       this.isUploading = false;
       
-      // Close modal
-      this.showUploadModal = false;
-      
-      // Show success message
-      Swal.fire({
-        title: 'Upload Successful!',
-        text: 'Your document has been uploaded and is pending review.',
-        icon: 'success',
-        timer: 3000,
-        showConfirmButton: false
-      });
-      
-    }, 2000); // Simulate 2 second upload time
+    }).catch(error => {
+      console.error('❌ Upload error:', error);
+      this.showErrorMessage('Upload failed. Please check your connection and try again.');
+      this.isUploading = false;
+    });
   }
   
   private getFileTypeDisplay(mimeType: string): string {
