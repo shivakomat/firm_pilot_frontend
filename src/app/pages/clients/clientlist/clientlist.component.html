@@ -189,7 +189,7 @@
 
 <!-- New Client Modal -->
 <div bsModal #newClientModal="bs-modal" class="modal fade" id="newClientModal" tabindex="-1" aria-labelledby="newClientModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="newClientModalLabel">Add New Client</h5>
@@ -327,7 +327,7 @@
 
 <!-- Edit Client Modal -->
 <div bsModal #editClientModal="bs-modal" class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="editClientModalLabel">Edit Client</h5>
@@ -406,13 +406,12 @@
             <div class="col-lg-6">
               <div class="mb-3">
                 <label for="editStatus" class="form-label">Status</label>
-                <select class="form-select" id="status" formControlName="status">
+                <select class="form-select" id="editStatus" formControlName="status">
                   <option value="">Select Status</option>
                   <option value="lead">Lead</option>
                   <option value="invited">Invited</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
-                  <option value="suspended">Suspended</option>
                 </select>
               </div>
             </div>
