@@ -2,7 +2,7 @@
 // @import '~bootstrap/scss/bootstrap';
 
 /* You can add global styles to this file, and also import other style files */
-@import '~dropzone/dist/min/dropzone.min.css';
+// @import '~dropzone/dist/min/dropzone.min.css'; // Removed - using native file upload
 
 .modal-holder {
   animation-name: example;
@@ -31,83 +31,13 @@
   opacity: 1;
 }
 
-ngx-dropzone {
-  border: 2px dashed var(--bs-border-color) !important;
-}
-
-
-
+// Removed ngx-dropzone styles - using native file upload system
 
 //
 // Dropzone
 //
 
-.dropzone {
-  min-height: 230px !important;
-  border: 2px dashed #eff2f7 !important;
-  background: #fff !important;
-  border-radius: 6px !important;
-  text-align: center;
-
-  .dz-message {
-    width: 100%;
-    margin: 1em 0;
-  }
-}
-
-[data-dz-thumbnail] {
-  width: 100%;
-  height: 100%;
-}
-
-.dropzone .dz-preview .dz-image {
-  border-radius: 20px;
-  overflow: hidden;
-  width: 120px;
-  height: 120px;
-  position: relative;
-  display: block;
-  z-index: 10;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.dropzone .dz-preview .dz-image img {
-  display: block;
-  height: 90px;
-  width: 90px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.dropzone .dz-preview .dz-remove {
-  margin-top: 10px;
-}
-
-dropzone>.dropzone.dz-wrapper .dz-message {
-  background-color: transparent !important;
-  border: none !important;
-  overflow: inherit !important;
-  width: inherit !important;
-  min-width: inherit !important;
-  min-height: 180px !important;
-  max-width: inherit !important;
-  max-height: inherit !important;
-  margin: 0px !important;
-}
-
-.dz-text {
-  font-size: 1.21875rem
-}
-
-dropzone>.dropzone.dz-wrapper {
-  min-height: 76px !important;
-  border: none !important;
-}
-
+// Removed dropzone styles - using native file upload system
 
 #component-colorpicker {
 
