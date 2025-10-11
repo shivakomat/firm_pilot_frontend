@@ -165,9 +165,6 @@
                       <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit Client Details" (click)="openEditModal(client)">
                         <i class="bx bx-pencil"></i>
                       </button>
-                      <button type="button" class="btn btn-sm btn-outline-danger" title="Delete Client">
-                        <i class="bx bx-trash"></i>
-                      </button>
                     </div>
                   </td>
                 </tr> }
@@ -293,7 +290,6 @@
                   <option value="invited">Invited</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
-                  <option value="suspended">Suspended</option>
                 </select>
                 @if(submitted && createClientForm.get('status')?.errors) {
                   <div class="invalid-feedback">
@@ -410,7 +406,7 @@
             <div class="col-lg-6">
               <div class="mb-3">
                 <label for="editStatus" class="form-label">Status</label>
-                <select class="form-select" id="editStatus" formControlName="status">
+                <select class="form-select" id="status" formControlName="status">
                   <option value="">Select Status</option>
                   <option value="lead">Lead</option>
                   <option value="invited">Invited</option>

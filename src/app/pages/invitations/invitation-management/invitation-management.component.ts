@@ -1,16 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
 import { ApiService, Invitation } from 'src/app/core/services/api.service';
+import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-invitation-management',
   templateUrl: './invitation-management.component.html',
   styleUrls: ['./invitation-management.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, PagetitleComponent]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PagetitleComponent, ModalModule]
 })
 export class InvitationManagementComponent implements OnInit {
   breadCrumbItems: any[];
@@ -30,10 +31,22 @@ export class InvitationManagementComponent implements OnInit {
     { value: 'expired', label: 'Expired' }
   ];
 
+  // Modal properties
+  @ViewChild('resendInvitationModal', { static: false }) resendInvitationModal?: ModalDirective;
+  selectedInvitation: Invitation | null = null;
+  resendInvitationForm: FormGroup;
+  resendLoading = false;
+
   constructor(
     private apiService: ApiService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private formBuilder: FormBuilder
+  ) {
+    // Initialize the resend invitation form
+    this.resendInvitationForm = this.formBuilder.group({
+      emailTemplate: ['Dear {clientName},\n\nYou have been invited to access our client portal. Please click the link below to get started:\n\n{invitationLink}\n\nThis invitation will expire on {expiryDate}.\n\nBest regards,\n{firmName}', [Validators.required]]
+    });
+  }
 
   ngOnInit(): void {
     this.breadCrumbItems = [
@@ -202,6 +215,43 @@ export class InvitationManagementComponent implements OnInit {
     }
   }
 
+  /**
+   * Open resend invitation modal
+   */
+  openResendModal(invitation: Invitation): void {
+    this.selectedInvitation = invitation;
+    this.resendInvitationModal?.show();
+  }
+
+  /**
+   * Send invitation from modal
+   */
+  sendInvitationFromModal(): void {
+    if (!this.selectedInvitation?.id) {
+      console.error('No invitation selected');
+      return;
+    }
+
+    this.resendLoading = true;
+
+    this.apiService.resendInvitation(this.selectedInvitation.id).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.loadInvitations(); // Refresh the list
+          console.log('Invitation sent successfully!');
+          alert(`Invitation email sent successfully to ${this.selectedInvitation?.clientName || this.selectedInvitation?.email}!`);
+          this.resendInvitationModal?.hide();
+          this.selectedInvitation = null;
+        }
+        this.resendLoading = false;
+      },
+      error: (error) => {
+        console.error('Error sending invitation:', error);
+        alert('Failed to send invitation email. Please try again.');
+        this.resendLoading = false;
+      }
+    });
+  }
 
   /**
    * Get summary statistics

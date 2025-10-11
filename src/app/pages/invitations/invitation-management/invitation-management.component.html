@@ -170,10 +170,10 @@
                         <div class="d-flex gap-2">
                           @if(canResendInvitation(invitation)) {
                             <button type="button" 
-                                    class="btn btn-sm btn-outline-primary" 
-                                    title="Send Invitation Email"
-                                    (click)="resendInvitation(invitation)">
-                              <i class="bx bx-mail-send"></i>
+                                    class="btn btn-sm btn-outline-warning" 
+                                    title="Resend Invitation Email"
+                                    (click)="openResendModal(invitation)">
+                              <i class="bx bx-refresh me-1"></i>Resend Invitation
                             </button>
                           }
                         </div>
@@ -198,6 +198,86 @@
             </div>
           }
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resend Invitation Modal -->
+<div bsModal #resendInvitationModal="bs-modal" class="modal fade" id="resendInvitationModal" tabindex="-1" aria-labelledby="resendInvitationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resendInvitationModalLabel">
+          <i class="bx bx-mail-send me-2"></i>Send Client Invitation
+        </h5>
+        <button type="button" class="btn-close" (click)="resendInvitationModal.hide()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="sendInvitationFromModal()" [formGroup]="resendInvitationForm" autocomplete="off" class="needs-validation" novalidate>
+          
+          <!-- Client Information Display -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card bg-light">
+                <div class="card-body p-3">
+                  <h6 class="card-title mb-2">Client Information</h6>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Name:</strong> {{selectedInvitation?.clientName}}</p>
+                      <p class="mb-1"><strong>Email:</strong> {{selectedInvitation?.email}}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Status:</strong> 
+                        <span class="badge" [ngClass]="getInvitationStatusClass(selectedInvitation?.status)">
+                          {{getInvitationStatusText(selectedInvitation?.status)}}
+                        </span>
+                      </p>
+                      @if(selectedInvitation?.invitedAt) {
+                        <p class="mb-1"><strong>Last Sent:</strong> {{selectedInvitation?.invitedAt | date:'medium'}}</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Template -->
+          <div class="row">
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="resend-template-input" class="form-label">Email Template</label>
+                <textarea id="resend-template-input" class="form-control" rows="8" 
+                          formControlName="emailTemplate" 
+                          placeholder="Customize the invitation email..."></textarea>
+                <div class="form-text">
+                  <small class="text-muted">
+                    Available variables: {{ '{' }}clientName{{ '}' }}, {{ '{' }}firmName{{ '}' }}, {{ '{' }}invitationLink{{ '}' }}, {{ '{' }}expiryDate{{ '}' }}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="row">
+            <div class="col-12">
+              <div class="text-end">
+                <button type="button" class="btn btn-outline-secondary me-2" (click)="resendInvitationModal.hide()" [disabled]="resendLoading">Cancel</button>
+                <button type="submit" class="btn btn-warning" [disabled]="resendLoading">
+                  @if(resendLoading) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Resending...
+                  } @else {
+                    <i class="bx bx-refresh me-1"></i>Resend Invitation
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </form>
       </div>
     </div>
   </div>

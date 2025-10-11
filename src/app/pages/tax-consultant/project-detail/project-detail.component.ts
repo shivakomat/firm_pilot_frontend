@@ -1,17 +1,18 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ApiService, Project, ProjectDocument, UploadDocumentResponse } from '../../../core/services/api.service';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-project-detail',
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ModalModule]
 })
 export class ProjectDetailComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -26,11 +27,23 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   selectedFile: File | null = null;
   uploadDescription = '';
 
+  // Status update modal
+  @ViewChild('statusUpdateModal', { static: false }) statusUpdateModal?: ModalDirective;
+  statusUpdateForm: FormGroup;
+  statusUpdateLoading = false;
+
   constructor(
     private route: ActivatedRoute,
+    private formBuilder: FormBuilder,
     private router: Router,
     private apiService: ApiService
-  ) {}
+  ) {
+    // Initialize status update form
+    this.statusUpdateForm = this.formBuilder.group({
+      status: ['', [Validators.required]],
+      notes: ['']
+    });
+  }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -197,6 +210,70 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  /**
+   * Open status update modal
+   */
+  openStatusUpdateModal(): void {
+    this.statusUpdateForm.patchValue({
+      status: '',
+      notes: ''
+    });
+    this.statusUpdateModal?.show();
+  }
+
+  /**
+   * Update project status
+   */
+  updateProjectStatus(): void {
+    if (!this.statusUpdateForm.valid || !this.project?.id) {
+      return;
+    }
+
+    this.statusUpdateLoading = true;
+    const formData = this.statusUpdateForm.value;
+    
+    const updateData: any = {
+      status: formData.status
+    };
+
+    // Add notes if provided
+    if (formData.notes?.trim()) {
+      updateData.notes = formData.notes.trim();
+    }
+
+    this.apiService.updateProject(this.project.id, updateData).subscribe({
+      next: (response) => {
+        if (response.success) {
+          // Update local project data
+          if (this.project) {
+            this.project.status = formData.status;
+          }
+          
+          Swal.fire({
+            title: 'Success!',
+            text: 'Project status updated successfully',
+            icon: 'success',
+            confirmButtonText: 'OK'
+          });
+          
+          this.statusUpdateModal?.hide();
+          this.statusUpdateForm.reset();
+        }
+        this.statusUpdateLoading = false;
+      },
+      error: (error) => {
+        console.error('Error updating project status:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to update project status. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        this.statusUpdateLoading = false;
+      }
+    });
   }
 
   formatDate(dateString: string): string {
