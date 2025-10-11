@@ -27,7 +27,42 @@ interface Document {
 export class DocumentsComponent implements OnInit {
   @ViewChild('uploadModal') uploadModal!: ElementRef;
   
-  documents: Document[] = [];
+  // Sample documents for testing
+  documents: Document[] = [
+    {
+      id: 1,
+      title: '2023 W-2 Form from ABC Corp',
+      name: 'w2_abc_corp_2023.pdf',
+      type: 'PDF',
+      size: '245 KB',
+      uploadDate: '2024-01-15',
+      status: 'approved',
+      category: 'tax-documents',
+      tags: ['Income', 'W-2', '2023']
+    },
+    {
+      id: 2,
+      title: 'Mortgage Interest Statement',
+      name: 'mortgage_statement_jan2024.pdf',
+      type: 'PDF',
+      size: '180 KB',
+      uploadDate: '2024-02-01',
+      status: 'pending',
+      category: 'tax-documents',
+      tags: ['Mortgage', 'Interest']
+    },
+    {
+      id: 3,
+      title: '', // No title provided - should show "No title provided"
+      name: 'receipt_office_supplies.jpg',
+      type: 'Image',
+      size: '95 KB',
+      uploadDate: '2024-02-10',
+      status: 'reviewed',
+      category: 'receipts',
+      tags: ['Office Supplies', 'Business Expense']
+    }
+  ];
   filteredDocuments: Document[] = [];
   selectedCategory: string = 'all';
   searchTerm: string = '';
@@ -93,6 +128,8 @@ export class DocumentsComponent implements OnInit {
   ngOnInit(): void {
     this.initializeClientData();
     this.loadDocuments();
+    // Initialize with sample documents for immediate display
+    this.filterDocuments();
   }
 
   initializeClientData(): void {
@@ -146,8 +183,8 @@ export class DocumentsComponent implements OnInit {
           // Map ClientDocument to local Document interface
           this.documents = response.documents.map(doc => ({
             id: doc.id,
-            title: (doc as any).title || doc.filename, // Use title if available, fallback to filename
-            name: doc.filename,
+            title: (doc as any).title || '', // Use title from backend, empty if not provided
+            name: doc.filename, // This is the actual filename from user's system
             type: this.getFileTypeFromMimeType(doc.mimeType),
             size: this.formatFileSize(doc.sizeBytes),
             uploadDate: new Date(doc.uploadedAt).toLocaleDateString(),

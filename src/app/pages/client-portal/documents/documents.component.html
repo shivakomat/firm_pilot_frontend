@@ -31,8 +31,8 @@
       <table class="table table-nowrap table-hover">
         <thead class="table-light">
           <tr>
-            <th>Title</th>
-            <th>Document Name</th>
+            <th>Document Title</th>
+            <th>File Name</th>
             <th>Type</th>
             <th>Size</th>
             <th>Upload Date</th>
@@ -45,8 +45,8 @@
           <tr *ngFor="let doc of filteredDocuments">
             <td>
               <div class="document-title">
-                <strong>{{doc.title}}</strong>
-                <small class="text-muted d-block" *ngIf="doc.title !== doc.name">{{doc.name}}</small>
+                <strong *ngIf="doc.title && doc.title !== doc.name">{{doc.title}}</strong>
+                <span class="text-muted" *ngIf="!doc.title || doc.title === doc.name">No title provided</span>
               </div>
             </td>
             <td>
