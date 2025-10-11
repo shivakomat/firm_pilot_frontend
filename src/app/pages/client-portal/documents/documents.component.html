@@ -21,7 +21,7 @@
       </div>
       <div class="col-md-6">
         <label for="searchInput" class="form-label">Search Documents</label>
-        <input type="text" id="searchInput" class="form-control" placeholder="Search by document name..." 
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by title, filename, or tags..." 
                [(ngModel)]="searchTerm" (input)="onSearchChange()">
       </div>
     </div>
@@ -31,6 +31,7 @@
       <table class="table table-nowrap table-hover">
         <thead class="table-light">
           <tr>
+            <th>Title</th>
             <th>Document Name</th>
             <th>Type</th>
             <th>Size</th>
@@ -42,6 +43,12 @@
         </thead>
         <tbody>
           <tr *ngFor="let doc of filteredDocuments">
+            <td>
+              <div class="document-title">
+                <strong>{{doc.title}}</strong>
+                <small class="text-muted d-block" *ngIf="doc.title !== doc.name">{{doc.name}}</small>
+              </div>
+            </td>
             <td>
               <div class="d-flex align-items-center">
                 <i class="ri-file-text-line me-2 text-muted"></i>
@@ -84,7 +91,7 @@
             </td>
           </tr>
           <tr *ngIf="filteredDocuments.length === 0">
-            <td colspan="7" class="text-center text-muted py-4">
+            <td colspan="8" class="text-center text-muted py-4">
               No documents found matching your criteria.
             </td>
           </tr>

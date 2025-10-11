@@ -19,6 +19,22 @@
   font-weight: 600;
 }
 
+// Document Title Styling
+.document-title {
+  strong {
+    color: #495057;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+  }
+  
+  small {
+    font-size: 0.75rem;
+    color: #6c757d !important;
+    font-style: italic;
+  }
+}
+
 // Beautiful Upload Area Styles
 .upload-area {
   border: 2px dashed #dee2e6;

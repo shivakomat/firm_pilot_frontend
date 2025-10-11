@@ -9,7 +9,8 @@ import { FileUploadConfig, UploadedFileInfo } from '../../../shared/components/f
 
 interface Document {
   id: number;
-  name: string;
+  title: string; // Document title (user-provided)
+  name: string; // File name
   type: string;
   size: string;
   uploadDate: string;
@@ -145,12 +146,14 @@ export class DocumentsComponent implements OnInit {
           // Map ClientDocument to local Document interface
           this.documents = response.documents.map(doc => ({
             id: doc.id,
+            title: (doc as any).title || doc.filename, // Use title if available, fallback to filename
             name: doc.filename,
             type: this.getFileTypeFromMimeType(doc.mimeType),
             size: this.formatFileSize(doc.sizeBytes),
             uploadDate: new Date(doc.uploadedAt).toLocaleDateString(),
             status: doc.required ? 'approved' : 'pending' as 'pending' | 'reviewed' | 'approved',
-            category: doc.tag as 'tax-documents' | 'financial-statements' | 'receipts' | 'other'
+            category: doc.tag as 'tax-documents' | 'financial-statements' | 'receipts' | 'other',
+            tags: (doc as any).tags || [] // Include tags if available from backend
           }));
           console.log('✅ Documents loaded:', this.documents.length);
           this.filterDocuments();
@@ -180,7 +183,10 @@ export class DocumentsComponent implements OnInit {
   filterDocuments(): void {
     this.filteredDocuments = this.documents.filter(doc => {
       const matchesCategory = this.selectedCategory === 'all' || doc.category === this.selectedCategory;
-      const matchesSearch = doc.name.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesSearch = this.searchTerm === '' || 
+        doc.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        doc.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(this.searchTerm.toLowerCase())));
       return matchesCategory && matchesSearch;
     });
   }
