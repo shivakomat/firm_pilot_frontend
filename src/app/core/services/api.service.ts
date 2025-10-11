@@ -232,15 +232,19 @@ export interface ClientInvitation {
 export interface ClientDocument {
   id: number;
   clientId: number;
-  projectId: number;
+  clientName?: string;
   filename: string;
+  title?: string; // User-provided title
   mimeType: string;
-  storagePath: string;
   sizeBytes: number;
-  tag: string;
+  tags: string[]; // Array of tags
   required: boolean;
   uploadedAt: string;
-  sha256Hash: string;
+  // Legacy fields (may still be present)
+  projectId?: number;
+  storagePath?: string;
+  tag?: string;
+  sha256Hash?: string;
 }
 
 export interface DocumentRequirement {

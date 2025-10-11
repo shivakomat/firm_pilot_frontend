@@ -27,42 +27,8 @@ interface Document {
 export class DocumentsComponent implements OnInit {
   @ViewChild('uploadModal') uploadModal!: ElementRef;
   
-  // Sample documents for testing
-  documents: Document[] = [
-    {
-      id: 1,
-      title: '2023 W-2 Form from ABC Corp',
-      name: 'w2_abc_corp_2023.pdf',
-      type: 'PDF',
-      size: '245 KB',
-      uploadDate: '2024-01-15',
-      status: 'approved',
-      category: 'tax-documents',
-      tags: ['W2_Form', '2023']
-    },
-    {
-      id: 2,
-      title: 'Bank Statement January 2024',
-      name: 'bank_statement_jan2024.pdf',
-      type: 'PDF',
-      size: '180 KB',
-      uploadDate: '2024-02-01',
-      status: 'pending',
-      category: 'business-documents',
-      tags: ['Bank_Statement']
-    },
-    {
-      id: 3,
-      title: '', // No title provided - should show "No title provided"
-      name: 'receipt_office_supplies.jpg',
-      type: 'Image',
-      size: '95 KB',
-      uploadDate: '2024-02-10',
-      status: 'reviewed',
-      category: 'business-documents',
-      tags: ['Receipt', 'Office_Supplies']
-    }
-  ];
+  // Documents loaded from backend
+  documents: Document[] = [];
   filteredDocuments: Document[] = [];
   selectedCategory: string = 'all';
   searchTerm: string = '';
@@ -181,19 +147,26 @@ export class DocumentsComponent implements OnInit {
     this.apiService.getClientDocuments(this.clientId).subscribe({
       next: (response) => {
         if (response.success) {
-          // Map ClientDocument to local Document interface
-          this.documents = response.documents.map(doc => ({
-            id: doc.id,
-            title: (doc as any).title || '', // Use title from backend, empty if not provided
-            name: doc.filename, // This is the actual filename from user's system
-            type: this.getFileTypeFromMimeType(doc.mimeType),
-            size: this.formatFileSize(doc.sizeBytes),
-            uploadDate: new Date(doc.uploadedAt).toLocaleDateString(),
-            status: doc.required ? 'approved' : 'pending' as 'pending' | 'reviewed' | 'approved',
-            category: doc.tag as 'tax-documents' | 'business-documents' | 'supporting-documents' | 'completed-work' | 'other',
-            tags: (doc as any).tags || [] // Include tags if available from backend
-          }));
-          console.log('✅ Documents loaded:', this.documents.length);
+          console.log('📥 Raw backend response:', response);
+          
+          // Map backend response to local Document interface
+          this.documents = response.documents.map(doc => {
+            const mappedDoc = {
+              id: doc.id,
+              title: doc.title && doc.title !== doc.filename ? doc.title : '', // Use title if different from filename
+              name: doc.filename, // Original filename from user's system
+              type: this.getFileTypeFromMimeType(doc.mimeType),
+              size: this.formatFileSize(doc.sizeBytes),
+              uploadDate: new Date(doc.uploadedAt).toLocaleDateString(),
+              status: doc.required ? 'approved' : 'pending' as 'pending' | 'reviewed' | 'approved',
+              category: this.inferCategoryFromFilename(doc.filename), // Infer category from filename/tags
+              tags: doc.tags || [] // Tags array from backend
+            };
+            console.log(`📄 Mapped document: ${doc.filename} → Category: ${mappedDoc.category}, Tags: [${mappedDoc.tags.join(', ')}]`);
+            return mappedDoc;
+          });
+          
+          console.log('✅ Documents loaded and mapped:', this.documents.length);
           this.filterDocuments();
         } else {
           console.error('❌ Failed to load documents:', response);
@@ -216,6 +189,41 @@ export class DocumentsComponent implements OnInit {
     if (mimeType.includes('image')) return 'Image';
     if (mimeType.includes('word') || mimeType.includes('document')) return 'Document';
     return 'File';
+  }
+
+  private inferCategoryFromFilename(filename: string): 'tax-documents' | 'business-documents' | 'supporting-documents' | 'completed-work' | 'other' {
+    const lowerFilename = filename.toLowerCase();
+    
+    // Tax documents patterns
+    if (lowerFilename.includes('w2') || lowerFilename.includes('1099') || 
+        lowerFilename.includes('1040') || lowerFilename.includes('schedule') ||
+        lowerFilename.includes('tax') && lowerFilename.includes('return')) {
+      return 'tax-documents';
+    }
+    
+    // Business documents patterns
+    if (lowerFilename.includes('bank') || lowerFilename.includes('statement') ||
+        lowerFilename.includes('receipt') || lowerFilename.includes('invoice') ||
+        lowerFilename.includes('expense') || lowerFilename.includes('license')) {
+      return 'business-documents';
+    }
+    
+    // Supporting documents patterns
+    if (lowerFilename.includes('id') || lowerFilename.includes('ssn') ||
+        lowerFilename.includes('address') || lowerFilename.includes('insurance') ||
+        lowerFilename.includes('passport') || lowerFilename.includes('license')) {
+      return 'supporting-documents';
+    }
+    
+    // Completed work patterns
+    if (lowerFilename.includes('completed') || lowerFilename.includes('draft') ||
+        lowerFilename.includes('client') && lowerFilename.includes('copy') ||
+        lowerFilename.includes('irs') && lowerFilename.includes('filing')) {
+      return 'completed-work';
+    }
+    
+    // Default to other
+    return 'other';
   }
 
   filterDocuments(): void {
