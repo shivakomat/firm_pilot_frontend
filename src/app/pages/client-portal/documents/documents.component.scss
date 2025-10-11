@@ -18,3 +18,182 @@
 .card-title {
   font-weight: 600;
 }
+
+// Beautiful Upload Area Styles
+.upload-area {
+  border: 2px dashed #dee2e6;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    border-color: #0d6efd;
+    background: linear-gradient(135deg, #f0f8ff 0%, #ffffff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+  }
+
+  &.drag-over {
+    border-color: #0d6efd;
+    background: linear-gradient(135deg, #e7f3ff 0%, #f0f8ff 100%);
+    transform: scale(1.02);
+    box-shadow: 0 12px 35px rgba(13, 110, 253, 0.2);
+
+    .upload-icon i {
+      animation: bounce 0.6s ease-in-out infinite alternate;
+    }
+  }
+
+  .upload-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .upload-icon {
+    i {
+      font-size: 4rem;
+      transition: all 0.3s ease;
+    }
+  }
+
+  .upload-title {
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .upload-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .upload-info {
+    background: rgba(108, 117, 125, 0.1);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    display: inline-block;
+  }
+
+  // Decorative elements
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(13, 110, 253, 0.03) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::before,
+  &.drag-over::before {
+    opacity: 1;
+  }
+}
+
+// Selected Files Styles
+.selected-files {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    &:hover {
+      border-color: #0d6efd;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .file-icon {
+      margin-right: 1rem;
+      
+      i {
+        font-size: 1.5rem;
+      }
+    }
+
+    .file-info {
+      flex: 1;
+      
+      .file-name {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.25rem;
+        word-break: break-word;
+      }
+
+      .file-size {
+        font-size: 0.875rem;
+        color: #6c757d;
+      }
+    }
+
+    .file-actions {
+      margin-left: 1rem;
+
+      .btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 0.6s ease-in-out infinite alternate;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .upload-area {
+    padding: 2rem 1rem;
+
+    .upload-icon i {
+      font-size: 3rem;
+    }
+
+    .upload-title {
+      font-size: 1.1rem;
+    }
+  }
+
+  .selected-files .file-item {
+    padding: 0.75rem;
+
+    .file-icon i {
+      font-size: 1.25rem;
+    }
+  }
+}

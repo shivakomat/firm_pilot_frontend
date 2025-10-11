@@ -153,50 +153,75 @@
                 </div>
               </div>
               
-              <!-- Dropzone -->
+              <!-- File Upload -->
               <div class="mb-3">
                 <label class="form-label">Upload Files</label>
-                <dropzone class="dropzone" [config]="dropzoneConfig" [message]="'Drop files here or click to upload.'" (success)="onUploadSuccess($event)">
-                </dropzone>
-                
-                <!-- Fallback file input -->
-                <div class="mt-2">
-                  <small class="text-muted">Having trouble? Use the </small>
-                  <input type="file" #fileInput (change)="onFileSelected($event)" 
-                         accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple style="display: none;">
-                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="fileInput.click()">
-                    <i class="ri-upload-line me-1"></i>Browse Files
-                  </button>
-                  <small class="text-muted"> option instead.</small>
+                <div class="upload-area" 
+                     [class.drag-over]="isDragOver"
+                     (dragover)="onDragOver($event)"
+                     (dragleave)="onDragLeave($event)"
+                     (drop)="onDrop($event)">
+                  <div class="upload-content">
+                    <div class="upload-icon mb-3">
+                      <i class="ri-upload-cloud-2-line" 
+                         [class]="isDragOver ? 'text-primary animate-bounce' : 'text-muted'"></i>
+                    </div>
+                    <h5 class="upload-title mb-2" 
+                        [class]="isDragOver ? 'text-primary' : 'text-dark'">
+                      {{ isDragOver ? 'Drop files here!' : 'Drag & drop files here' }}
+                    </h5>
+                    <p class="upload-subtitle text-muted mb-3">
+                      or click the button below to browse
+                    </p>
+                    <div class="upload-info mb-3">
+                      <small class="text-muted">
+                        <i class="ri-information-line me-1"></i>
+                        Supports: PDF, JPG, PNG, DOC, DOCX • Max: 10MB each • Up to {{maxFiles}} files
+                      </small>
+                    </div>
+                    <input type="file" #fileInput (change)="onFileSelected($event)" 
+                           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple style="display: none;">
+                    <button type="button" 
+                            class="btn btn-primary btn-lg px-4" 
+                            (click)="fileInput.click()"
+                            [disabled]="uploadedFiles.length >= maxFiles">
+                      <i class="ri-folder-open-line me-2"></i>
+                      {{ uploadedFiles.length >= maxFiles ? 'Max Files Reached' : 'Browse Files' }}
+                    </button>
+                  </div>
                 </div>
                 
                 <!-- Uploaded Files Preview -->
-                <div *ngIf="uploadedFiles.length > 0">
-                  <h6 class="mt-3">Selected Files:</h6>
-                  <ul class="list-unstyled mb-0">
-                    <li class="mt-2" *ngFor="let file of uploadedFiles; let i = index">
-                      <div class="border rounded">
-                        <div class="d-flex p-2">
-                          <div class="flex-shrink-0 me-3">
-                            <div class="avatar-sm bg-light rounded d-flex align-items-center justify-content-center">
-                              <i class="ri-file-text-line text-muted"></i>
-                            </div>
-                          </div>
-                          <div class="flex-grow-1">
-                            <div class="pt-1">
-                              <h6 class="fs-md mb-1">{{ file.name }}</h6>
-                              <p class="fs-sm text-muted mb-0">{{ formatFileSize(file.size) }}</p>
-                            </div>
-                          </div>
-                          <div class="flex-shrink-0 ms-3">
-                            <button (click)="removeUploadedFile(i)" class="btn btn-sm btn-outline-danger">
-                              <i class="ri-delete-bin-line"></i>
-                            </button>
-                          </div>
-                        </div>
+                <div *ngIf="uploadedFiles.length > 0" class="mt-4">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="mb-0">
+                      <i class="ri-file-list-3-line me-2 text-success"></i>
+                      Selected Files ({{uploadedFiles.length}}/{{maxFiles}})
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                            (click)="uploadedFiles = []">
+                      <i class="ri-delete-bin-line me-1"></i>Clear All
+                    </button>
+                  </div>
+                  <div class="selected-files">
+                    <div class="file-item" *ngFor="let file of uploadedFiles; let i = index">
+                      <div class="file-icon">
+                        <i [class]="getFileIcon(file.name)"></i>
                       </div>
-                    </li>
-                  </ul>
+                      <div class="file-info">
+                        <div class="file-name">{{ file.name }}</div>
+                        <div class="file-size">{{ formatFileSize(file.size) }}</div>
+                      </div>
+                      <div class="file-actions">
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-danger rounded-circle"
+                                (click)="removeUploadedFile(i)"
+                                title="Remove file">
+                          <i class="ri-close-line"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </form>

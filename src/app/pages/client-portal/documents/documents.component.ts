@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import Swal from 'sweetalert2';
-import { DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { DocumentSuggestionUtil, DocumentSuggestion, DocumentSuggestionConfig } from '../../../shared/utils/doc-suggest.util';
 import { AnalyticsService } from '../../../core/services/analytics.service';
@@ -54,20 +53,13 @@ export class DocumentsComponent implements OnInit {
   // Feature flags from environment
   suggestionConfig: DocumentSuggestionConfig = environment.documentSuggestions;
   
-  // Dropzone configuration
-  public dropzoneConfig: DropzoneConfigInterface = {
-    url: 'javascript:void(0)', // Dummy URL since we handle uploads manually
-    clickable: true,
-    addRemoveLinks: false,
-    previewsContainer: false,
-    acceptedFiles: '.pdf,.jpg,.jpeg,.png,.doc,.docx',
-    maxFilesize: 10, // 10MB
-    maxFiles: 10,
-    autoProcessQueue: false, // Prevent automatic upload
-    uploadMultiple: false,
-    parallelUploads: 1,
-    createImageThumbnails: false
-  };
+  // Drag and drop state
+  isDragOver: boolean = false;
+  
+  // File upload configuration
+  acceptedFileTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+  maxFileSize = 10 * 1024 * 1024; // 10MB in bytes
+  maxFiles = 10;
 
   constructor(
     private analyticsService: AnalyticsService,
@@ -244,12 +236,28 @@ export class DocumentsComponent implements OnInit {
     this.showUploadModal = false;
   }
   
-  onUploadSuccess(event: any): void {
-    console.log('📁 File upload success event:', event);
-    setTimeout(() => {
-      this.uploadedFiles.push(event[0]);
-      console.log('📂 Files in upload queue:', this.uploadedFiles.length);
-    }, 0);
+  // Drag and drop event handlers
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files) {
+      this.handleFiles(files);
+    }
   }
   
   removeUploadedFile(index: number): void {
@@ -259,13 +267,73 @@ export class DocumentsComponent implements OnInit {
   onFileSelected(event: any): void {
     console.log('📁 File input change event:', event);
     const files = event.target.files;
-    if (files && files.length > 0) {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        console.log('📂 Adding file via input:', file.name);
-        this.uploadedFiles.push(file);
+    if (files) {
+      this.handleFiles(files);
+    }
+  }
+
+  handleFiles(files: FileList): void {
+    console.log('📂 Processing files:', files.length);
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Validate file type
+      if (!this.isValidFileType(file)) {
+        this.showErrorMessage(`File "${file.name}" is not a supported format. Please use PDF, JPG, PNG, DOC, or DOCX files.`);
+        continue;
       }
-      console.log('📂 Total files in queue:', this.uploadedFiles.length);
+      
+      // Validate file size
+      if (file.size > this.maxFileSize) {
+        this.showErrorMessage(`File "${file.name}" is too large. Maximum size is 10MB.`);
+        continue;
+      }
+      
+      // Check if we've reached max files
+      if (this.uploadedFiles.length >= this.maxFiles) {
+        this.showErrorMessage(`Maximum ${this.maxFiles} files allowed.`);
+        break;
+      }
+      
+      // Check for duplicates
+      if (this.uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+        this.showErrorMessage(`File "${file.name}" is already selected.`);
+        continue;
+      }
+      
+      console.log('✅ Adding valid file:', file.name);
+      this.uploadedFiles.push(file);
+    }
+    
+    console.log('📂 Total files in queue:', this.uploadedFiles.length);
+    
+    // Show success message for valid files
+    if (this.uploadedFiles.length > 0) {
+      const fileText = this.uploadedFiles.length === 1 ? 'file' : 'files';
+      console.log(`🎉 ${this.uploadedFiles.length} ${fileText} ready for upload!`);
+    }
+  }
+
+  isValidFileType(file: File): boolean {
+    const fileName = file.name.toLowerCase();
+    return this.acceptedFileTypes.some(type => fileName.endsWith(type.substring(1)));
+  }
+
+  getFileIcon(fileName: string): string {
+    const extension = fileName.toLowerCase().split('.').pop();
+    switch (extension) {
+      case 'pdf':
+        return 'ri-file-pdf-line text-danger';
+      case 'doc':
+      case 'docx':
+        return 'ri-file-word-line text-primary';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return 'ri-image-line text-success';
+      default:
+        return 'ri-file-text-line text-muted';
     }
   }
   
