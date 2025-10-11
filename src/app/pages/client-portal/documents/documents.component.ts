@@ -451,17 +451,22 @@ export class DocumentsComponent implements OnInit {
     
     console.log('📤 Uploading documents for client ID:', this.clientId);
     console.log('📋 Upload form data:', this.uploadForm);
+    console.log('🏷️ Selected tags:', this.selectedTags);
     console.log('💡 UI suggestion:', uiSuggestion);
     
     // Upload each file individually using the real API
     const uploadPromises = this.uploadedFiles.map(file => {
+      // Temporarily include tags in description until backend supports tags parameter
+      const descriptionWithTags = this.uploadForm.description + 
+        (this.selectedTags.length > 0 ? ` [Tags: ${this.selectedTags.join(', ')}]` : '');
+      
       return this.apiService.uploadClientDocument(
         this.clientId,
         file,
         this.uploadForm.title,
         this.uploadForm.category,
         this.uploadForm.year,
-        this.uploadForm.description,
+        descriptionWithTags,
         uiSuggestion
       ).toPromise();
     });
