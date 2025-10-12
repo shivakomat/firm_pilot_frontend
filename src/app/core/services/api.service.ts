@@ -1602,10 +1602,15 @@ export class ApiService {
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${token}`,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
 
-    return this.http.get<{ success: boolean; documents: ClientDocument[] }>(`${this.baseUrl}/clients/${clientId}/documents`, { headers });
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    return this.http.get<{ success: boolean; documents: ClientDocument[] }>(`${this.baseUrl}/clients/${clientId}/documents?_t=${timestamp}`, { headers });
   }
 
   /**

@@ -130,19 +130,19 @@ export class DocumentsComponent implements OnInit {
       title: 'Error',
       text: message,
       icon: 'error',
-      confirmButtonText: 'OK'
     });
   }
 
   loadDocuments(): void {
     if (!this.clientId) {
-      console.error('❌ No client ID available for loading documents');
+      console.warn('⚠️ No client ID available, cannot load documents');
       this.documents = [];
       this.filterDocuments();
       return;
     }
 
     console.log('📋 Loading documents for client ID:', this.clientId);
+    console.log('🔄 Fetching fresh data from server...');
 
     this.apiService.getClientDocuments(this.clientId).subscribe({
       next: (response) => {
@@ -413,13 +413,6 @@ export class DocumentsComponent implements OnInit {
         if (response.success) {
           console.log('✅ Document deleted successfully:', response.message);
           
-          // Remove from local array immediately for better UX
-          const index = this.documents.findIndex(d => d.id === doc.id);
-          if (index > -1) {
-            this.documents.splice(index, 1);
-            this.filterDocuments();
-          }
-          
           // Show success message
           Swal.fire({
             title: 'Deleted!',
@@ -429,8 +422,9 @@ export class DocumentsComponent implements OnInit {
             showConfirmButton: false
           });
           
-          // Optionally reload documents from server to ensure consistency
-          // this.loadDocuments();
+          // Reload documents from server to ensure consistency
+          console.log('🔄 Reloading documents to verify deletion...');
+          this.loadDocuments();
         } else {
           console.error('❌ Delete failed:', response);
           this.showErrorMessage('Failed to delete document. Please try again.');
