@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement } from '../../../core/services/api.service';
@@ -35,6 +35,14 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   editLoading = false;
 
   @ViewChild('editClientModal', { static: false }) editClientModal?: ModalDirective;
+  @ViewChild('notesEditor', { static: false }) notesEditor?: ElementRef;
+
+  // Meeting Notes Properties
+  meetingNotes: string = '';
+  isEditingNotes: boolean = false;
+  isSavingNotes: boolean = false;
+  notesLastUpdated: string | null = null;
+  notesUpdatedBy: string | null = null;
 
   // Project status mapping
   projectStatuses = [
@@ -421,5 +429,93 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Meeting Notes Methods
+  toggleNotesEdit(): void {
+    if (this.isEditingNotes) {
+      // Cancel editing - revert changes
+      this.isEditingNotes = false;
+      // TODO: Reload notes from server to revert changes
+    } else {
+      // Start editing
+      this.isEditingNotes = true;
+      // Focus the editor after the view updates
+      setTimeout(() => {
+        if (this.notesEditor?.nativeElement) {
+          this.notesEditor.nativeElement.focus();
+        }
+      }, 100);
+    }
+  }
+
+  saveNotes(): void {
+    this.isSavingNotes = true;
+    
+    // TODO: Replace with actual API call
+    console.log('💾 Saving meeting notes:', this.meetingNotes);
+    
+    // Simulate API call
+    setTimeout(() => {
+      this.isSavingNotes = false;
+      this.isEditingNotes = false;
+      this.notesLastUpdated = new Date().toISOString();
+      this.notesUpdatedBy = 'Current User'; // TODO: Get from auth service
+      
+      Swal.fire({
+        title: 'Notes Saved!',
+        text: 'Meeting notes have been saved successfully.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }, 1000);
+  }
+
+  onNotesChange(event: Event): void {
+    const target = event.target as HTMLElement;
+    this.meetingNotes = target.innerHTML;
+  }
+
+  onPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const text = event.clipboardData?.getData('text/plain') || '';
+    document.execCommand('insertText', false, text);
+  }
+
+  formatText(command: string): void {
+    document.execCommand(command, false);
+    if (this.notesEditor?.nativeElement) {
+      this.notesEditor.nativeElement.focus();
+    }
+  }
+
+  insertDateTime(): void {
+    const now = new Date();
+    const dateTime = now.toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    const formattedDateTime = `<br><strong>📅 ${dateTime}</strong><br>`;
+    document.execCommand('insertHTML', false, formattedDateTime);
+    
+    if (this.notesEditor?.nativeElement) {
+      this.notesEditor.nativeElement.focus();
+    }
+  }
+
+  formatNotesForDisplay(notes: string): string {
+    if (!notes) return '';
+    
+    // Basic HTML sanitization - in production, use a proper sanitization library
+    return notes
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/javascript:/gi, '');
   }
 }
