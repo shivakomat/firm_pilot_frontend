@@ -249,10 +249,10 @@
                   </div>
 
                   <!-- Selected Tags Display -->
-                  <div class="selected-tags" *ngIf="selectedTags.length > 0">
+                  <div class="selected-tags" *ngIf="uploadForm.tags.length > 0">
                     <h6 class="small text-muted mb-2">Selected Tags:</h6>
                     <div class="selected-tag-badges">
-                      <span class="badge bg-primary me-2 mb-2" *ngFor="let tag of selectedTags">
+                      <span class="badge bg-primary me-2 mb-2" *ngFor="let tag of uploadForm.tags">
                         <i class="ri-price-tag-3-line me-1"></i>{{tag}}
                         <button type="button" 
                                 class="btn-close btn-close-white ms-2"

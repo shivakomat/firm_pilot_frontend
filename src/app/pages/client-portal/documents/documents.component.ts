@@ -357,34 +357,37 @@ export class DocumentsComponent implements OnInit {
   }
 
   toggleTag(tag: string): void {
-    const index = this.selectedTags.indexOf(tag);
+    const index = this.uploadForm.tags.indexOf(tag);
     if (index > -1) {
-      this.selectedTags.splice(index, 1);
+      this.uploadForm.tags.splice(index, 1);
     } else {
-      this.selectedTags.push(tag);
+      this.uploadForm.tags.push(tag);
     }
-    this.uploadForm.tags = [...this.selectedTags];
+    // Keep selectedTags in sync for backward compatibility
+    this.selectedTags = [...this.uploadForm.tags];
   }
 
   isTagSelected(tag: string): boolean {
-    return this.selectedTags.includes(tag);
+    return this.uploadForm.tags.includes(tag);
   }
 
   addCustomTag(): void {
     const customTag = this.uploadForm.customTag.trim();
-    if (customTag && !this.selectedTags.includes(customTag)) {
-      this.selectedTags.push(customTag);
-      this.uploadForm.tags = [...this.selectedTags];
+    if (customTag && !this.uploadForm.tags.includes(customTag)) {
+      this.uploadForm.tags.push(customTag);
+      // Keep selectedTags in sync for backward compatibility
+      this.selectedTags = [...this.uploadForm.tags];
       this.uploadForm.customTag = '';
       this.showCustomTagInput = false;
     }
   }
 
   removeTag(tag: string): void {
-    const index = this.selectedTags.indexOf(tag);
+    const index = this.uploadForm.tags.indexOf(tag);
     if (index > -1) {
-      this.selectedTags.splice(index, 1);
-      this.uploadForm.tags = [...this.selectedTags];
+      this.uploadForm.tags.splice(index, 1);
+      // Keep selectedTags in sync for backward compatibility
+      this.selectedTags = [...this.uploadForm.tags];
     }
   }
 
