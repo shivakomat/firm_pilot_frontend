@@ -320,12 +320,12 @@
 .document-title {
   strong {
     color: #495057;
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 500;
+    font-size: 0.875rem; // Same as filename font size
   }
   
   .text-muted {
-    font-size: 0.85rem;
+    font-size: 0.875rem; // Same as filename font size
     font-style: italic;
   }
 }
@@ -384,7 +384,7 @@
   
   .document-title {
     strong, .text-muted {
-      font-size: 0.8rem;
+      font-size: 0.8rem; // Slightly smaller on mobile but consistent with filename
     }
   }
   
