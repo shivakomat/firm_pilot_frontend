@@ -310,10 +310,55 @@
   }
 }
 
+// Notes List Styling
+.notes-list {
+  .note-item {
+    transition: all 0.3s ease-in-out;
+    border: 1px solid #e3e6f0 !important;
+    
+    &:hover {
+      box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .note-content {
+      .notes-display-content {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        
+        p {
+          margin-bottom: 0.75rem;
+        }
+        
+        ul, ol {
+          margin-left: 1.5rem;
+          margin-bottom: 0.75rem;
+        }
+        
+        strong {
+          font-weight: 600;
+          color: #2c3e50;
+        }
+        
+        em {
+          font-style: italic;
+          color: #5a6c7d;
+        }
+      }
+    }
+  }
+}
+
 // Animation for smooth transitions
-.notes-display, .notes-editor {
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+.notes-display, .notes-editor, .note-item {
   transition: all 0.3s ease-in-out;
+}
+
+.card-body {
+  .notes-content, .note-item {
+    animation: fadeIn 0.3s ease-in-out;
+  }
 }
 
 // Tab content animations

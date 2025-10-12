@@ -37,15 +37,12 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   @ViewChild('editClientModal', { static: false }) editClientModal?: ModalDirective;
   @ViewChild('notesEditor', { static: false }) notesEditor?: ElementRef;
 
-  // Meeting Notes Properties
-  currentNote: ClientNote | null = null;
-  meetingNotes: string = '';
-  noteTitle: string = 'Meeting Notes';
-  noteType: 'MEETING' | 'PHONE_CALL' | 'EMAIL' | 'CONSULTATION' | 'FOLLOW_UP' | 'GENERAL' = 'MEETING';
-  isEditingNotes: boolean = false;
-  isSavingNotes: boolean = false;
-  isLoadingNotes: boolean = false;
+  // Client Notes Properties
   allNotes: ClientNote[] = [];
+  isLoadingNotes: boolean = false;
+  editingNoteId: number | null = null;
+  editingNote: Partial<ClientNote> = {};
+  isSavingNote: boolean = false;
 
   // Project status mapping
   projectStatuses = [
@@ -437,84 +434,194 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  // Meeting Notes Methods
-  toggleNotesEdit(): void {
-    if (this.isEditingNotes) {
-      // Cancel editing - revert changes
-      this.isEditingNotes = false;
-      
-      // Revert to original content
-      if (this.currentNote) {
-        this.meetingNotes = this.currentNote.content;
-        this.noteTitle = this.currentNote.title;
-      } else {
-        this.meetingNotes = '';
-        this.noteTitle = 'Meeting Notes';
-      }
-    } else {
-      // Start editing
-      this.isEditingNotes = true;
-      // Focus the editor after the view updates
-      setTimeout(() => {
-        if (this.notesEditor?.nativeElement) {
-          this.notesEditor.nativeElement.focus();
+  // Client Notes Methods
+  loadNotes(): void {
+    if (!this.clientId) return;
+    
+    this.isLoadingNotes = true;
+    
+    this.apiService.getClientNotes(this.clientId).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.allNotes = response.notes.sort((a, b) => 
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          );
         }
-      }, 100);
-    }
+        this.isLoadingNotes = false;
+      },
+      error: (error) => {
+        console.error('❌ Error loading notes:', error);
+        this.isLoadingNotes = false;
+      }
+    });
   }
 
-  saveNotes(): void {
-    this.isSavingNotes = true;
-    
-    // TODO: Replace with actual API call
-    console.log('💾 Saving meeting notes:', this.meetingNotes);
-    
-    const noteData: CreateNoteRequest | UpdateNoteRequest = {
-      title: this.noteTitle,
-      content: this.meetingNotes,
-      noteType: this.noteType
+  addNewNote(): void {
+    const newNote: CreateNoteRequest = {
+      title: 'New Note',
+      content: '',
+      noteType: 'GENERAL'
     };
 
-    const apiCall = this.currentNote 
-      ? this.apiService.updateNote(this.currentNote.id, noteData as UpdateNoteRequest)
-      : this.apiService.createClientNote(this.clientId, noteData as CreateNoteRequest);
-
-    apiCall.subscribe({
+    this.apiService.createClientNote(this.clientId, newNote).subscribe({
       next: (response) => {
         if (response.success && response.note) {
-          this.currentNote = response.note;
-          this.isSavingNotes = false;
-          this.isEditingNotes = false;
-          
-          Swal.fire({
-            title: 'Notes Saved!',
-            text: 'Meeting notes have been saved successfully.',
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-          });
-
-          // Reload notes to get updated list
-          this.loadNotes();
-        } else {
-          throw new Error(response.message || 'Failed to save notes');
+          this.allNotes.unshift(response.note);
+          this.editNote(response.note);
         }
       },
       error: (error) => {
-        console.error('❌ Error saving notes:', error);
-        this.isSavingNotes = false;
+        console.error('❌ Error creating note:', error);
         Swal.fire({
           title: 'Error',
-          text: 'Failed to save notes. Please try again.',
+          text: 'Failed to create note. Please try again.',
           icon: 'error'
         });
       }
     });
   }
 
+  editNote(note: ClientNote): void {
+    this.editingNoteId = note.id;
+    this.editingNote = {
+      title: note.title,
+      content: note.content,
+      noteType: note.noteType
+    };
+    
+    setTimeout(() => {
+      if (this.notesEditor?.nativeElement) {
+        this.notesEditor.nativeElement.focus();
+      }
+    }, 100);
+  }
+
+  saveNote(noteId: number): void {
+    if (!this.editingNote.title?.trim() || !this.editingNote.content?.trim()) {
+      Swal.fire({
+        title: 'Validation Error',
+        text: 'Please provide both title and content for the note.',
+        icon: 'warning'
+      });
+      return;
+    }
+
+    this.isSavingNote = true;
+    
+    const noteData: UpdateNoteRequest = {
+      title: this.editingNote.title!,
+      content: this.editingNote.content!,
+      noteType: this.editingNote.noteType!
+    };
+
+    this.apiService.updateNote(noteId, noteData).subscribe({
+      next: (response) => {
+        if (response.success && response.note) {
+          // Update the note in the list
+          const index = this.allNotes.findIndex(n => n.id === noteId);
+          if (index > -1) {
+            this.allNotes[index] = response.note;
+          }
+          
+          this.cancelEdit();
+          
+          Swal.fire({
+            title: 'Note Saved!',
+            text: 'Note has been updated successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+        this.isSavingNote = false;
+      },
+      error: (error) => {
+        console.error('❌ Error saving note:', error);
+        this.isSavingNote = false;
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to save note. Please try again.',
+          icon: 'error'
+        });
+      }
+    });
+  }
+
+  cancelEdit(): void {
+    this.editingNoteId = null;
+    this.editingNote = {};
+  }
+
+  deleteNote(note: ClientNote): void {
+    Swal.fire({
+      title: 'Delete Note?',
+      text: `Are you sure you want to delete "${note.title}"? This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.apiService.deleteNote(note.id).subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.allNotes = this.allNotes.filter(n => n.id !== note.id);
+              
+              Swal.fire({
+                title: 'Deleted!',
+                text: 'Note has been deleted.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+              });
+            }
+          },
+          error: (error) => {
+            console.error('❌ Error deleting note:', error);
+            Swal.fire({
+              title: 'Error',
+              text: 'Failed to delete note. Please try again.',
+              icon: 'error'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  trackByNoteId(index: number, note: ClientNote): number {
+    return note.id;
+  }
+
+  getNoteTypeClass(noteType: string): string {
+    switch (noteType) {
+      case 'MEETING': return 'bg-primary';
+      case 'PHONE_CALL': return 'bg-success';
+      case 'EMAIL': return 'bg-info';
+      case 'CONSULTATION': return 'bg-warning';
+      case 'FOLLOW_UP': return 'bg-secondary';
+      case 'GENERAL': return 'bg-light text-dark';
+      default: return 'bg-light text-dark';
+    }
+  }
+
+  getNoteTypeLabel(noteType: string): string {
+    switch (noteType) {
+      case 'MEETING': return 'Meeting';
+      case 'PHONE_CALL': return 'Phone Call';
+      case 'EMAIL': return 'Email';
+      case 'CONSULTATION': return 'Consultation';
+      case 'FOLLOW_UP': return 'Follow Up';
+      case 'GENERAL': return 'General';
+      default: return noteType;
+    }
+  }
+
   onNotesChange(event: Event): void {
     const target = event.target as HTMLElement;
-    this.meetingNotes = target.innerHTML;
+    this.editingNote.content = target.innerHTML;
   }
 
   onPaste(event: ClipboardEvent): void {
@@ -549,37 +656,6 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadNotes(): void {
-    if (!this.clientId) return;
-    
-    this.isLoadingNotes = true;
-    
-    this.apiService.getClientNotes(this.clientId, 'MEETING').subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.allNotes = response.notes;
-          
-          // Load the first meeting note or create new one
-          const meetingNote = response.notes.find(note => note.noteType === 'MEETING');
-          if (meetingNote) {
-            this.currentNote = meetingNote;
-            this.meetingNotes = meetingNote.content;
-            this.noteTitle = meetingNote.title;
-          } else {
-            // No existing meeting notes
-            this.currentNote = null;
-            this.meetingNotes = '';
-            this.noteTitle = 'Meeting Notes';
-          }
-        }
-        this.isLoadingNotes = false;
-      },
-      error: (error) => {
-        console.error('❌ Error loading notes:', error);
-        this.isLoadingNotes = false;
-      }
-    });
-  }
 
   formatNotesForDisplay(notes: string): string {
     if (!notes) return '';
