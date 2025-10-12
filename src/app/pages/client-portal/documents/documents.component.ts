@@ -57,15 +57,16 @@ export class DocumentsComponent implements OnInit {
     'business-documents': ['Bank_Statement', 'Receipt', 'Invoice', 'Expense_Report', 'Business_License'],
     'supporting-documents': ['ID_Document', 'SSN_Card', 'Proof_of_Address', 'Insurance_Document'],
     'completed-work': ['Completed_Tax_Return', 'Draft_Return', 'Client_Copy', 'IRS_Filing_Copy'],
-    'other': ['Notice']
   };
 
   selectedTags: string[] = [];
   showCustomTagInput: boolean = false;
 
-  // Document suggestion properties
-  currentSuggestion: DocumentSuggestion | null = null;
+  // UI State
   showSuggestion: boolean = false;
+  currentSuggestion: DocumentSuggestion | null = null;
+  showAutoTagNotification: boolean = false;
+  autoSuggestedTags: string[] = [];
   titleSubject = new Subject<string>();
   
   // Feature flags from environment
@@ -314,6 +315,10 @@ export class DocumentsComponent implements OnInit {
     };
     this.selectedTags = [];
     this.showCustomTagInput = false;
+    
+    // Reset auto-tag notification
+    this.showAutoTagNotification = false;
+    this.autoSuggestedTags = [];
     
     // Reset suggestions
     this.currentSuggestion = null;
@@ -580,7 +585,7 @@ export class DocumentsComponent implements OnInit {
   }
 
   /**
-   * Parse title for suggestions
+   * Parse title for suggestions and auto-add relevant tags
    */
   parseTitleForSuggestions(title: string): void {
     const suggestion = DocumentSuggestionUtil.parseTitleForSuggestions(title, this.suggestionConfig);
@@ -588,6 +593,9 @@ export class DocumentsComponent implements OnInit {
     if (suggestion.confidence > 0) {
       this.currentSuggestion = suggestion;
       this.showSuggestion = !this.suggestionMatchesCurrentForm(suggestion);
+      
+      // Auto-add tags based on identified keywords
+      this.autoAddTagsFromTitle(title, suggestion);
       
       // Track suggestion shown
       this.analyticsService.trackDocumentSuggestionShown(
@@ -599,6 +607,98 @@ export class DocumentsComponent implements OnInit {
       this.currentSuggestion = null;
       this.showSuggestion = false;
     }
+  }
+
+  /**
+   * Automatically add tags based on title keywords
+   */
+  private autoAddTagsFromTitle(title: string, suggestion: any): void {
+    const lowerTitle = title.toLowerCase();
+    const suggestedTags: string[] = [];
+    
+    // Define keyword-to-tag mappings
+    const keywordMappings = {
+      // Tax-related keywords
+      'w2': 'W-2',
+      'w-2': 'W-2',
+      '1099': '1099',
+      '1040': 'Tax Return',
+      'tax return': 'Tax Return',
+      'schedule': 'Tax Schedule',
+      'irs': 'IRS',
+      
+      // Income keywords
+      'salary': 'Income',
+      'wages': 'Income',
+      'income': 'Income',
+      'payroll': 'Income',
+      'earnings': 'Income',
+      
+      // Business keywords
+      'receipt': 'Receipt',
+      'invoice': 'Invoice',
+      'expense': 'Expense',
+      'bank statement': 'Bank Statement',
+      'statement': 'Statement',
+      
+      // Mortgage keywords
+      'mortgage': 'Mortgage',
+      'loan': 'Mortgage',
+      'property': 'Property',
+      'real estate': 'Property',
+      
+      // Notice keywords
+      'notice': 'Notice',
+      'letter': 'Notice',
+      'correspondence': 'Notice',
+      'irs notice': 'IRS Notice',
+      
+      // Insurance keywords
+      'insurance': 'Insurance',
+      'policy': 'Insurance',
+      'coverage': 'Insurance'
+    };
+    
+    // Check for keyword matches
+    for (const [keyword, tag] of Object.entries(keywordMappings)) {
+      if (lowerTitle.includes(keyword)) {
+        if (!suggestedTags.includes(tag)) {
+          suggestedTags.push(tag);
+        }
+      }
+    }
+    
+    // Add suggested tags to the form if not already present
+    suggestedTags.forEach(tag => {
+      if (!this.uploadForm.tags?.includes(tag)) {
+        if (!this.uploadForm.tags) {
+          this.uploadForm.tags = [];
+        }
+        this.uploadForm.tags.push(tag);
+        console.log(`🏷️ Auto-added tag: "${tag}" based on title keyword`);
+      }
+    });
+    
+    // Show notification if tags were added
+    if (suggestedTags.length > 0) {
+      console.log(`✨ Auto-suggested ${suggestedTags.length} tag(s) based on title: ${suggestedTags.join(', ')}`);
+      
+      // Show UI notification
+      this.autoSuggestedTags = suggestedTags;
+      this.showAutoTagNotification = true;
+      
+      // Auto-hide notification after 5 seconds
+      setTimeout(() => {
+        this.showAutoTagNotification = false;
+      }, 5000);
+    }
+  }
+
+  /**
+   * Dismiss the auto-tag notification
+   */
+  dismissAutoTagNotification(): void {
+    this.showAutoTagNotification = false;
   }
 
   /**

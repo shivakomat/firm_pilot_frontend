@@ -190,6 +190,18 @@
                   </label>
                   <p class="text-muted small mb-2">Select relevant tags to help organize and find your documents</p>
                   
+                  <!-- Auto-suggestion notification -->
+                  <div class="alert alert-info alert-dismissible fade show py-2 px-3 mb-2" 
+                       *ngIf="showAutoTagNotification" 
+                       style="font-size: 0.85rem;">
+                    <i class="ri-lightbulb-line me-1"></i>
+                    <strong>Smart Tags Added!</strong> We automatically added {{ autoSuggestedTags.length }} tag(s) based on your document title: 
+                    <span class="fw-bold">{{ autoSuggestedTags.join(', ') }}</span>
+                    <button type="button" class="btn-close btn-close-sm" 
+                            (click)="dismissAutoTagNotification()" 
+                            aria-label="Close" style="font-size: 0.7rem;"></button>
+                  </div>
+                  
                   <!-- Predefined Tags -->
                   <div class="predefined-tags mb-3" *ngIf="getCurrentCategoryTags().length > 0">
                     <h6 class="small text-muted mb-2">Suggested Tags:</h6>
