@@ -461,6 +461,48 @@ export interface SubmitIntakeResponse {
   response?: IntakeResponse;
 }
 
+// Client Notes Interfaces
+export interface ClientNote {
+  id: number;
+  clientId: number;
+  accountantId: number;
+  title: string;
+  content: string;
+  noteType: 'MEETING' | 'PHONE_CALL' | 'EMAIL' | 'CONSULTATION' | 'FOLLOW_UP' | 'GENERAL';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNoteRequest {
+  title: string;
+  content: string;
+  noteType?: 'MEETING' | 'PHONE_CALL' | 'EMAIL' | 'CONSULTATION' | 'FOLLOW_UP' | 'GENERAL';
+}
+
+export interface UpdateNoteRequest {
+  title: string;
+  content: string;
+  noteType?: 'MEETING' | 'PHONE_CALL' | 'EMAIL' | 'CONSULTATION' | 'FOLLOW_UP' | 'GENERAL';
+}
+
+export interface GetNotesResponse {
+  success: boolean;
+  notes: ClientNote[];
+  totalCount: number;
+  message?: string;
+}
+
+export interface NoteResponse {
+  success: boolean;
+  note?: ClientNote;
+  message?: string;
+}
+
+export interface DeleteNoteResponse {
+  success: boolean;
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -1687,5 +1729,120 @@ export class ApiService {
     });
 
     return this.http.delete<{ success: boolean; message: string }>(`${this.baseUrl}/documents/${documentId}`, { headers });
+  }
+
+  // Client Notes API Methods
+
+  /**
+   * Get all notes for a client
+   * @param clientId - ID of the client
+   * @param type - Optional note type filter
+   * @param search - Optional search keyword
+   */
+  getClientNotes(clientId: number, type?: string, search?: string): Observable<GetNotesResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    let url = `${this.baseUrl}/clients/${clientId}/notes`;
+    const params = new URLSearchParams();
+    
+    if (type) {
+      params.append('type', type);
+    }
+    if (search) {
+      params.append('search', search);
+    }
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    return this.http.get<GetNotesResponse>(url, { headers });
+  }
+
+  /**
+   * Create a new note for a client
+   * @param clientId - ID of the client
+   * @param noteData - Note data to create
+   */
+  createClientNote(clientId: number, noteData: CreateNoteRequest): Observable<NoteResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<NoteResponse>(`${this.baseUrl}/clients/${clientId}/notes`, noteData, { headers });
+  }
+
+  /**
+   * Get a specific note by ID
+   * @param noteId - ID of the note
+   */
+  getNote(noteId: number): Observable<NoteResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<NoteResponse>(`${this.baseUrl}/notes/${noteId}`, { headers });
+  }
+
+  /**
+   * Update a note
+   * @param noteId - ID of the note to update
+   * @param noteData - Updated note data
+   */
+  updateNote(noteId: number, noteData: UpdateNoteRequest): Observable<NoteResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.put<NoteResponse>(`${this.baseUrl}/notes/${noteId}`, noteData, { headers });
+  }
+
+  /**
+   * Delete a note
+   * @param noteId - ID of the note to delete
+   */
+  deleteNote(noteId: number): Observable<DeleteNoteResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.delete<DeleteNoteResponse>(`${this.baseUrl}/notes/${noteId}`, { headers });
   }
 }

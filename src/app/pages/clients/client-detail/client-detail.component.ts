@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement } from '../../../core/services/api.service';
+import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement, ClientNote, CreateNoteRequest, UpdateNoteRequest } from '../../../core/services/api.service';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -38,11 +38,14 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   @ViewChild('notesEditor', { static: false }) notesEditor?: ElementRef;
 
   // Meeting Notes Properties
+  currentNote: ClientNote | null = null;
   meetingNotes: string = '';
+  noteTitle: string = 'Meeting Notes';
+  noteType: 'MEETING' | 'PHONE_CALL' | 'EMAIL' | 'CONSULTATION' | 'FOLLOW_UP' | 'GENERAL' = 'MEETING';
   isEditingNotes: boolean = false;
   isSavingNotes: boolean = false;
-  notesLastUpdated: string | null = null;
-  notesUpdatedBy: string | null = null;
+  isLoadingNotes: boolean = false;
+  allNotes: ClientNote[] = [];
 
   // Project status mapping
   projectStatuses = [
@@ -114,6 +117,9 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
             this.documents = details.documents;
             this.documentRequirements = details.documentRequirements;
             this.invitation = details.invitation || null;
+            
+            // Load meeting notes
+            this.loadNotes();
           }
           this.isLoading = false;
         },
@@ -436,7 +442,15 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     if (this.isEditingNotes) {
       // Cancel editing - revert changes
       this.isEditingNotes = false;
-      // TODO: Reload notes from server to revert changes
+      
+      // Revert to original content
+      if (this.currentNote) {
+        this.meetingNotes = this.currentNote.content;
+        this.noteTitle = this.currentNote.title;
+      } else {
+        this.meetingNotes = '';
+        this.noteTitle = 'Meeting Notes';
+      }
     } else {
       // Start editing
       this.isEditingNotes = true;
@@ -455,21 +469,47 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     // TODO: Replace with actual API call
     console.log('💾 Saving meeting notes:', this.meetingNotes);
     
-    // Simulate API call
-    setTimeout(() => {
-      this.isSavingNotes = false;
-      this.isEditingNotes = false;
-      this.notesLastUpdated = new Date().toISOString();
-      this.notesUpdatedBy = 'Current User'; // TODO: Get from auth service
-      
-      Swal.fire({
-        title: 'Notes Saved!',
-        text: 'Meeting notes have been saved successfully.',
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
-      });
-    }, 1000);
+    const noteData: CreateNoteRequest | UpdateNoteRequest = {
+      title: this.noteTitle,
+      content: this.meetingNotes,
+      noteType: this.noteType
+    };
+
+    const apiCall = this.currentNote 
+      ? this.apiService.updateNote(this.currentNote.id, noteData as UpdateNoteRequest)
+      : this.apiService.createClientNote(this.clientId, noteData as CreateNoteRequest);
+
+    apiCall.subscribe({
+      next: (response) => {
+        if (response.success && response.note) {
+          this.currentNote = response.note;
+          this.isSavingNotes = false;
+          this.isEditingNotes = false;
+          
+          Swal.fire({
+            title: 'Notes Saved!',
+            text: 'Meeting notes have been saved successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          // Reload notes to get updated list
+          this.loadNotes();
+        } else {
+          throw new Error(response.message || 'Failed to save notes');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error saving notes:', error);
+        this.isSavingNotes = false;
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to save notes. Please try again.',
+          icon: 'error'
+        });
+      }
+    });
   }
 
   onNotesChange(event: Event): void {
@@ -507,6 +547,38 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     if (this.notesEditor?.nativeElement) {
       this.notesEditor.nativeElement.focus();
     }
+  }
+
+  loadNotes(): void {
+    if (!this.clientId) return;
+    
+    this.isLoadingNotes = true;
+    
+    this.apiService.getClientNotes(this.clientId, 'MEETING').subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.allNotes = response.notes;
+          
+          // Load the first meeting note or create new one
+          const meetingNote = response.notes.find(note => note.noteType === 'MEETING');
+          if (meetingNote) {
+            this.currentNote = meetingNote;
+            this.meetingNotes = meetingNote.content;
+            this.noteTitle = meetingNote.title;
+          } else {
+            // No existing meeting notes
+            this.currentNote = null;
+            this.meetingNotes = '';
+            this.noteTitle = 'Meeting Notes';
+          }
+        }
+        this.isLoadingNotes = false;
+      },
+      error: (error) => {
+        console.error('❌ Error loading notes:', error);
+        this.isLoadingNotes = false;
+      }
+    });
   }
 
   formatNotesForDisplay(notes: string): string {
