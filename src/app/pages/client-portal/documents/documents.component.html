@@ -46,8 +46,8 @@
           <tr *ngFor="let doc of filteredDocuments">
             <td>
               <div class="document-title">
-                <strong *ngIf="doc.title && doc.title !== doc.name">{{doc.title}}</strong>
-                <span class="text-muted" *ngIf="!doc.title || doc.title === doc.name">No title provided</span>
+                <strong *ngIf="doc.title && doc.title.trim() && doc.title !== doc.name">{{doc.title}}</strong>
+                <span class="text-muted" *ngIf="!doc.title || !doc.title.trim() || doc.title === doc.name">No title provided</span>
               </div>
             </td>
             <td>
@@ -61,12 +61,12 @@
             <td>{{doc.uploadDate | date:'shortDate'}}</td>
             <td>
               <div class="tags-container" *ngIf="doc.tags && doc.tags.length > 0; else noTags">
-                <span class="badge bg-light text-dark me-1 mb-1" *ngFor="let tag of doc.tags">
+                <span class="badge bg-primary text-white me-1 mb-1" *ngFor="let tag of doc.tags">
                   <i class="ri-price-tag-3-line me-1"></i>{{tag}}
                 </span>
               </div>
               <ng-template #noTags>
-                <span class="text-muted">No tags</span>
+                <span class="text-muted small">No tags</span>
               </ng-template>
             </td>
             <td>
@@ -77,16 +77,16 @@
             <td>
               <div class="btn-group" role="group">
                 <button type="button" 
-                        class="btn btn-sm btn-outline-success" 
+                        class="btn btn-sm btn-success me-1" 
                         (click)="downloadDocument(doc)"
                         title="Download document">
-                  <i class="ri-download-line"></i>
+                  <i class="ri-download-line me-1"></i>Download
                 </button>
                 <button type="button" 
-                        class="btn btn-sm btn-outline-danger" 
+                        class="btn btn-sm btn-danger" 
                         (click)="deleteDocument(doc)"
                         title="Delete document">
-                  <i class="ri-delete-bin-line"></i>
+                  <i class="ri-delete-bin-line me-1"></i>Delete
                 </button>
               </div>
             </td>
@@ -127,6 +127,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="documentYear" class="form-label">Year (Optional)</label>
+                  <input type="number" id="documentYear" class="form-control" 
                          [(ngModel)]="uploadForm.year" name="year" 
                          placeholder="e.g., 2024" min="2016" max="2030">
                 </div>

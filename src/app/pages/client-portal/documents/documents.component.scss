@@ -257,21 +257,62 @@
 .btn-group {
   .btn {
     transition: all 0.2s ease;
+    font-size: 0.8rem;
+    padding: 0.375rem 0.75rem;
+    white-space: nowrap;
     
     &:hover {
       transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
     
-    &.btn-outline-success:hover {
+    &.btn-success {
       background-color: #198754;
       border-color: #198754;
+      
+      &:hover {
+        background-color: #157347;
+        border-color: #146c43;
+      }
     }
     
-    &.btn-outline-danger:hover {
+    &.btn-danger {
       background-color: #dc3545;
       border-color: #dc3545;
+      
+      &:hover {
+        background-color: #bb2d3b;
+        border-color: #b02a37;
+      }
     }
+  }
+}
+
+// Table improvements
+.table {
+  th, td {
+    vertical-align: middle;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+  }
+}
+
+// Document title styling improvements
+.document-title {
+  strong {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  
+  .text-muted {
+    font-size: 0.85rem;
+    font-style: italic;
   }
 }
 
@@ -306,8 +347,37 @@
   
   .btn-group {
     .btn {
-      padding: 0.2rem 0.4rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      
+      // Stack buttons vertically on very small screens
+      @media (max-width: 576px) {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.25rem;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+  
+  // Make table more mobile friendly
+  .table-responsive {
+    font-size: 0.85rem;
+  }
+  
+  .document-title {
+    strong, .text-muted {
       font-size: 0.8rem;
+    }
+  }
+  
+  .tags-container {
+    .badge {
+      font-size: 0.65rem;
+      padding: 0.25rem 0.4rem;
     }
   }
 }
