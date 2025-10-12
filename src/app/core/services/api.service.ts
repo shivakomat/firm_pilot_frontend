@@ -1558,6 +1558,7 @@ export class ApiService {
     category: string, 
     year?: number | null, 
     description?: string,
+    tags?: string[],
     uiSuggestion?: any
   ): Observable<UploadDocumentResponse> {
     const token = localStorage.getItem('authToken');
@@ -1576,6 +1577,9 @@ export class ApiService {
     }
     if (description) {
       formData.append('description', description);
+    }
+    if (tags && tags.length > 0) {
+      formData.append('tags', JSON.stringify(tags));
     }
     if (uiSuggestion) {
       formData.append('uiSuggestion', JSON.stringify(uiSuggestion));
@@ -1621,6 +1625,7 @@ export class ApiService {
    * @param category - Document category
    * @param year - Document year (optional)
    * @param description - Optional description
+   * @param tags - Array of tags for the document
    * @param uiSuggestion - Optional UI suggestion data for analytics
    */
   uploadProjectDocumentEnhanced(
@@ -1630,6 +1635,7 @@ export class ApiService {
     category: string, 
     year?: number | null, 
     description?: string,
+    tags?: string[],
     uiSuggestion?: any
   ): Observable<UploadDocumentResponse> {
     const token = localStorage.getItem('authToken');
@@ -1648,6 +1654,9 @@ export class ApiService {
     }
     if (description) {
       formData.append('description', description);
+    }
+    if (tags && tags.length > 0) {
+      formData.append('tags', JSON.stringify(tags));
     }
     if (uiSuggestion) {
       formData.append('uiSuggestion', JSON.stringify(uiSuggestion));
