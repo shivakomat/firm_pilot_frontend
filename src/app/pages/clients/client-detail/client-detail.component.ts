@@ -535,14 +535,38 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     this.showEmptyNoteWarning = false;
   }
 
-  onNewNoteChange(event: Event): void {
-    const target = event.target as HTMLElement;
-    this.newNote.content = target.innerHTML;
-    
-    // Hide warning if user starts typing
-    if (this.showEmptyNoteWarning && this.newNote.content?.trim()) {
-      this.showEmptyNoteWarning = false;
-    }
+
+  viewNote(note: ClientNote): void {
+    // Show note content in a modal or expand inline
+    Swal.fire({
+      title: note.title,
+      html: `
+        <div class="text-start">
+          <div class="mb-2">
+            <span class="badge ${this.getNoteTypeClass(note.noteType)}">${this.getNoteTypeLabel(note.noteType)}</span>
+          </div>
+          <div class="note-content" style="max-height: 400px; overflow-y: auto; text-align: left;">
+            ${this.formatNotesForDisplay(note.content)}
+          </div>
+          <div class="mt-3 pt-2 border-top text-muted small">
+            <i class="bx bx-time me-1"></i>Last updated: ${this.formatDate(note.updatedAt)}
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '<i class="bx bx-edit me-1"></i>Edit',
+      cancelButtonText: 'Close',
+      confirmButtonColor: '#0d6efd',
+      cancelButtonColor: '#6c757d',
+      width: '600px',
+      customClass: {
+        htmlContainer: 'text-start'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.editNote(note);
+      }
+    });
   }
 
   editNote(note: ClientNote): void {
@@ -685,19 +709,40 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
 
   onNotesChange(event: Event): void {
     const target = event.target as HTMLElement;
-    this.editingNote.content = target.innerHTML;
+    this.editingNote.content = target.innerText || target.textContent || '';
+  }
+
+  onNewNoteChange(event: Event): void {
+    const target = event.target as HTMLElement;
+    this.newNote.content = target.innerText || target.textContent || '';
+    
+    // Hide warning if user starts typing
+    if (this.showEmptyNoteWarning && this.newNote.content?.trim()) {
+      this.showEmptyNoteWarning = false;
+    }
   }
 
   onPaste(event: ClipboardEvent): void {
     event.preventDefault();
     const text = event.clipboardData?.getData('text/plain') || '';
-    document.execCommand('insertText', false, text);
+    
+    // Insert text at cursor position
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createTextNode(text));
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
   }
 
   formatText(command: string): void {
     document.execCommand(command, false);
-    if (this.notesEditor?.nativeElement) {
-      this.notesEditor.nativeElement.focus();
+    const activeEditor = this.editingNoteId ? this.notesEditor?.nativeElement : this.newNotesEditor?.nativeElement;
+    if (activeEditor) {
+      activeEditor.focus();
     }
   }
 
