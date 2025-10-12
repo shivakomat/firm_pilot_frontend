@@ -75,17 +75,14 @@
               </span>
             </td>
             <td>
-              <div class="btn-group" role="group">
-                <button type="button" 
-                        class="btn btn-sm btn-success me-1" 
-                        (click)="downloadDocument(doc)"
-                        title="Download document">
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewDocument(doc)" title="View {{doc.name}}">
+                  <i class="ri-external-link-line me-1"></i>View
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success" (click)="downloadDocument(doc)" title="Download {{doc.name}}">
                   <i class="ri-download-line me-1"></i>Download
                 </button>
-                <button type="button" 
-                        class="btn btn-sm btn-danger" 
-                        (click)="deleteDocument(doc)"
-                        title="Delete document">
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteDocument(doc)" title="Delete {{doc.name}}">
                   <i class="ri-delete-bin-line me-1"></i>Delete
                 </button>
               </div>

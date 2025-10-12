@@ -252,6 +252,29 @@ export class DocumentsComponent implements OnInit {
     }
   }
 
+  viewDocument(doc: Document): void {
+    console.log('👁️ Viewing document:', doc.name);
+    
+    this.apiService.downloadDocument(doc.id).subscribe({
+      next: (blob: Blob) => {
+        // Create blob URL and open in new tab
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        
+        // Clean up the URL after a delay to allow the browser to load it
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 1000);
+        
+        console.log('✅ Document opened for viewing');
+      },
+      error: (error) => {
+        console.error('❌ Error viewing document:', error);
+        this.showErrorMessage('Failed to view document. Please try again.');
+      }
+    });
+  }
+
   downloadDocument(doc: Document): void {
     console.log('📥 Downloading document:', doc.name);
     
