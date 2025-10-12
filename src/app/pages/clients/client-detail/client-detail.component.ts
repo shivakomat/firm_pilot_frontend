@@ -36,6 +36,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
 
   @ViewChild('editClientModal', { static: false }) editClientModal?: ModalDirective;
   @ViewChild('notesEditor', { static: false }) notesEditor?: ElementRef;
+  @ViewChild('newNotesEditor', { static: false }) newNotesEditor?: ElementRef;
 
   // Client Notes Properties
   allNotes: ClientNote[] = [];
@@ -43,6 +44,11 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   editingNoteId: number | null = null;
   editingNote: Partial<ClientNote> = {};
   isSavingNote: boolean = false;
+  
+  // New Note Properties
+  isAddingNewNote: boolean = false;
+  newNote: Partial<CreateNoteRequest> = {};
+  showEmptyNoteWarning: boolean = false;
 
   // Project status mapping
   projectStatuses = [
@@ -456,22 +462,64 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  addNewNote(): void {
-    const newNote: CreateNoteRequest = {
-      title: 'New Note',
+  startAddingNote(): void {
+    this.isAddingNewNote = true;
+    this.newNote = {
+      title: '',
       content: '',
       noteType: 'GENERAL'
     };
+    this.showEmptyNoteWarning = false;
+    
+    // Focus the title input after the view updates
+    setTimeout(() => {
+      const titleInput = document.querySelector('#newNoteTitle') as HTMLInputElement;
+      if (titleInput) {
+        titleInput.focus();
+      }
+    }, 100);
+  }
 
-    this.apiService.createClientNote(this.clientId, newNote).subscribe({
+  saveNewNote(): void {
+    // Validate content
+    if (!this.newNote.content?.trim()) {
+      this.showEmptyNoteWarning = true;
+      return;
+    }
+
+    // Validate title
+    if (!this.newNote.title?.trim()) {
+      this.newNote.title = 'Untitled Note';
+    }
+
+    this.isSavingNote = true;
+    this.showEmptyNoteWarning = false;
+
+    const noteData: CreateNoteRequest = {
+      title: this.newNote.title!,
+      content: this.newNote.content!,
+      noteType: this.newNote.noteType || 'GENERAL'
+    };
+
+    this.apiService.createClientNote(this.clientId, noteData).subscribe({
       next: (response) => {
         if (response.success && response.note) {
           this.allNotes.unshift(response.note);
-          this.editNote(response.note);
+          this.cancelNewNote();
+          
+          Swal.fire({
+            title: 'Note Created!',
+            text: 'Your note has been saved successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
         }
+        this.isSavingNote = false;
       },
       error: (error) => {
         console.error('❌ Error creating note:', error);
+        this.isSavingNote = false;
         Swal.fire({
           title: 'Error',
           text: 'Failed to create note. Please try again.',
@@ -479,6 +527,22 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  cancelNewNote(): void {
+    this.isAddingNewNote = false;
+    this.newNote = {};
+    this.showEmptyNoteWarning = false;
+  }
+
+  onNewNoteChange(event: Event): void {
+    const target = event.target as HTMLElement;
+    this.newNote.content = target.innerHTML;
+    
+    // Hide warning if user starts typing
+    if (this.showEmptyNoteWarning && this.newNote.content?.trim()) {
+      this.showEmptyNoteWarning = false;
+    }
   }
 
   editNote(note: ClientNote): void {
