@@ -36,6 +36,23 @@
           </div>
           <p class="mt-2 text-muted">Loading client details...</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && !client" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="bx bx-error-circle font-size-48 text-danger d-block mb-3"></i>
+          <h5>Failed to Load Client</h5>
+          <p class="text-muted">Unable to load client details. Please check the client ID and try again.</p>
+          <button type="button" class="btn btn-primary" (click)="loadClientDetails()">
+            <i class="bx bx-refresh me-1"></i>Retry
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

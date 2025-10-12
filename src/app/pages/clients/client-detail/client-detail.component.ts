@@ -1,11 +1,15 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement, ClientNote, CreateNoteRequest, UpdateNoteRequest } from '../../../core/services/api.service';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { ModalDirective } from 'ngx-bootstrap/modal';
+
+import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement, ClientNote, CreateNoteRequest, UpdateNoteRequest } from '../../../core/services/api.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ModalModule } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-client-detail',
@@ -76,11 +80,17 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('🚀 ClientDetailComponent initialized');
     this.initializeEditForm();
+    
     this.route.params.subscribe(params => {
+      console.log('📍 Route params:', params);
       this.clientId = +params['id'];
+      console.log('🆔 Client ID extracted:', this.clientId);
       if (this.clientId) {
         this.loadClientDetails();
+      } else {
+        console.error('❌ No valid client ID found in route params');
       }
     });
   }
@@ -102,6 +112,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   }
 
   loadClientDetails(): void {
+    console.log('🔄 Loading client details for ID:', this.clientId);
     this.isLoading = true;
     
     // Use the new comprehensive client details endpoint
@@ -109,6 +120,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('📥 Client details response:', response);
           if (response.success && response.clientDetails) {
             const details = response.clientDetails;
             
@@ -121,17 +133,21 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
             this.documentRequirements = details.documentRequirements;
             this.invitation = details.invitation || null;
             
+            console.log('✅ Client loaded successfully:', this.client);
+            
             // Load meeting notes
             this.loadNotes();
+          } else {
+            console.warn('⚠️ Invalid response format or unsuccessful response:', response);
           }
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error loading client details:', error);
+          console.error('❌ Error loading client details:', error);
           this.isLoading = false;
           Swal.fire({
             title: 'Error',
-            text: 'Failed to load client details.',
+            text: `Failed to load client details: ${error.message || 'Unknown error'}`,
             icon: 'error'
           });
         }
