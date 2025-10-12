@@ -1,15 +1,11 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import Swal from 'sweetalert2';
-import { ModalDirective } from 'ngx-bootstrap/modal';
-
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement, ClientNote, CreateNoteRequest, UpdateNoteRequest } from '../../../core/services/api.service';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ModalModule } from 'ngx-bootstrap/modal';
+import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-client-detail',
@@ -80,17 +76,11 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 ClientDetailComponent initialized');
     this.initializeEditForm();
-    
     this.route.params.subscribe(params => {
-      console.log('📍 Route params:', params);
       this.clientId = +params['id'];
-      console.log('🆔 Client ID extracted:', this.clientId);
       if (this.clientId) {
         this.loadClientDetails();
-      } else {
-        console.error('❌ No valid client ID found in route params');
       }
     });
   }
@@ -112,7 +102,6 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   }
 
   loadClientDetails(): void {
-    console.log('🔄 Loading client details for ID:', this.clientId);
     this.isLoading = true;
     
     // Use the new comprehensive client details endpoint
@@ -120,7 +109,6 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📥 Client details response:', response);
           if (response.success && response.clientDetails) {
             const details = response.clientDetails;
             
@@ -133,21 +121,17 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
             this.documentRequirements = details.documentRequirements;
             this.invitation = details.invitation || null;
             
-            console.log('✅ Client loaded successfully:', this.client);
-            
             // Load meeting notes
             this.loadNotes();
-          } else {
-            console.warn('⚠️ Invalid response format or unsuccessful response:', response);
           }
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('❌ Error loading client details:', error);
+          console.error('Error loading client details:', error);
           this.isLoading = false;
           Swal.fire({
             title: 'Error',
-            text: `Failed to load client details: ${error.message || 'Unknown error'}`,
+            text: 'Failed to load client details.',
             icon: 'error'
           });
         }
@@ -551,38 +535,14 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     this.showEmptyNoteWarning = false;
   }
 
-
-  viewNote(note: ClientNote): void {
-    // Show note content in a modal or expand inline
-    Swal.fire({
-      title: note.title,
-      html: `
-        <div class="text-start">
-          <div class="mb-2">
-            <span class="badge ${this.getNoteTypeClass(note.noteType)}">${this.getNoteTypeLabel(note.noteType)}</span>
-          </div>
-          <div class="note-content" style="max-height: 400px; overflow-y: auto; text-align: left;">
-            ${this.formatNotesForDisplay(note.content)}
-          </div>
-          <div class="mt-3 pt-2 border-top text-muted small">
-            <i class="bx bx-time me-1"></i>Last updated: ${this.formatDate(note.updatedAt)}
-          </div>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: '<i class="bx bx-edit me-1"></i>Edit',
-      cancelButtonText: 'Close',
-      confirmButtonColor: '#0d6efd',
-      cancelButtonColor: '#6c757d',
-      width: '600px',
-      customClass: {
-        htmlContainer: 'text-start'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.editNote(note);
-      }
-    });
+  onNewNoteChange(event: Event): void {
+    const target = event.target as HTMLElement;
+    this.newNote.content = target.innerHTML;
+    
+    // Hide warning if user starts typing
+    if (this.showEmptyNoteWarning && this.newNote.content?.trim()) {
+      this.showEmptyNoteWarning = false;
+    }
   }
 
   editNote(note: ClientNote): void {
@@ -725,40 +685,19 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
 
   onNotesChange(event: Event): void {
     const target = event.target as HTMLElement;
-    this.editingNote.content = target.innerText || target.textContent || '';
-  }
-
-  onNewNoteChange(event: Event): void {
-    const target = event.target as HTMLElement;
-    this.newNote.content = target.innerText || target.textContent || '';
-    
-    // Hide warning if user starts typing
-    if (this.showEmptyNoteWarning && this.newNote.content?.trim()) {
-      this.showEmptyNoteWarning = false;
-    }
+    this.editingNote.content = target.innerHTML;
   }
 
   onPaste(event: ClipboardEvent): void {
     event.preventDefault();
     const text = event.clipboardData?.getData('text/plain') || '';
-    
-    // Insert text at cursor position
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(document.createTextNode(text));
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
+    document.execCommand('insertText', false, text);
   }
 
   formatText(command: string): void {
     document.execCommand(command, false);
-    const activeEditor = this.editingNoteId ? this.notesEditor?.nativeElement : this.newNotesEditor?.nativeElement;
-    if (activeEditor) {
-      activeEditor.focus();
+    if (this.notesEditor?.nativeElement) {
+      this.notesEditor.nativeElement.focus();
     }
   }
 
