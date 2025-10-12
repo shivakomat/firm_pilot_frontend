@@ -408,32 +408,39 @@ export class DocumentsComponent implements OnInit {
   performDeleteDocument(doc: Document): void {
     console.log('🗑️ Deleting document:', doc.name);
     
-    // TODO: Replace with actual API call
-    // this.apiService.deleteDocument(doc.id).subscribe({
-    //   next: (response) => {
-    //     if (response.success) {
-    //       this.loadDocuments();
-    //       Swal.fire('Deleted!', 'Document has been deleted.', 'success');
-    //     }
-    //   },
-    //   error: (error) => {
-    //     this.showErrorMessage('Failed to delete document. Please try again.');
-    //   }
-    // });
-
-    // Temporary: Remove from local array for demo
-    const index = this.documents.findIndex(d => d.id === doc.id);
-    if (index > -1) {
-      this.documents.splice(index, 1);
-      this.filterDocuments();
-      Swal.fire({
-        title: 'Deleted!',
-        text: 'Document has been deleted.',
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
-      });
-    }
+    this.apiService.deleteDocument(doc.id).subscribe({
+      next: (response) => {
+        if (response.success) {
+          console.log('✅ Document deleted successfully:', response.message);
+          
+          // Remove from local array immediately for better UX
+          const index = this.documents.findIndex(d => d.id === doc.id);
+          if (index > -1) {
+            this.documents.splice(index, 1);
+            this.filterDocuments();
+          }
+          
+          // Show success message
+          Swal.fire({
+            title: 'Deleted!',
+            text: response.message || 'Document has been deleted successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+          // Optionally reload documents from server to ensure consistency
+          // this.loadDocuments();
+        } else {
+          console.error('❌ Delete failed:', response);
+          this.showErrorMessage('Failed to delete document. Please try again.');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Delete error:', error);
+        this.showErrorMessage('Failed to delete document. Please try again.');
+      }
+    });
   }
 
   getFileIcon(fileName: string): string {

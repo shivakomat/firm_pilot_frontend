@@ -964,9 +964,7 @@ export class ApiService {
     const token = localStorage.getItem('authToken');
     
     if (!token) {
-      console.error('❌ No auth token found in localStorage');
-      this.router.navigate(['/account/login']);
-      throw new Error('No authentication token found. Please log in again.');
+      throw new Error('No authentication token found');
     }
 
     if (!this.validateTokenAndRedirect(token)) {
@@ -1656,5 +1654,24 @@ export class ApiService {
     });
 
     return this.http.post<UploadDocumentResponse>(`${this.baseUrl}/projects/${projectId}/documents`, formData, { headers });
+  }
+
+  /**
+   * Delete a document by ID
+   * @param documentId - ID of the document to delete
+   */
+  deleteDocument(documentId: number): Observable<{ success: boolean; message: string }> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.delete<{ success: boolean; message: string }>(`${this.baseUrl}/documents/${documentId}`, { headers });
   }
 }
