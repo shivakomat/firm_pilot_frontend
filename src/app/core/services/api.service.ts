@@ -322,7 +322,25 @@ export interface AccountantIntakeFormResponse {
 
 export interface AccountantIntakeFormDetailResponse {
   success: boolean;
-  responses: AccountantIntakeFormResponse[];
+  form: {
+    id: number;
+    accountantId: number;
+    title: string;
+    schemaJson: {
+      sections: {
+        id: string;
+        title: string;
+        fields: {
+          id: string;
+          type: string;
+          label: string;
+          required: boolean;
+        }[];
+      }[];
+    };
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
 // Gmail API Interfaces

@@ -14,7 +14,7 @@ export class IntakeFormDetailComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   formId!: number;
-  intakeForm: AccountantIntakeForm | null = null;
+  intakeForm: any | null = null;
   formResponse: AccountantIntakeFormResponse | null = null;
   isLoading = false;
   
@@ -48,12 +48,12 @@ export class IntakeFormDetailComponent implements OnInit, OnDestroy {
     this.apiService.getIntakeFormDetails(this.formId).subscribe({
       next: (response) => {
         this.isLoading = false;
-        if (response.success && response.responses && response.responses.length > 0) {
-          this.formResponse = response.responses[0]; // Take the first response
-          this.processFormData();
-          console.log('✅ Loaded intake form details:', this.formResponse);
+        if (response.success && response.form) {
+          this.intakeForm = response.form;
+          this.processFormSchema();
+          console.log('✅ Loaded intake form details:', this.intakeForm);
         } else {
-          console.warn('⚠️ No form responses found:', response);
+          console.warn('⚠️ No form data found:', response);
           this.showErrorMessage('No form data found');
         }
       },
@@ -65,45 +65,26 @@ export class IntakeFormDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  processFormData(): void {
-    if (!this.formResponse?.answersJson) return;
+  processFormSchema(): void {
+    if (!this.intakeForm?.schemaJson?.sections) return;
     
-    const answers = this.formResponse.answersJson;
-    console.log('🔍 Processing form answers:', answers);
+    const sections = this.intakeForm.schemaJson.sections;
+    console.log('🔍 Processing form schema sections:', sections);
     
-    // Create form sections based on the answers structure
-    this.formSections = [
-      {
-        title: 'Personal Information',
-        fields: [
-          { label: 'First Name', value: answers.firstName, key: 'firstName' },
-          { label: 'Last Name', value: answers.lastName, key: 'lastName' },
-          { label: 'SSN', value: answers.ssn, key: 'ssn', sensitive: true },
-          { label: 'Filing Status', value: this.formatFilingStatus(answers.filingStatus), key: 'filingStatus' }
-        ]
-      },
-      {
-        title: 'Income Information',
-        fields: [
-          { label: 'W-2 Income', value: this.formatCurrency(answers.w2Income), key: 'w2Income' },
-          { label: 'Has Business Income', value: answers.hasBusinessIncome ? 'Yes' : 'No', key: 'hasBusinessIncome' },
-          { label: 'Estimated Tax Payments', value: this.formatCurrency(answers.estimatedTaxPayments), key: 'estimatedTaxPayments' }
-        ]
-      }
-    ];
-
-    // Add dependents section if exists
-    if (answers.dependents && answers.dependents.length > 0) {
-      this.formSections.push({
-        title: 'Dependents',
-        fields: answers.dependents.map((dependent: any, index: number) => ({
-          label: `Dependent ${index + 1}`,
-          value: `${dependent.name} (${dependent.relationship}, age ${dependent.age})`,
-          key: `dependent_${index}`,
-          type: 'dependent'
-        }))
-      });
-    }
+    // Convert schema sections to display format
+    this.formSections = sections.map((section: any) => ({
+      id: section.id,
+      title: section.title,
+      fields: section.fields.map((field: any) => ({
+        id: field.id,
+        label: field.label,
+        type: field.type,
+        required: field.required,
+        value: null // No response data yet - this shows the form structure
+      }))
+    }));
+    
+    console.log('📋 Processed form sections:', this.formSections);
   }
 
   formatFilingStatus(status: string): string {

@@ -33,69 +33,45 @@
   </div>
 
   <!-- Form Details -->
-  <div *ngIf="!isLoading && formResponse" class="row">
+  <div *ngIf="!isLoading && intakeForm" class="row">
     <!-- Form Header Card -->
     <div class="col-12">
       <div class="card">
         <div class="card-body">
           <div class="row align-items-center">
             <div class="col-md-8">
-              <h5 class="card-title mb-2">Tax Information Form</h5>
+              <h5 class="card-title mb-2">{{intakeForm.title}}</h5>
               <div class="d-flex flex-wrap gap-3 mb-3">
                 <div>
-                  <span class="text-muted">Client ID:</span>
-                  <strong class="ms-1">{{formResponse.clientId}}</strong>
-                </div>
-                <div>
                   <span class="text-muted">Form ID:</span>
-                  <strong class="ms-1">{{formResponse.formId}}</strong>
+                  <strong class="ms-1">{{intakeForm.id}}</strong>
                 </div>
                 <div>
-                  <span class="text-muted">Response ID:</span>
-                  <strong class="ms-1">{{formResponse.id}}</strong>
+                  <span class="text-muted">Accountant ID:</span>
+                  <strong class="ms-1">{{intakeForm.accountantId}}</strong>
+                </div>
+                <div>
+                  <span class="text-muted">Sections:</span>
+                  <strong class="ms-1">{{formSections.length}}</strong>
                 </div>
               </div>
             </div>
             <div class="col-md-4 text-md-end">
               <div class="mb-2">
-                <span [class]="getStatusClass(formResponse.status)">
-                  {{formResponse.status | titlecase}}
+                <span class="badge bg-info">
+                  Form Template
                 </span>
               </div>
               <div class="text-muted small">
-                <div *ngIf="formResponse.submittedAt">
+                <div>
                   <i class="ri-time-line me-1"></i>
-                  Submitted: {{formResponse.submittedAt | date:'short'}}
+                  Created: {{intakeForm.createdAt | date:'short'}}
                 </div>
-                <div *ngIf="!formResponse.submittedAt">
-                  <i class="ri-draft-line me-1"></i>
-                  Draft - Not yet submitted
+                <div>
+                  <i class="ri-refresh-line me-1"></i>
+                  Updated: {{intakeForm.updatedAt | date:'short'}}
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Status Update Actions -->
-          <div class="border-top pt-3">
-            <div class="d-flex flex-wrap gap-2">
-              <button type="button" 
-                      class="btn btn-outline-primary btn-sm"
-                      *ngIf="formResponse.status === 'SUBMITTED'"
-                      (click)="updateFormStatus('REVIEWED')">
-                <i class="ri-check-line me-1"></i>Mark as Reviewed
-              </button>
-              <button type="button" 
-                      class="btn btn-outline-success btn-sm"
-                      *ngIf="formResponse.status === 'REVIEWED'"
-                      (click)="updateFormStatus('APPROVED')">
-                <i class="ri-check-double-line me-1"></i>Approve
-              </button>
-              <button type="button" 
-                      class="btn btn-outline-warning btn-sm"
-                      *ngIf="formResponse.status === 'REVIEWED' || formResponse.status === 'SUBMITTED'"
-                      (click)="updateFormStatus('NEEDS_REVISION')">
-                <i class="ri-edit-line me-1"></i>Request Revision
-              </button>
             </div>
           </div>
         </div>
@@ -108,7 +84,7 @@
         <div class="card-body">
           <h5 class="card-title mb-4">
             <i class="ri-file-list-3-line text-primary me-2"></i>
-            Form Responses
+            Form Structure
           </h5>
 
           <!-- Form Sections -->
@@ -123,15 +99,19 @@
 
             <div class="row">
               <div *ngFor="let field of section.fields" 
-                   class="col-md-6 mb-3"
-                   [class.col-12]="field.type === 'dependent'">
+                   class="col-md-6 mb-3">
                 <div class="form-group">
-                  <label class="form-label text-muted small">{{field.label}}</label>
+                  <label class="form-label d-flex align-items-center">
+                    <span>{{field.label}}</span>
+                    <span *ngIf="field.required" class="text-danger ms-1">*</span>
+                    <span class="badge bg-secondary ms-2 small">{{field.type}}</span>
+                  </label>
                   <div class="form-control-plaintext bg-light p-2 rounded">
-                    <span *ngIf="!field.sensitive">{{field.value || 'Not provided'}}</span>
-                    <span *ngIf="field.sensitive" class="text-muted">
-                      <i class="ri-eye-off-line me-1"></i>
-                      {{field.value || 'Not provided'}}
+                    <span class="text-muted">
+                      <i class="ri-file-text-line me-1"></i>
+                      {{field.type | titlecase}} field
+                      <span *ngIf="field.required">(Required)</span>
+                      <span *ngIf="!field.required">(Optional)</span>
                     </span>
                   </div>
                 </div>
@@ -139,20 +119,20 @@
             </div>
           </div>
 
-          <!-- Raw JSON Data (for debugging) -->
+          <!-- Raw Schema Data (for debugging) -->
           <div class="mt-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="text-muted mb-0">Raw Form Data</h6>
+              <h6 class="text-muted mb-0">Form Schema</h6>
               <button type="button" 
                       class="btn btn-outline-secondary btn-sm"
                       data-bs-toggle="collapse" 
-                      data-bs-target="#rawDataCollapse">
+                      data-bs-target="#rawSchemaCollapse">
                 <i class="ri-code-line me-1"></i>View JSON
               </button>
             </div>
-            <div class="collapse" id="rawDataCollapse">
+            <div class="collapse" id="rawSchemaCollapse">
               <div class="bg-light p-3 rounded">
-                <pre class="mb-0 small">{{formResponse.answersJson | json}}</pre>
+                <pre class="mb-0 small">{{intakeForm.schemaJson | json}}</pre>
               </div>
             </div>
           </div>
@@ -162,14 +142,14 @@
   </div>
 
   <!-- No Data State -->
-  <div *ngIf="!isLoading && !formResponse" class="row">
+  <div *ngIf="!isLoading && !intakeForm" class="row">
     <div class="col-12">
       <div class="card">
         <div class="card-body text-center py-5">
           <div class="text-muted">
             <i class="ri-file-list-3-line font-size-48 mb-3 d-block"></i>
             <h5>No Form Data Found</h5>
-            <p>The requested intake form could not be found or has no responses.</p>
+            <p>The requested intake form could not be found.</p>
             <button type="button" class="btn btn-primary" (click)="goBack()">
               <i class="ri-arrow-left-line me-1"></i>Back to Forms
             </button>
