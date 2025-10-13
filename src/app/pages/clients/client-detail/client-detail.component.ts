@@ -44,6 +44,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   editingNoteId: number | null = null;
   editingNote: Partial<ClientNote> = {};
   isSavingNote: boolean = false;
+  expandedNoteIds: Set<number> = new Set(); // Track which notes are expanded
   
   // New Note Properties
   isAddingNewNote: boolean = false;
@@ -553,6 +554,9 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       noteType: note.noteType
     };
     
+    // Automatically expand the note when editing
+    this.expandedNoteIds.add(note.id);
+    
     setTimeout(() => {
       if (this.notesEditor?.nativeElement) {
         this.notesEditor.nativeElement.focus();
@@ -729,5 +733,26 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
       .replace(/javascript:/gi, '');
+  }
+
+  // Note expansion methods
+  isNoteExpanded(noteId: number): boolean {
+    return this.expandedNoteIds.has(noteId);
+  }
+
+  toggleNoteView(noteId: number): void {
+    if (this.expandedNoteIds.has(noteId)) {
+      this.expandedNoteIds.delete(noteId);
+    } else {
+      this.expandedNoteIds.add(noteId);
+    }
+  }
+
+  viewNote(noteId: number): void {
+    this.expandedNoteIds.add(noteId);
+  }
+
+  hideNote(noteId: number): void {
+    this.expandedNoteIds.delete(noteId);
   }
 }

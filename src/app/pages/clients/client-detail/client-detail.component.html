@@ -189,8 +189,16 @@
                   <!-- Note Actions -->
                   <div class="d-flex gap-1">
                     <div *ngIf="editingNoteId !== note.id">
+                      <!-- View/Hide Button -->
                       <button type="button" 
-                              class="btn btn-sm btn-outline-primary"
+                              class="btn btn-sm btn-outline-info"
+                              (click)="toggleNoteView(note.id)"
+                              [title]="isNoteExpanded(note.id) ? 'Hide Content' : 'View Content'">
+                        <i class="bx" [class.bx-show]="!isNoteExpanded(note.id)" [class.bx-hide]="isNoteExpanded(note.id)"></i>
+                        {{ isNoteExpanded(note.id) ? 'Hide' : 'View' }}
+                      </button>
+                      <button type="button" 
+                              class="btn btn-sm btn-outline-primary ms-1"
                               (click)="editNote(note)"
                               title="Edit Note">
                         <i class="bx bx-edit"></i>
@@ -222,10 +230,12 @@
                   </div>
                 </div>
 
-                <!-- Note Content -->
-                <div *ngIf="editingNoteId !== note.id" class="note-content">
-                  <div [innerHTML]="formatNotesForDisplay(note.content)" 
-                       class="notes-display-content"></div>
+                <!-- Note Content (only show when expanded and not editing) -->
+                <div *ngIf="editingNoteId !== note.id && isNoteExpanded(note.id)" class="note-content mt-3">
+                  <div class="border-top pt-3">
+                    <div [innerHTML]="formatNotesForDisplay(note.content)" 
+                         class="notes-display-content"></div>
+                  </div>
                 </div>
 
                 <!-- Edit Content Mode -->
