@@ -61,6 +61,6 @@ export class ClientPortalAppLayoutComponent implements OnInit {
   logout(): void {
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
-    this.router.navigate(['/auth/auth/login']);
+    this.router.navigate(['/account/auth/login']);
   }
 }

@@ -143,14 +143,14 @@ export class TopbarComponent implements OnInit {
         localStorage.removeItem('currentUser');
         
         // Redirect to login page
-        this.router.navigate(['/auth/auth/login']);
+        this.router.navigate(['/account/auth/login']);
       },
       error: (error) => {
         // Even if logout API fails, clear local storage and redirect
         console.error('Logout API error:', error);
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
-        this.router.navigate(['/auth/auth/login']);
+        this.router.navigate(['/account/auth/login']);
       }
     });
   }

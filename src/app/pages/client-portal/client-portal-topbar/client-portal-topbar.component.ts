@@ -193,13 +193,13 @@ export class ClientPortalTopbarComponent implements OnInit {
       next: (response) => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
-        this.router.navigate(['/auth/auth/login']);
+        this.router.navigate(['/account/auth/login']);
       },
       error: (error) => {
         console.error('Logout API error:', error);
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
-        this.router.navigate(['/auth/auth/login']);
+        this.router.navigate(['/account/auth/login']);
       }
     });
   }
