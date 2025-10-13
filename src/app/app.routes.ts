@@ -9,7 +9,7 @@ import { MarketingHomepageComponent } from './pages/marketing/marketing-homepage
 export const routes: Routes = [
     // Marketing Homepage (Public)
     {
-        path: "",
+        path: "marketing",
         component: MarketingHomepageComponent,
     },
     // Authentication routes
@@ -29,9 +29,9 @@ export const routes: Routes = [
         path: "register/:token",
         component: ClientRegistrationComponent,
     },
-    // Main application dashboard (Protected)
+    // Main application (Protected) - back to root like it was working
     {
-        path: "dashboard",
+        path: "",
         component: LayoutComponent,
         loadChildren: () =>
             import("./pages/pages.module").then((m) => m.PagesModule),

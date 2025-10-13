@@ -38,11 +38,11 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     // Check if user is already logged in
     if (localStorage.getItem('authToken')) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/']);
     }
     
-    // Get return url from route parameters or default to '/dashboard'
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    // Get return url from route parameters or default to '/'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     
     // Check for registration success message
     const message = this.route.snapshot.queryParams['message'];
@@ -115,11 +115,11 @@ export class LoginComponent implements OnInit {
           } else {
             // Redirect other users to return url or dashboard
             console.log('Redirecting non-CLIENT user to dashboard');
-            this.router.navigate([this.returnUrl]);
+            this.router.navigate([this.returnUrl === '/' ? '/dashboards/default' : this.returnUrl]);
           }
         } else {
           // Fallback if no user data
-          this.router.navigate([this.returnUrl]);
+          this.router.navigate([this.returnUrl === '/' ? '/dashboards/default' : this.returnUrl]);
         }
       },
       error: (error) => {
