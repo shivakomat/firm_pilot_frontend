@@ -1,0 +1,405 @@
+<!-- Marketing Homepage -->
+<div class="marketing-homepage">
+  
+  <!-- Header/Navigation -->
+  <header class="marketing-header">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <i class="ri-plane-line text-primary me-2" style="font-size: 2rem;"></i>
+          <span class="fw-bold fs-4">Firm Pilot</span>
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a class="nav-link" (click)="scrollToSection('features')">Features</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" (click)="scrollToSection('pricing')">Pricing</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" (click)="scrollToSection('testimonials')">Reviews</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#contact">Contact</a>
+            </li>
+          </ul>
+          
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" (click)="navigateToLogin()">
+              <i class="ri-login-box-line me-1"></i>Login
+            </button>
+            <button class="btn btn-primary" (click)="startFreeTrial()">
+              <i class="ri-rocket-line me-1"></i>Start Free Trial
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center min-vh-100 py-5">
+        <div class="col-lg-6">
+          <div class="hero-content">
+            <h1 class="hero-title">
+              Streamline Your <span class="text-primary">Tax Practice</span> 
+              with Firm Pilot
+            </h1>
+            <p class="hero-subtitle">
+              The all-in-one practice management platform that helps tax professionals 
+              save time, increase efficiency, and deliver exceptional client experiences.
+            </p>
+            
+            <div class="hero-stats mb-4">
+              <div class="row text-center">
+                <div class="col-4">
+                  <div class="stat-item">
+                    <h3 class="text-primary mb-0">10+</h3>
+                    <small class="text-muted">Hours Saved/Week</small>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-item">
+                    <h3 class="text-success mb-0">70%</h3>
+                    <small class="text-muted">Faster Onboarding</small>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-item">
+                    <h3 class="text-warning mb-0">500+</h3>
+                    <small class="text-muted">Happy Firms</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="hero-actions">
+              <button class="btn btn-primary btn-lg me-3" (click)="startFreeTrial()">
+                <i class="ri-rocket-line me-2"></i>Start Free Trial
+              </button>
+              <button class="btn btn-outline-secondary btn-lg">
+                <i class="ri-play-circle-line me-2"></i>Watch Demo
+              </button>
+            </div>
+            
+            <div class="hero-trust mt-4">
+              <small class="text-muted">
+                <i class="ri-shield-check-line text-success me-1"></i>
+                Trusted by 500+ tax professionals • No credit card required
+              </small>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-6">
+          <div class="hero-image">
+            <div class="dashboard-preview">
+              <div class="browser-mockup">
+                <div class="browser-header">
+                  <div class="browser-buttons">
+                    <span class="btn-close-mockup"></span>
+                    <span class="btn-minimize-mockup"></span>
+                    <span class="btn-maximize-mockup"></span>
+                  </div>
+                  <div class="browser-url">firmpilot.com/dashboard</div>
+                </div>
+                <div class="browser-content">
+                  <div class="dashboard-mockup">
+                    <div class="mockup-header">
+                      <div class="mockup-logo">📊 Dashboard</div>
+                      <div class="mockup-user">👤 John Doe</div>
+                    </div>
+                    <div class="mockup-stats">
+                      <div class="mockup-card">
+                        <div class="mockup-number">25</div>
+                        <div class="mockup-label">Active Clients</div>
+                      </div>
+                      <div class="mockup-card">
+                        <div class="mockup-number">12</div>
+                        <div class="mockup-label">Pending Forms</div>
+                      </div>
+                      <div class="mockup-card">
+                        <div class="mockup-number">8</div>
+                        <div class="mockup-label">Due This Week</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+          <h2 class="section-title">Everything You Need to Run Your Tax Practice</h2>
+          <p class="section-subtitle">
+            Powerful features designed specifically for tax professionals to streamline operations 
+            and enhance client relationships.
+          </p>
+        </div>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6" *ngFor="let feature of features">
+          <div class="feature-card h-100">
+            <div class="feature-icon" [class]="'text-' + feature.color">
+              <i [class]="feature.icon"></i>
+            </div>
+            <h4 class="feature-title">{{feature.title}}</h4>
+            <p class="feature-description">{{feature.description}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits-section py-5 bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+          <h2 class="section-title">Measurable Results for Your Practice</h2>
+          <p class="section-subtitle">
+            Join hundreds of tax professionals who have transformed their practice with Firm Pilot.
+          </p>
+        </div>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-6" *ngFor="let benefit of benefits">
+          <div class="benefit-card text-center">
+            <div class="benefit-number">
+              <span class="number">{{benefit.number}}</span>
+              <span class="unit">{{benefit.unit}}</span>
+            </div>
+            <p class="benefit-description">{{benefit.description}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" class="pricing-section py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+          <h2 class="section-title">Simple, Transparent Pricing</h2>
+          <p class="section-subtitle">
+            Choose the plan that fits your practice size. All plans include a 14-day free trial.
+          </p>
+        </div>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-4" *ngFor="let plan of pricingPlans">
+          <div class="pricing-card h-100" [class.popular]="plan.popular">
+            <div class="pricing-header">
+              <div class="plan-badge" *ngIf="plan.popular">Most Popular</div>
+              <h3 class="plan-name">{{plan.name}}</h3>
+              <p class="plan-description">{{plan.description}}</p>
+              <div class="plan-price">
+                <span class="currency">$</span>
+                <span class="amount">{{plan.price}}</span>
+                <span class="period">/{{plan.period}}</span>
+              </div>
+            </div>
+            
+            <div class="pricing-body">
+              <ul class="feature-list">
+                <li *ngFor="let feature of plan.features">
+                  <i class="ri-check-line text-success me-2"></i>
+                  {{feature}}
+                </li>
+              </ul>
+            </div>
+            
+            <div class="pricing-footer">
+              <button 
+                [class]="'btn w-100 ' + plan.buttonClass"
+                (click)="plan.name === 'Enterprise' ? contactSales() : startFreeTrial()">
+                {{plan.buttonText}}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-5">
+        <div class="col-lg-8 mx-auto text-center">
+          <div class="pricing-guarantee">
+            <i class="ri-shield-check-line text-success me-2"></i>
+            <strong>30-day money-back guarantee</strong> • Cancel anytime • No setup fees
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section id="testimonials" class="testimonials-section py-5 bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto text-center mb-5">
+          <h2 class="section-title">Loved by Tax Professionals</h2>
+          <p class="section-subtitle">
+            See what our customers have to say about their experience with Firm Pilot.
+          </p>
+        </div>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-4" *ngFor="let testimonial of testimonials">
+          <div class="testimonial-card h-100">
+            <div class="testimonial-content">
+              <div class="rating mb-3">
+                <i class="ri-star-fill text-warning" *ngFor="let star of [1,2,3,4,5]"></i>
+              </div>
+              <p class="testimonial-text">"{{testimonial.content}}"</p>
+            </div>
+            <div class="testimonial-author">
+              <div class="author-avatar">
+                <img [src]="testimonial.avatar" [alt]="testimonial.name" class="rounded-circle">
+              </div>
+              <div class="author-info">
+                <h6 class="author-name">{{testimonial.name}}</h6>
+                <p class="author-title">{{testimonial.title}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section py-5 bg-primary text-white">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto text-center">
+          <h2 class="cta-title">Ready to Transform Your Tax Practice?</h2>
+          <p class="cta-subtitle">
+            Join hundreds of tax professionals who have streamlined their practice with Firm Pilot.
+            Start your free trial today - no credit card required.
+          </p>
+          <div class="cta-actions mt-4">
+            <button class="btn btn-light btn-lg me-3" (click)="startFreeTrial()">
+              <i class="ri-rocket-line me-2"></i>Start Free Trial
+            </button>
+            <button class="btn btn-outline-light btn-lg">
+              <i class="ri-phone-line me-2"></i>Schedule Demo
+            </button>
+          </div>
+          <div class="cta-trust mt-4">
+            <small class="opacity-75">
+              <i class="ri-shield-check-line me-1"></i>
+              14-day free trial • No credit card required • Cancel anytime
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="marketing-footer py-5 bg-dark text-light">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="footer-brand">
+            <div class="d-flex align-items-center mb-3">
+              <i class="ri-plane-line text-primary me-2" style="font-size: 2rem;"></i>
+              <span class="fw-bold fs-4">Firm Pilot</span>
+            </div>
+            <p class="footer-description">
+              The all-in-one practice management platform for tax professionals.
+              Streamline your workflow and deliver exceptional client experiences.
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-6">
+          <h6 class="footer-title">Product</h6>
+          <ul class="footer-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#integrations">Integrations</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-lg-2 col-md-6">
+          <h6 class="footer-title">Support</h6>
+          <ul class="footer-links">
+            <li><a href="#help">Help Center</a></li>
+            <li><a href="#documentation">Documentation</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+            <li><a href="#status">System Status</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-lg-2 col-md-6">
+          <h6 class="footer-title">Company</h6>
+          <ul class="footer-links">
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#careers">Careers</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#press">Press</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-lg-2 col-md-6">
+          <h6 class="footer-title">Legal</h6>
+          <ul class="footer-links">
+            <li><a href="#privacy">Privacy Policy</a></li>
+            <li><a href="#terms">Terms of Service</a></li>
+            <li><a href="#cookies">Cookie Policy</a></li>
+            <li><a href="#compliance">Compliance</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <hr class="my-4 opacity-25">
+      
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <p class="footer-copyright mb-0">
+            © 2024 Firm Pilot. All rights reserved.
+          </p>
+        </div>
+        <div class="col-md-6">
+          <div class="footer-social text-md-end">
+            <a href="#" class="social-link me-3">
+              <i class="ri-twitter-line"></i>
+            </a>
+            <a href="#" class="social-link me-3">
+              <i class="ri-linkedin-line"></i>
+            </a>
+            <a href="#" class="social-link me-3">
+              <i class="ri-facebook-line"></i>
+            </a>
+            <a href="#" class="social-link">
+              <i class="ri-youtube-line"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>

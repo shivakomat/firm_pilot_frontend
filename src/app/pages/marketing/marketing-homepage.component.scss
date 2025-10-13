@@ -1,0 +1,139 @@
+// Minimal Marketing Homepage Styles
+.marketing-homepage {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: #2c3e50;
+}
+
+// Header
+.marketing-header .navbar {
+  padding: 1rem 0;
+  .navbar-brand { font-weight: 700; color: #2c3e50 !important; }
+  .nav-link { font-weight: 500; color: #64748b !important; cursor: pointer; }
+  .nav-link:hover { color: #556ee6 !important; }
+  .btn { padding: 0.5rem 1.5rem; font-weight: 500; border-radius: 0.5rem; }
+  .btn:hover { transform: translateY(-2px); }
+}
+
+// Hero
+.hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin-top: 76px;
+  
+  .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.5rem; }
+  .hero-subtitle { font-size: 1.25rem; opacity: 0.9; margin-bottom: 2rem; }
+  .hero-stats .stat-item h3 { font-size: 2rem; font-weight: 700; }
+  .hero-actions .btn { padding: 0.75rem 2rem; font-weight: 600; font-size: 1.1rem; }
+  .hero-actions .btn:hover { transform: translateY(-3px); }
+  
+  @media (max-width: 768px) {
+    .hero-title { font-size: 2.5rem; }
+  }
+}
+
+// Dashboard Preview
+.browser-mockup {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  
+  .browser-header {
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+  }
+  
+  .browser-buttons span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+  }
+  
+  .mockup-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  
+  .mockup-card {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+  }
+}
+
+// Sections
+.section-title { font-size: 2.5rem; font-weight: 700; color: #2c3e50; margin-bottom: 1rem; }
+.section-subtitle { font-size: 1.125rem; color: #64748b; }
+
+// Feature Cards
+.feature-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  background: rgba(85, 110, 230, 0.1);
+}
+
+.feature-icon i { font-size: 2rem; }
+
+// Pricing
+.pricing-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+
+.pricing-card.popular {
+  border-color: #556ee6;
+  transform: scale(1.05);
+}
+
+.pricing-card:hover { transform: translateY(-5px); }
+
+.plan-price .amount { font-size: 3rem; font-weight: 800; color: #2c3e50; }
+
+// CTA
+.cta-section {
+  background: linear-gradient(135deg, #556ee6 0%, #667eea 100%);
+}
+
+.cta-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; }
+
+// Footer
+.marketing-footer {
+  .footer-title { color: white; font-weight: 600; margin-bottom: 1rem; }
+  .footer-links { list-style: none; padding: 0; margin: 0; }
+  .footer-links a { color: #94a3b8; text-decoration: none; }
+  .footer-links a:hover { color: white; }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .section-title { font-size: 2rem !important; }
+  .pricing-card.popular { transform: none !important; }
+}
