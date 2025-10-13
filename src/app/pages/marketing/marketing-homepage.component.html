@@ -23,7 +23,7 @@
               <a class="nav-link" (click)="scrollToSection('pricing')">Pricing</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" (click)="scrollToSection('testimonials')">Reviews</a>
+              <a class="nav-link" (click)="scrollToSection('beta-launch')">Beta</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#contact">Contact</a>
@@ -251,34 +251,45 @@
     </div>
   </section>
 
-  <!-- Testimonials Section -->
-  <section id="testimonials" class="testimonials-section py-5 bg-light">
+  <!-- Beta Launch Banner Section -->
+  <section id="beta-launch" class="beta-launch-section py-5 bg-light">
     <div class="container">
       <div class="row">
-        <div class="col-lg-8 mx-auto text-center mb-5">
-          <h2 class="section-title">Loved by Tax Professionals</h2>
-          <p class="section-subtitle">
-            See what our customers have to say about their experience with Firm Pilot.
-          </p>
-        </div>
-      </div>
-      
-      <div class="row g-4">
-        <div class="col-lg-4" *ngFor="let testimonial of testimonials">
-          <div class="testimonial-card h-100">
-            <div class="testimonial-content">
-              <div class="rating mb-3">
-                <i class="ri-star-fill text-warning" *ngFor="let star of [1,2,3,4,5]"></i>
-              </div>
-              <p class="testimonial-text">"{{testimonial.content}}"</p>
+        <div class="col-lg-10 mx-auto">
+          <div class="beta-banner">
+            <div class="beta-badge">
+              {{betaLaunch.badge}}
             </div>
-            <div class="testimonial-author">
-              <div class="author-avatar">
-                <img [src]="testimonial.avatar" [alt]="testimonial.name" class="rounded-circle">
+            
+            <div class="row align-items-center">
+              <div class="col-lg-8">
+                <h2 class="beta-title">{{betaLaunch.title}}</h2>
+                <p class="beta-subtitle">{{betaLaunch.subtitle}}</p>
+                
+                <div class="beta-features">
+                  <div class="row">
+                    <div class="col-md-6" *ngFor="let feature of betaLaunch.features">
+                      <div class="beta-feature-item">
+                        <i class="ri-check-double-line text-success me-2"></i>
+                        {{feature}}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="author-info">
-                <h6 class="author-name">{{testimonial.name}}</h6>
-                <p class="author-title">{{testimonial.title}}</p>
+              
+              <div class="col-lg-4 text-center">
+                <div class="beta-cta">
+                  <div class="beta-rocket">
+                    <i class="ri-rocket-2-line"></i>
+                  </div>
+                  <button class="btn btn-primary btn-lg" (click)="startFreeTrial()">
+                    <i class="ri-gift-line me-2"></i>Join Beta Now
+                  </button>
+                  <small class="beta-note">
+                    Limited spots available • Lock in beta pricing
+                  </small>
+                </div>
               </div>
             </div>
           </div>

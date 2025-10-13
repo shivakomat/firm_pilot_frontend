@@ -68,23 +68,24 @@ export class MarketingHomepageComponent implements OnInit {
     },
     {
       number: '500+',
-      unit: 'Firms',
-      description: 'Trust Firm Pilot for their practice management'
+      unit: 'Consultants',
+      description: 'Solo tax consultants trust Firm Pilot'
     }
   ];
 
   pricingPlans = [
     {
-      name: 'Starter',
-      price: 29,
+      name: 'Basic',
+      price: 19.99,
       period: 'month',
-      description: 'Perfect for solo practitioners',
+      description: 'Perfect for solo tax consultants',
       features: [
         'Up to 25 clients',
         'Basic intake forms',
         'Document storage (5GB)',
         'Email support',
-        'Basic reporting'
+        'Basic reporting',
+        '14-day free trial'
       ],
       popular: false,
       buttonText: 'Start Free Trial',
@@ -92,66 +93,36 @@ export class MarketingHomepageComponent implements OnInit {
     },
     {
       name: 'Professional',
-      price: 59,
+      price: 29.99,
       period: 'month',
-      description: 'Ideal for small to medium firms',
+      description: 'For established solo practitioners',
       features: [
-        'Up to 100 clients',
+        'Unlimited clients',
         'Advanced intake forms',
         'Document storage (25GB)',
         'Priority support',
         'Advanced reporting',
-        'Team collaboration',
+        'Built-in chat system',
+        'Smart reminders',
         'Custom branding'
       ],
       popular: true,
       buttonText: 'Start Free Trial',
       buttonClass: 'btn-primary'
-    },
-    {
-      name: 'Enterprise',
-      price: 99,
-      period: 'month',
-      description: 'For large firms and enterprises',
-      features: [
-        'Unlimited clients',
-        'Custom intake forms',
-        'Unlimited storage',
-        '24/7 phone support',
-        'Custom reporting',
-        'API access',
-        'White-label solution',
-        'Dedicated account manager'
-      ],
-      popular: false,
-      buttonText: 'Contact Sales',
-      buttonClass: 'btn-outline-primary'
     }
   ];
 
-  testimonials = [
-    {
-      name: 'Sarah Johnson',
-      title: 'CPA, Johnson & Associates',
-      content: 'Firm Pilot has transformed our practice. We\'ve cut our client onboarding time in half and our clients love the digital experience.',
-      rating: 5,
-      avatar: 'assets/images/users/avatar-1.jpg'
-    },
-    {
-      name: 'Michael Chen',
-      title: 'Tax Partner, Chen Tax Services',
-      content: 'The automation features have saved us countless hours. Our team can now focus on providing value to clients instead of paperwork.',
-      rating: 5,
-      avatar: 'assets/images/users/avatar-2.jpg'
-    },
-    {
-      name: 'Lisa Rodriguez',
-      title: 'Managing Partner, Rodriguez CPA',
-      content: 'Security and compliance were our top concerns. Firm Pilot exceeded our expectations with their robust security features.',
-      rating: 5,
-      avatar: 'assets/images/users/avatar-3.jpg'
-    }
-  ];
+  betaLaunch = {
+    title: '🚀 Now in Beta Launch!',
+    subtitle: 'Be among the first solo tax consultants to experience the future of practice management',
+    features: [
+      'Early access to all features',
+      'Special beta pricing locked in',
+      'Direct feedback channel to our team',
+      'Priority support during beta period'
+    ],
+    badge: 'Limited Time Beta Access'
+  };
 
   constructor(private router: Router) { }
 
