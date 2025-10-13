@@ -178,18 +178,19 @@
                   </td>
                   <td>
                     <span class="badge bg-primary-subtle text-primary">
-                      {{getFormTypeDisplay(form.formType || 'tax-intake')}}
+                      {{getFormTypeDisplay(form.title)}}
                     </span>
                   </td>
-                  <td>{{form.submissionDate | date:'short'}}</td>
+                  <td>{{form.submittedAt | date:'short'}}</td>
                   <td>
                     <div class="dropdown">
-                      <span [class]="getStatusClass(form.status)" class="dropdown-toggle" 
+                      <span [class]="getStatusClass(form.responseStatus)" class="dropdown-toggle" 
                             data-bs-toggle="dropdown" style="cursor: pointer;">
-                        {{form.status | titlecase}}
+                        {{form.responseStatus | titlecase}}
                       </span>
                       <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" (click)="updateStatus(form, 'pending')">Pending</a></li>
+                        <li><a class="dropdown-item" (click)="updateStatus(form, 'draft')">Draft</a></li>
+                        <li><a class="dropdown-item" (click)="updateStatus(form, 'submitted')">Submitted</a></li>
                         <li><a class="dropdown-item" (click)="updateStatus(form, 'reviewed')">Reviewed</a></li>
                         <li><a class="dropdown-item" (click)="updateStatus(form, 'approved')">Approved</a></li>
                         <li><a class="dropdown-item" (click)="updateStatus(form, 'needs-revision')">Needs Revision</a></li>
@@ -199,24 +200,24 @@
                   <td>
                     <div class="d-flex align-items-center">
                       <div class="progress flex-grow-1 me-2" style="height: 6px;">
-                        <div class="progress-bar" [style.width.%]="form.completionPercentage" 
-                             [class]="form.completionPercentage === 100 ? 'bg-success' : 'bg-warning'"></div>
+                        <div class="progress-bar" [style.width.%]="getProgressPercentage(form.responseStatus)" 
+                             [class]="getProgressPercentage(form.responseStatus) === 100 ? 'bg-success' : 'bg-warning'"></div>
                       </div>
-                      <span class="text-muted font-size-12">{{form.completionPercentage}}%</span>
+                      <span class="text-muted font-size-12">{{getProgressPercentage(form.responseStatus)}}%</span>
                     </div>
                   </td>
-                  <td>{{form.lastModified | date:'short'}}</td>
+                  <td>{{form.updatedAt | date:'short'}}</td>
                   <td>
                     <div class="d-flex gap-2">
                       <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewForm(form)">
                         <i class="ri-eye-line"></i>
                       </button>
                       <button type="button" class="btn btn-sm btn-outline-success" 
-                              *ngIf="form.status === 'pending'" (click)="updateStatus(form, 'reviewed')">
+                              *ngIf="form.responseStatus === 'submitted'" (click)="updateStatus(form, 'reviewed')">
                         <i class="ri-check-line"></i>
                       </button>
                       <button type="button" class="btn btn-sm btn-outline-warning" 
-                              *ngIf="form.status === 'reviewed'" (click)="updateStatus(form, 'needs-revision')">
+                              *ngIf="form.responseStatus === 'reviewed'" (click)="updateStatus(form, 'needs-revision')">
                         <i class="ri-edit-line"></i>
                       </button>
                     </div>

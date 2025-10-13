@@ -37,14 +37,15 @@ export class IntakeFormsComponent implements OnInit {
     this.isLoading = true;
     console.log('📝 Loading intake forms from API...');
     
-    this.apiService.getAccountantIntakeForms().subscribe({
+    this.apiService.getAccountantIntakeForms(50, 0).subscribe({
       next: (response) => {
         this.isLoading = false;
-        if (response.success && response.forms) {
-          this.intakeForms = response.forms;
+        if (response.success && response.intakeForms) {
+          this.intakeForms = response.intakeForms;
           this.filteredForms = [...this.intakeForms];
           this.calculateStats();
           console.log('✅ Loaded intake forms:', this.intakeForms);
+          console.log('📊 Total count:', response.totalCount, 'Has more:', response.hasMore);
         } else {
           console.warn('⚠️ API returned no forms or failed:', response);
           this.intakeForms = [];
@@ -74,19 +75,19 @@ export class IntakeFormsComponent implements OnInit {
 
   calculateStats(): void {
     this.stats.total = this.intakeForms.length;
-    this.stats.pending = this.intakeForms.filter(form => form.status === 'pending').length;
-    this.stats.reviewed = this.intakeForms.filter(form => form.status === 'reviewed').length;
-    this.stats.approved = this.intakeForms.filter(form => form.status === 'approved').length;
-    this.stats.needsRevision = this.intakeForms.filter(form => form.status === 'needs-revision').length;
+    this.stats.pending = this.intakeForms.filter(form => form.responseStatus === 'draft').length;
+    this.stats.reviewed = this.intakeForms.filter(form => form.responseStatus === 'reviewed').length;
+    this.stats.approved = this.intakeForms.filter(form => form.responseStatus === 'approved').length;
+    this.stats.needsRevision = this.intakeForms.filter(form => form.responseStatus === 'needs-revision').length;
   }
 
   filterForms(): void {
     this.filteredForms = this.intakeForms.filter(form => {
-      const matchesStatus = this.selectedStatus === 'all' || form.status === this.selectedStatus;
-      const matchesFormType = this.selectedFormType === 'all' || (form.formType || 'tax-intake') === this.selectedFormType;
+      const matchesStatus = this.selectedStatus === 'all' || form.responseStatus === this.selectedStatus;
+      const matchesFormType = this.selectedFormType === 'all'; // No formType in new API, so just match all for now
       const matchesSearch = form.clientName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                            form.clientEmail.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           (form.formTitle && form.formTitle.toLowerCase().includes(this.searchTerm.toLowerCase())) ||
+                           (form.title && form.title.toLowerCase().includes(this.searchTerm.toLowerCase())) ||
                            (form.projectName && form.projectName.toLowerCase().includes(this.searchTerm.toLowerCase()));
       return matchesStatus && matchesFormType && matchesSearch;
     });
@@ -108,17 +109,28 @@ export class IntakeFormsComponent implements OnInit {
     switch (status) {
       case 'approved': return 'badge bg-success';
       case 'reviewed': return 'badge bg-info';
-      case 'pending': return 'badge bg-warning';
+      case 'submitted': return 'badge bg-primary';
+      case 'draft': return 'badge bg-warning';
       case 'needs-revision': return 'badge bg-danger';
       default: return 'badge bg-secondary';
     }
   }
 
-  getFormTypeDisplay(formType: string): string {
-    switch (formType) {
-      case 'tax-intake': return 'Tax Intake';
-      case 'business-intake': return 'Business Intake';
-      default: return formType;
+  getFormTypeDisplay(title: string): string {
+    // Extract form type from title
+    if (title.toLowerCase().includes('tax')) return 'Tax Form';
+    if (title.toLowerCase().includes('business')) return 'Business Form';
+    return 'Intake Form';
+  }
+
+  getProgressPercentage(status: string): number {
+    switch (status) {
+      case 'draft': return 25;
+      case 'submitted': return 50;
+      case 'reviewed': return 75;
+      case 'approved': return 100;
+      case 'needs-revision': return 60;
+      default: return 0;
     }
   }
 
@@ -126,7 +138,7 @@ export class IntakeFormsComponent implements OnInit {
     // In real app, this would navigate to form details or open modal
     Swal.fire({
       title: 'View Intake Form',
-      text: `Opening ${form.formType || 'intake'} form for ${form.clientName}`,
+      text: `Opening intake form for ${form.clientName}`,
       icon: 'info',
       timer: 2000,
       showConfirmButton: false
@@ -134,9 +146,9 @@ export class IntakeFormsComponent implements OnInit {
   }
 
   updateStatus(form: AccountantIntakeForm, newStatus: string): void {
-    const oldStatus = form.status;
-    form.status = newStatus as any;
-    form.lastModified = new Date().toISOString();
+    const oldStatus = form.responseStatus;
+    form.responseStatus = newStatus as any;
+    form.updatedAt = new Date().toISOString();
     
     this.calculateStats();
     this.filterForms();

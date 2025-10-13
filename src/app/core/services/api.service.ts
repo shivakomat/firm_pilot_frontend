@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -282,25 +282,33 @@ export interface AllDocumentsResponse {
 
 export interface AccountantIntakeForm {
   id: number;
+  accountantId: number;
+  title: string;
+  schemaJson: any;
+  createdAt: string;
+  updatedAt: string;
+  projectId: number;
+  projectName: string;
   clientId: number;
   clientName: string;
   clientEmail: string;
-  projectId?: number;
-  projectName?: string;
-  formId: number;
-  formTitle: string;
-  formType?: 'tax-intake' | 'business-intake';
-  submissionDate?: string;
-  status: 'pending' | 'reviewed' | 'approved' | 'needs-revision';
-  completionPercentage: number;
-  lastModified?: string;
-  responseData?: any;
+  responseId?: number;
+  responseStatus: 'draft' | 'submitted' | 'reviewed' | 'approved' | 'needs-revision';
+  submittedAt?: string | null;
+}
+
+export interface PaginationInfo {
+  limit: number;
+  offset: number;
+  totalCount: number;
 }
 
 export interface AccountantIntakeFormsResponse {
   success: boolean;
-  message?: string;
-  forms?: AccountantIntakeForm[];
+  intakeForms: AccountantIntakeForm[];
+  totalCount: number;
+  hasMore: boolean;
+  pagination: PaginationInfo;
 }
 
 // Gmail API Interfaces
@@ -902,17 +910,17 @@ export class ApiService {
   /**
    * Get all intake forms for the logged-in accountant across all clients WITH client info
    */
-  getAccountantIntakeForms(): Observable<AccountantIntakeFormsResponse> {
+  getAccountantIntakeForms(limit: number = 50, offset: number = 0): Observable<AccountantIntakeFormsResponse> {
     const token = localStorage.getItem('authToken');
     
     if (!token) {
       console.error('❌ No auth token found in localStorage');
       this.router.navigate(['/account/login']);
-      throw new Error('No authentication token found. Please log in again.');
+      return throwError(() => new Error('No authentication token found. Please log in again.'));
     }
 
     if (!this.validateTokenAndRedirect(token)) {
-      throw new Error('Authentication token has expired. Redirecting to login.');
+      return throwError(() => new Error('Authentication token has expired. Redirecting to login.'));
     }
 
     const headers = new HttpHeaders({
@@ -920,8 +928,12 @@ export class ApiService {
       'Authorization': `Bearer ${token}`
     });
 
-    // Updated endpoint to get forms WITH client info
-    return this.http.get<AccountantIntakeFormsResponse>(`${this.baseUrl}/intake/forms/all`, { headers });
+    const params = new HttpParams()
+      .set('limit', limit.toString())
+      .set('offset', offset.toString());
+
+    // Updated endpoint to match your API
+    return this.http.get<AccountantIntakeFormsResponse>(`${this.baseUrl}/intake/forms/all-clients`, { headers, params });
   }
 
   /**
@@ -1784,33 +1796,13 @@ export class ApiService {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
-
     return this.http.post<NoteResponse>(`${this.baseUrl}/clients/${clientId}/notes`, noteData, { headers });
   }
 
-  /**
-   * Get a specific note by ID
-   * @param noteId - ID of the note
-   */
-  getNote(noteId: number): Observable<NoteResponse> {
-    const token = localStorage.getItem('authToken');
-    
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-
-    return this.http.get<NoteResponse>(`${this.baseUrl}/notes/${noteId}`, { headers });
-  }
 
   /**
    * Update a note
    * @param noteId - ID of the note to update
-   * @param noteData - Updated note data
    */
   updateNote(noteId: number, noteData: UpdateNoteRequest): Observable<NoteResponse> {
     const token = localStorage.getItem('authToken');
