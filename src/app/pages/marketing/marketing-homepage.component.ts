@@ -131,15 +131,15 @@ export class MarketingHomepageComponent implements OnInit {
   }
 
   navigateToRegister(): void {
-    this.router.navigate(['/account/register']);
+    this.router.navigate(['/account/auth/signup']);
   }
 
   navigateToLogin(): void {
-    this.router.navigate(['/account/login']);
+    this.router.navigate(['/account/auth/login']);
   }
 
   startFreeTrial(): void {
-    this.router.navigate(['/account/register'], { queryParams: { plan: 'trial' } });
+    this.router.navigate(['/account/auth/signup'], { queryParams: { plan: 'trial' } });
   }
 
   contactSales(): void {
