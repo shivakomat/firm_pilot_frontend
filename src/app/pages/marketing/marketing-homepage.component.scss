@@ -21,10 +21,45 @@
   color: white;
   margin-top: 76px;
   
-  .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.5rem; }
+  .hero-title { 
+    font-size: 3.5rem; 
+    font-weight: 800; 
+    line-height: 1.2; 
+    margin-bottom: 1.5rem; 
+    
+    // Make "Tax Practice" text black instead of blue
+    .text-primary {
+      color: #2c3e50 !important;
+    }
+  }
+  
   .hero-subtitle { font-size: 1.25rem; opacity: 0.9; margin-bottom: 2rem; }
-  .hero-stats .stat-item h3 { font-size: 2rem; font-weight: 700; }
-  .hero-actions .btn { padding: 0.75rem 2rem; font-weight: 600; font-size: 1.1rem; }
+  
+  .hero-stats .stat-item h3 { 
+    font-size: 2rem; 
+    font-weight: 700; 
+    color: white !important; // Make all KPI numbers white
+  }
+  
+  .hero-actions .btn { 
+    padding: 0.75rem 2rem; 
+    font-weight: 600; 
+    font-size: 1.1rem; 
+    
+    // Style the "Watch Demo" button with black outline
+    &.btn-outline-secondary {
+      border-color: #2c3e50 !important;
+      color: #2c3e50 !important;
+      background: rgba(255, 255, 255, 0.9);
+      
+      &:hover {
+        background: #2c3e50 !important;
+        color: white !important;
+        border-color: #2c3e50 !important;
+      }
+    }
+  }
+  
   .hero-actions .btn:hover { transform: translateY(-3px); }
   
   @media (max-width: 768px) {
