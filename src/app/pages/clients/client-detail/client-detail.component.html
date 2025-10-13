@@ -271,11 +271,11 @@
                     <div #notesEditor
                          class="form-control notes-editor-content"
                          contenteditable="true"
-                         [innerHTML]="editingNote.content"
                          (input)="onNotesChange($event)"
                          (paste)="onPaste($event)"
+                         (keydown)="onKeyDown($event)"
                          placeholder="Add your note content here..."
-                         style="min-height: 150px; max-height: 300px; overflow-y: auto;">
+                         style="min-height: 150px; max-height: 300px; overflow-y: auto; direction: ltr; text-align: left;">
                     </div>
                   </div>
                 </div>
@@ -359,11 +359,11 @@
                   <div #newNotesEditor
                        class="form-control notes-editor-content"
                        contenteditable="true"
-                       [innerHTML]="newNote.content"
                        (input)="onNewNoteChange($event)"
                        (paste)="onPaste($event)"
+                       (keydown)="onKeyDown($event)"
                        placeholder="Add your note content here..."
-                       style="min-height: 150px; max-height: 300px; overflow-y: auto;">
+                       style="min-height: 150px; max-height: 300px; overflow-y: auto; direction: ltr; text-align: left;">
                   </div>
                 </div>
 

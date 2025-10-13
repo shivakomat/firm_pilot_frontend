@@ -540,28 +540,8 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     this.newNote.content = target.innerHTML;
     
-    // Hide warning if user starts typing
-    if (this.showEmptyNoteWarning && this.newNote.content?.trim()) {
-      this.showEmptyNoteWarning = false;
-    }
-  }
-
-  editNote(note: ClientNote): void {
-    this.editingNoteId = note.id;
-    this.editingNote = {
-      title: note.title,
-      content: note.content,
-      noteType: note.noteType
-    };
-    
-    // Automatically expand the note when editing
-    this.expandedNoteIds.add(note.id);
-    
-    setTimeout(() => {
-      if (this.notesEditor?.nativeElement) {
-        this.notesEditor.nativeElement.focus();
-      }
-    }, 100);
+    // Clear empty note warning when user starts typing
+    this.showEmptyNoteWarning = false;
   }
 
   saveNote(noteId: number): void {
@@ -692,17 +672,55 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     this.editingNote.content = target.innerHTML;
   }
 
+  onKeyDown(event: KeyboardEvent): void {
+    // Prevent any potential RTL or text direction issues
+    const target = event.target as HTMLElement;
+    
+    // Ensure text direction is always left-to-right
+    if (target) {
+      target.style.direction = 'ltr';
+      target.style.textAlign = 'left';
+    }
+  }
+
   onPaste(event: ClipboardEvent): void {
     event.preventDefault();
     const text = event.clipboardData?.getData('text/plain') || '';
     document.execCommand('insertText', false, text);
   }
 
+  editNote(note: ClientNote): void {
+    this.editingNoteId = note.id;
+    this.editingNote = {
+      title: note.title,
+      content: note.content,
+      noteType: note.noteType
+    };
+    
+    // Automatically expand the note when editing
+    this.expandedNoteIds.add(note.id);
+    
+    setTimeout(() => {
+      if (this.notesEditor?.nativeElement) {
+        // Set the content and ensure proper text direction
+        this.notesEditor.nativeElement.innerHTML = note.content || '';
+        this.notesEditor.nativeElement.style.direction = 'ltr';
+        this.notesEditor.nativeElement.style.textAlign = 'left';
+        this.notesEditor.nativeElement.focus();
+        
+        // Place cursor at the end
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(this.notesEditor.nativeElement);
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+    }, 100);
+  }
+
   formatText(command: string): void {
     document.execCommand(command, false);
-    if (this.notesEditor?.nativeElement) {
-      this.notesEditor.nativeElement.focus();
-    }
   }
 
   insertDateTime(): void {
@@ -711,7 +729,6 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
