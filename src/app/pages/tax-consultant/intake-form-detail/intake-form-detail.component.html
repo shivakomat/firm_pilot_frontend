@@ -1,0 +1,181 @@
+<div class="container-fluid">
+  <!-- Header -->
+  <div class="row">
+    <div class="col-12">
+      <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <button type="button" class="btn btn-outline-secondary btn-sm me-3" (click)="goBack()">
+            <i class="ri-arrow-left-line me-1"></i>Back to Forms
+          </button>
+          <h4 class="mb-sm-0 font-size-18">Intake Form Details</h4>
+        </div>
+        <div class="page-title-right">
+          <button type="button" class="btn btn-success btn-sm me-2" (click)="exportForm()">
+            <i class="ri-download-line me-1"></i>Export
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p class="mt-3 text-muted">Loading intake form details...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Details -->
+  <div *ngIf="!isLoading && formResponse" class="row">
+    <!-- Form Header Card -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h5 class="card-title mb-2">Tax Information Form</h5>
+              <div class="d-flex flex-wrap gap-3 mb-3">
+                <div>
+                  <span class="text-muted">Client ID:</span>
+                  <strong class="ms-1">{{formResponse.clientId}}</strong>
+                </div>
+                <div>
+                  <span class="text-muted">Form ID:</span>
+                  <strong class="ms-1">{{formResponse.formId}}</strong>
+                </div>
+                <div>
+                  <span class="text-muted">Response ID:</span>
+                  <strong class="ms-1">{{formResponse.id}}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <div class="mb-2">
+                <span [class]="getStatusClass(formResponse.status)">
+                  {{formResponse.status | titlecase}}
+                </span>
+              </div>
+              <div class="text-muted small">
+                <div *ngIf="formResponse.submittedAt">
+                  <i class="ri-time-line me-1"></i>
+                  Submitted: {{formResponse.submittedAt | date:'short'}}
+                </div>
+                <div *ngIf="!formResponse.submittedAt">
+                  <i class="ri-draft-line me-1"></i>
+                  Draft - Not yet submitted
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Update Actions -->
+          <div class="border-top pt-3">
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" 
+                      class="btn btn-outline-primary btn-sm"
+                      *ngIf="formResponse.status === 'SUBMITTED'"
+                      (click)="updateFormStatus('REVIEWED')">
+                <i class="ri-check-line me-1"></i>Mark as Reviewed
+              </button>
+              <button type="button" 
+                      class="btn btn-outline-success btn-sm"
+                      *ngIf="formResponse.status === 'REVIEWED'"
+                      (click)="updateFormStatus('APPROVED')">
+                <i class="ri-check-double-line me-1"></i>Approve
+              </button>
+              <button type="button" 
+                      class="btn btn-outline-warning btn-sm"
+                      *ngIf="formResponse.status === 'REVIEWED' || formResponse.status === 'SUBMITTED'"
+                      (click)="updateFormStatus('NEEDS_REVISION')">
+                <i class="ri-edit-line me-1"></i>Request Revision
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-4">
+            <i class="ri-file-list-3-line text-primary me-2"></i>
+            Form Responses
+          </h5>
+
+          <!-- Form Sections -->
+          <div *ngFor="let section of formSections; let sectionIndex = index" class="mb-4">
+            <div class="section-header mb-3">
+              <h6 class="text-primary mb-0">
+                <i class="ri-folder-line me-2"></i>
+                {{section.title}}
+              </h6>
+              <hr class="mt-2">
+            </div>
+
+            <div class="row">
+              <div *ngFor="let field of section.fields" 
+                   class="col-md-6 mb-3"
+                   [class.col-12]="field.type === 'dependent'">
+                <div class="form-group">
+                  <label class="form-label text-muted small">{{field.label}}</label>
+                  <div class="form-control-plaintext bg-light p-2 rounded">
+                    <span *ngIf="!field.sensitive">{{field.value || 'Not provided'}}</span>
+                    <span *ngIf="field.sensitive" class="text-muted">
+                      <i class="ri-eye-off-line me-1"></i>
+                      {{field.value || 'Not provided'}}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Raw JSON Data (for debugging) -->
+          <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-muted mb-0">Raw Form Data</h6>
+              <button type="button" 
+                      class="btn btn-outline-secondary btn-sm"
+                      data-bs-toggle="collapse" 
+                      data-bs-target="#rawDataCollapse">
+                <i class="ri-code-line me-1"></i>View JSON
+              </button>
+            </div>
+            <div class="collapse" id="rawDataCollapse">
+              <div class="bg-light p-3 rounded">
+                <pre class="mb-0 small">{{formResponse.answersJson | json}}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Data State -->
+  <div *ngIf="!isLoading && !formResponse" class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <div class="text-muted">
+            <i class="ri-file-list-3-line font-size-48 mb-3 d-block"></i>
+            <h5>No Form Data Found</h5>
+            <p>The requested intake form could not be found or has no responses.</p>
+            <button type="button" class="btn btn-primary" (click)="goBack()">
+              <i class="ri-arrow-left-line me-1"></i>Back to Forms
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

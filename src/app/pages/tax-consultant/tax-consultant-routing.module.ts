@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { IntakeFormsComponent } from './intake-forms/intake-forms.component';
+import { IntakeFormDetailComponent } from './intake-form-detail/intake-form-detail.component';
 import { ClientDocumentsComponent } from './client-documents/client-documents.component';
 import { ClientProjectsComponent } from './client-projects/client-projects.component';
 import { ProjectDetailComponent } from './project-detail/project-detail.component';
@@ -17,6 +18,12 @@ const routes: Routes = [
   {
     path: 'intake-forms',
     component: IntakeFormsComponent,
+    canActivate: [RoleGuard],
+    data: { role: 'ACCOUNTANT' }
+  },
+  {
+    path: 'intake-form-detail/:id',
+    component: IntakeFormDetailComponent,
     canActivate: [RoleGuard],
     data: { role: 'ACCOUNTANT' }
   },

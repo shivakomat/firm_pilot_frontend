@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { ApiService, AccountantIntakeForm } from '../../../core/services/api.service';
 
@@ -26,7 +27,10 @@ export class IntakeFormsComponent implements OnInit {
     needsRevision: 0
   };
 
-  constructor(private apiService: ApiService) { }
+  constructor(
+    private apiService: ApiService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     this.loadIntakeForms();
@@ -135,14 +139,9 @@ export class IntakeFormsComponent implements OnInit {
   }
 
   viewForm(form: AccountantIntakeForm): void {
-    // In real app, this would navigate to form details or open modal
-    Swal.fire({
-      title: 'View Intake Form',
-      text: `Opening intake form for ${form.clientName}`,
-      icon: 'info',
-      timer: 2000,
-      showConfirmButton: false
-    });
+    // Navigate to intake form detail page
+    console.log('📋 Navigating to intake form detail:', form.id);
+    this.router.navigate(['/tax-consultant/intake-form-detail', form.id]);
   }
 
   updateStatus(form: AccountantIntakeForm, newStatus: string): void {

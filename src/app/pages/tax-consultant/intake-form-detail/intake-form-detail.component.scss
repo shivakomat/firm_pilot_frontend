@@ -1,0 +1,127 @@
+// Intake Form Detail Styling
+
+.section-header {
+  h6 {
+    color: #556ee6;
+    font-weight: 600;
+    
+    .ri-folder-line {
+      font-size: 1.1rem;
+    }
+  }
+  
+  hr {
+    border-color: rgba(85, 110, 230, 0.2);
+    margin-bottom: 0;
+  }
+}
+
+.form-control-plaintext {
+  border: 1px solid #e9ecef;
+  font-size: 0.875rem;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  
+  &.bg-light {
+    background-color: #f8f9fa !important;
+  }
+}
+
+.card-title {
+  .ri-file-list-3-line {
+    font-size: 1.25rem;
+  }
+}
+
+// Status badges
+.badge {
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  
+  &.bg-success {
+    background-color: #34c38f !important;
+  }
+  
+  &.bg-info {
+    background-color: #50a5f1 !important;
+  }
+  
+  &.bg-primary {
+    background-color: #556ee6 !important;
+  }
+  
+  &.bg-warning {
+    background-color: #f1b44c !important;
+  }
+  
+  &.bg-danger {
+    background-color: #f46a6a !important;
+  }
+}
+
+// Action buttons
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  
+  i {
+    font-size: 0.875rem;
+  }
+}
+
+// Raw JSON display
+pre {
+  font-size: 0.75rem;
+  color: #495057;
+  max-height: 300px;
+  overflow-y: auto;
+  
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .page-title-box {
+    flex-direction: column;
+    align-items: flex-start !important;
+    
+    .page-title-right {
+      margin-top: 1rem;
+    }
+  }
+  
+  .d-flex.flex-wrap.gap-3 {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+}
+
+// Loading state
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+// Empty state
+.font-size-48 {
+  font-size: 3rem !important;
+  color: #adb5bd;
+}

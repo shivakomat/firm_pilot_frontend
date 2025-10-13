@@ -311,6 +311,20 @@ export interface AccountantIntakeFormsResponse {
   pagination: PaginationInfo;
 }
 
+export interface AccountantIntakeFormResponse {
+  id: number;
+  clientId: number;
+  formId: number;
+  answersJson: any;
+  status: 'DRAFT' | 'SUBMITTED' | 'REVIEWED' | 'APPROVED' | 'NEEDS_REVISION';
+  submittedAt: string | null;
+}
+
+export interface AccountantIntakeFormDetailResponse {
+  success: boolean;
+  responses: AccountantIntakeFormResponse[];
+}
+
 // Gmail API Interfaces
 export interface GmailMessage {
   id: string;
@@ -934,6 +948,30 @@ export class ApiService {
 
     // Updated endpoint to match your API
     return this.http.get<AccountantIntakeFormsResponse>(`${this.baseUrl}/intake/forms/all-clients`, { headers, params });
+  }
+
+  /**
+   * Get intake form details by form ID
+   */
+  getIntakeFormDetails(formId: number): Observable<AccountantIntakeFormDetailResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/login']);
+      return throwError(() => new Error('No authentication token found. Please log in again.'));
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      return throwError(() => new Error('Authentication token has expired. Redirecting to login.'));
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<AccountantIntakeFormDetailResponse>(`${this.baseUrl}/intake/forms/${formId}`, { headers });
   }
 
   /**
