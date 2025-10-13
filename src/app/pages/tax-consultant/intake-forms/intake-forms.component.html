@@ -208,17 +208,40 @@
                   </td>
                   <td>{{form.updatedAt | date:'short'}}</td>
                   <td>
-                    <div class="d-flex gap-2">
-                      <button type="button" class="btn btn-sm btn-outline-primary" (click)="viewForm(form)">
-                        <i class="ri-eye-line"></i>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <!-- View Button - Always visible -->
+                      <button type="button" 
+                              class="btn btn-sm btn-outline-primary" 
+                              (click)="viewForm(form)"
+                              title="View Form Details">
+                        <i class="ri-eye-line me-1"></i>View
                       </button>
-                      <button type="button" class="btn btn-sm btn-outline-success" 
-                              *ngIf="form.responseStatus === 'submitted'" (click)="updateStatus(form, 'reviewed')">
-                        <i class="ri-check-line"></i>
+                      
+                      <!-- Review Button - Show for submitted forms -->
+                      <button type="button" 
+                              class="btn btn-sm btn-outline-success" 
+                              *ngIf="form.responseStatus === 'submitted'" 
+                              (click)="updateStatus(form, 'reviewed')"
+                              title="Mark as Reviewed">
+                        <i class="ri-check-line me-1"></i>Review
                       </button>
-                      <button type="button" class="btn btn-sm btn-outline-warning" 
-                              *ngIf="form.responseStatus === 'reviewed'" (click)="updateStatus(form, 'needs-revision')">
-                        <i class="ri-edit-line"></i>
+                      
+                      <!-- Approve Button - Show for reviewed forms -->
+                      <button type="button" 
+                              class="btn btn-sm btn-outline-success" 
+                              *ngIf="form.responseStatus === 'reviewed'" 
+                              (click)="updateStatus(form, 'approved')"
+                              title="Approve Form">
+                        <i class="ri-check-double-line me-1"></i>Approve
+                      </button>
+                      
+                      <!-- Request Revision Button - Show for submitted/reviewed forms -->
+                      <button type="button" 
+                              class="btn btn-sm btn-outline-warning" 
+                              *ngIf="form.responseStatus === 'submitted' || form.responseStatus === 'reviewed'" 
+                              (click)="updateStatus(form, 'needs-revision')"
+                              title="Request Revision">
+                        <i class="ri-edit-line me-1"></i>Revise
                       </button>
                     </div>
                   </td>
