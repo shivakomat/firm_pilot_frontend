@@ -67,9 +67,9 @@ export class MarketingHomepageComponent implements OnInit {
       description: 'Reliable, secure cloud infrastructure'
     },
     {
-      number: '500+',
-      unit: 'Consultants',
-      description: 'Solo tax consultants trust Firm Pilot'
+      number: '2024',
+      unit: 'Launch',
+      description: 'Fresh platform built for modern consultants'
     }
   ];
 
