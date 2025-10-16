@@ -82,7 +82,7 @@ export class SignupComponent implements OnInit {
         this.error = '';
         // Redirect to login page after successful registration
         setTimeout(() => {
-          this.router.navigate(['/auth/login']);
+          this.router.navigate(['/account/auth/login']);
         }, 2000);
       },
       error: (error) => {
