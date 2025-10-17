@@ -417,6 +417,13 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link" [class.active]="activeTab === 'ai-summary'" 
+                 (click)="setActiveTab('ai-summary')" role="tab">
+                <i class="ri-brain-line font-size-20"></i>
+                <span class="d-none d-sm-block">AI Summary</span>
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" [class.active]="activeTab === 'documents'" 
                  (click)="setActiveTab('documents')" role="tab">
                 <i class="bx bx-folder font-size-20"></i>
@@ -592,6 +599,196 @@
               <i class="bx bx-file font-size-48 text-muted d-block mb-3"></i>
               <h5>No Intake Forms</h5>
               <p class="text-muted">No intake forms have been created for this client yet.</p>
+            </div>
+          </div>
+
+          <!-- AI Summary Tab -->
+          <div *ngIf="activeTab === 'ai-summary'">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="card-title mb-0">
+                <i class="ri-brain-line text-primary me-2"></i>AI Client Summary
+              </h5>
+              <div class="d-flex align-items-center gap-2">
+                <small class="text-muted" *ngIf="aiSummary?.lastUpdated">
+                  Last updated: {{ formatDate(aiSummary.lastUpdated) }}
+                </small>
+                <button type="button" 
+                        class="btn btn-sm btn-outline-primary"
+                        (click)="refreshAISummary()"
+                        [disabled]="isLoadingAISummary"
+                        title="Refresh AI Summary">
+                  <i class="ri-refresh-line" [class.fa-spin]="isLoadingAISummary"></i>
+                  <span class="d-none d-sm-inline ms-1">Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Loading State -->
+            <div *ngIf="isLoadingAISummary" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Generating AI summary...</span>
+              </div>
+              <p class="mt-3 text-muted">AI is analyzing client data...</p>
+            </div>
+
+            <!-- AI Summary Content -->
+            <div *ngIf="!isLoadingAISummary && aiSummary" class="ai-summary-content">
+              
+              <!-- Summary Status -->
+              <div class="alert alert-info d-flex align-items-center mb-4" *ngIf="aiSummary.status">
+                <i class="ri-information-line me-2"></i>
+                <div>
+                  <strong>Status:</strong> {{ aiSummary.status | titlecase }}
+                  <span *ngIf="aiSummary.confidence" class="ms-2">
+                    • Confidence: {{ aiSummary.confidence }}%
+                  </span>
+                </div>
+              </div>
+
+              <!-- Key Insights -->
+              <div class="card border-0 bg-light mb-4" *ngIf="aiSummary.keyInsights">
+                <div class="card-body">
+                  <h6 class="card-title text-primary">
+                    <i class="ri-lightbulb-line me-2"></i>Key Insights
+                  </h6>
+                  <div class="insights-list">
+                    <div *ngFor="let insight of aiSummary.keyInsights" class="insight-item mb-2">
+                      <i class="ri-arrow-right-s-line text-muted me-1"></i>
+                      {{ insight }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Business Profile -->
+              <div class="row mb-4" *ngIf="aiSummary.businessProfile">
+                <div class="col-md-6">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <h6 class="card-title text-primary">
+                        <i class="ri-building-line me-2"></i>Business Profile
+                      </h6>
+                      <div class="profile-details">
+                        <div class="mb-2" *ngIf="aiSummary.businessProfile.industry">
+                          <strong>Industry:</strong> {{ aiSummary.businessProfile.industry }}
+                        </div>
+                        <div class="mb-2" *ngIf="aiSummary.businessProfile.entityType">
+                          <strong>Entity Type:</strong> {{ aiSummary.businessProfile.entityType }}
+                        </div>
+                        <div class="mb-2" *ngIf="aiSummary.businessProfile.annualRevenue">
+                          <strong>Annual Revenue:</strong> {{ aiSummary.businessProfile.annualRevenue }}
+                        </div>
+                        <div class="mb-2" *ngIf="aiSummary.businessProfile.employees">
+                          <strong>Employees:</strong> {{ aiSummary.businessProfile.employees }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <h6 class="card-title text-primary">
+                        <i class="ri-bar-chart-line me-2"></i>Activity Summary
+                      </h6>
+                      <div class="activity-stats">
+                        <div class="mb-2" *ngIf="aiSummary.activitySummary?.totalProjects">
+                          <strong>Total Projects:</strong> {{ aiSummary.activitySummary.totalProjects }}
+                        </div>
+                        <div class="mb-2" *ngIf="aiSummary.activitySummary?.completionRate">
+                          <strong>Completion Rate:</strong> {{ aiSummary.activitySummary.completionRate }}%
+                        </div>
+                        <div class="mb-2" *ngIf="aiSummary.activitySummary?.avgResponseTime">
+                          <strong>Avg Response Time:</strong> {{ aiSummary.activitySummary.avgResponseTime }}
+                        </div>
+                        <div class="mb-2" *ngIf="aiSummary.activitySummary?.lastActivity">
+                          <strong>Last Activity:</strong> {{ formatDate(aiSummary.activitySummary.lastActivity) }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Items -->
+              <div class="card border-warning mb-4" *ngIf="aiSummary.actionItems && aiSummary.actionItems.length > 0">
+                <div class="card-body">
+                  <h6 class="card-title text-warning">
+                    <i class="ri-alert-line me-2"></i>Recommended Actions
+                  </h6>
+                  <div class="action-items">
+                    <div *ngFor="let action of aiSummary.actionItems" 
+                         class="action-item d-flex align-items-start mb-3">
+                      <div class="flex-shrink-0">
+                        <span class="badge" 
+                              [class]="action.priority === 'high' ? 'bg-danger' : action.priority === 'medium' ? 'bg-warning' : 'bg-info'">
+                          {{ action.priority | titlecase }}
+                        </span>
+                      </div>
+                      <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">{{ action.title }}</h6>
+                        <p class="text-muted mb-0">{{ action.description }}</p>
+                        <small class="text-muted" *ngIf="action.dueDate">
+                          Due: {{ formatDate(action.dueDate) }}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Risk Factors -->
+              <div class="card border-danger mb-4" *ngIf="aiSummary.riskFactors && aiSummary.riskFactors.length > 0">
+                <div class="card-body">
+                  <h6 class="card-title text-danger">
+                    <i class="ri-error-warning-line me-2"></i>Risk Factors
+                  </h6>
+                  <div class="risk-factors">
+                    <div *ngFor="let risk of aiSummary.riskFactors" 
+                         class="risk-item alert alert-danger py-2 mb-2">
+                      <div class="d-flex align-items-center">
+                        <i class="ri-alert-fill me-2"></i>
+                        <div>
+                          <strong>{{ risk.type }}:</strong> {{ risk.description }}
+                          <small class="d-block text-muted" *ngIf="risk.recommendation">
+                            Recommendation: {{ risk.recommendation }}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Raw AI Summary -->
+              <div class="card bg-light" *ngIf="aiSummary.summary">
+                <div class="card-body">
+                  <h6 class="card-title text-primary">
+                    <i class="ri-file-text-line me-2"></i>AI Generated Summary
+                  </h6>
+                  <div class="summary-text" [innerHTML]="aiSummary.summary"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error State -->
+            <div *ngIf="!isLoadingAISummary && aiSummaryError" class="text-center py-5">
+              <i class="ri-error-warning-line font-size-48 text-danger d-block mb-3"></i>
+              <h5>Failed to Load AI Summary</h5>
+              <p class="text-muted">{{ aiSummaryError }}</p>
+              <button type="button" class="btn btn-primary" (click)="refreshAISummary()">
+                <i class="ri-refresh-line me-1"></i>Try Again
+              </button>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!isLoadingAISummary && !aiSummary && !aiSummaryError" class="text-center py-5">
+              <i class="ri-brain-line font-size-48 text-muted d-block mb-3"></i>
+              <h5>No AI Summary Available</h5>
+              <p class="text-muted">Generate an AI summary to get insights about this client.</p>
+              <button type="button" class="btn btn-primary" (click)="refreshAISummary()">
+                <i class="ri-brain-line me-1"></i>Generate AI Summary
+              </button>
             </div>
           </div>
 

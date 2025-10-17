@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement, ClientNote, CreateNoteRequest, UpdateNoteRequest } from '../../../core/services/api.service';
+import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement, ClientNote, CreateNoteRequest, UpdateNoteRequest, ClientAISummary, ClientAISummaryResponse } from '../../../core/services/api.service';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -48,6 +48,11 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   
   // New Note Properties
   isAddingNewNote: boolean = false;
+
+  // AI Summary Properties
+  aiSummary: ClientAISummary | null = null;
+  isLoadingAISummary: boolean = false;
+  aiSummaryError: string | null = null;
   newNote: Partial<CreateNoteRequest> = {};
   showEmptyNoteWarning: boolean = false;
 
@@ -142,6 +147,11 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   // Tab management
   setActiveTab(tab: string): void {
     this.activeTab = tab;
+    
+    // Load AI summary when AI Summary tab is selected
+    if (tab === 'ai-summary' && !this.aiSummary && !this.isLoadingAISummary) {
+      this.loadAISummary();
+    }
   }
 
   // Navigation methods
@@ -771,5 +781,42 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
 
   hideNote(noteId: number): void {
     this.expandedNoteIds.delete(noteId);
+  }
+
+  // AI Summary Methods
+  loadAISummary(): void {
+    if (!this.clientId) return;
+    
+    this.isLoadingAISummary = true;
+    this.aiSummaryError = null;
+    
+    console.log('🤖 Loading AI summary for client:', this.clientId);
+    
+    this.apiService.getClientAISummary(this.clientId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.isLoadingAISummary = false;
+          if (response.success && response.aiSummary) {
+            this.aiSummary = response.aiSummary;
+            console.log('✅ AI summary loaded:', this.aiSummary);
+          } else {
+            this.aiSummaryError = response.message || 'Failed to load AI summary';
+            console.warn('⚠️ No AI summary found:', response);
+          }
+        },
+        error: (error) => {
+          this.isLoadingAISummary = false;
+          this.aiSummaryError = error.error?.message || 'Failed to load AI summary';
+          console.error('❌ Error loading AI summary:', error);
+        }
+      });
+  }
+
+  refreshAISummary(): void {
+    // Reset current summary and reload
+    this.aiSummary = null;
+    this.aiSummaryError = null;
+    this.loadAISummary();
   }
 }

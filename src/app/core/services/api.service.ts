@@ -274,6 +274,45 @@ export interface ClientDetailsResponse {
   message?: string;
 }
 
+export interface ClientAISummary {
+  id: number;
+  clientId: number;
+  status: string;
+  confidence?: number;
+  lastUpdated: string;
+  summary?: string;
+  keyInsights?: string[];
+  businessProfile?: {
+    industry?: string;
+    entityType?: string;
+    annualRevenue?: string;
+    employees?: string;
+  };
+  activitySummary?: {
+    totalProjects?: number;
+    completionRate?: number;
+    avgResponseTime?: string;
+    lastActivity?: string;
+  };
+  actionItems?: {
+    title: string;
+    description: string;
+    priority: 'high' | 'medium' | 'low';
+    dueDate?: string;
+  }[];
+  riskFactors?: {
+    type: string;
+    description: string;
+    recommendation?: string;
+  }[];
+}
+
+export interface ClientAISummaryResponse {
+  success: boolean;
+  aiSummary?: ClientAISummary;
+  message?: string;
+}
+
 export interface AllDocumentsResponse {
   success: boolean;
   documents: ClientDocument[];
@@ -1892,5 +1931,30 @@ export class ApiService {
     });
 
     return this.http.delete<DeleteNoteResponse>(`${this.baseUrl}/notes/${noteId}`, { headers });
+  }
+
+  /**
+   * Get AI Summary for a client
+   * @param clientId - ID of the client
+   */
+  getClientAISummary(clientId: number): Observable<ClientAISummaryResponse> {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.error('❌ No auth token found in localStorage');
+      this.router.navigate(['/account/auth/login']);
+      return throwError(() => new Error('No authentication token found. Please log in again.'));
+    }
+
+    if (!this.validateTokenAndRedirect(token)) {
+      return throwError(() => new Error('Authentication token has expired. Redirecting to login.'));
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<ClientAISummaryResponse>(`${this.baseUrl}/clients/${clientId}/ai-summary`, { headers });
   }
 }
