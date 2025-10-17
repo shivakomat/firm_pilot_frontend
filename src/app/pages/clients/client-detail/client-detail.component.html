@@ -419,7 +419,7 @@
             <li class="nav-item">
               <a class="nav-link" [class.active]="activeTab === 'ai-summary'" 
                  (click)="setActiveTab('ai-summary')" role="tab">
-                <i class="ri-brain-line font-size-20"></i>
+                <i class="bx bx-brain font-size-20"></i>
                 <span class="d-none d-sm-block">AI Summary</span>
               </a>
             </li>
@@ -606,7 +606,7 @@
           <div *ngIf="activeTab === 'ai-summary'">
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h5 class="card-title mb-0">
-                <i class="ri-brain-line text-primary me-2"></i>AI Client Summary
+                <i class="bx bx-brain text-primary me-2"></i>AI Client Summary
               </h5>
               <div class="d-flex align-items-center gap-2">
                 <small class="text-muted" *ngIf="aiSummary?.generatedAt">
@@ -617,7 +617,7 @@
                         (click)="refreshAISummary()"
                         [disabled]="isLoadingAISummary"
                         title="Refresh AI Summary">
-                  <i class="ri-refresh-line" [class.fa-spin]="isLoadingAISummary"></i>
+                  <i class="bx bx-refresh" [class.fa-spin]="isLoadingAISummary"></i>
                   <span class="d-none d-sm-inline ms-1">Refresh</span>
                 </button>
               </div>
@@ -636,7 +636,7 @@
               
               <!-- Client Info Header -->
               <div class="alert alert-info d-flex align-items-center mb-4" *ngIf="aiSummary.clientName">
-                <i class="ri-user-line me-2"></i>
+                <i class="bx bx-user me-2"></i>
                 <div>
                   <strong>Client:</strong> {{ aiSummary.clientName }}
                   <span *ngIf="aiSummary.generatedAt" class="ms-2">
@@ -649,7 +649,7 @@
               <div class="card bg-light" *ngIf="aiSummary.summary">
                 <div class="card-body">
                   <h6 class="card-title text-primary">
-                    <i class="ri-brain-line me-2"></i>AI Analysis & Insights
+                    <i class="bx bx-brain me-2"></i>AI Analysis & Insights
                   </h6>
                   <div class="summary-text">
                     <pre class="markdown-content">{{ aiSummary.summary }}</pre>
@@ -660,21 +660,21 @@
 
             <!-- Error State -->
             <div *ngIf="!isLoadingAISummary && aiSummaryError" class="text-center py-5">
-              <i class="ri-error-warning-line font-size-48 text-danger d-block mb-3"></i>
+              <i class="bx bx-error font-size-48 text-danger d-block mb-3"></i>
               <h5>Failed to Load AI Summary</h5>
               <p class="text-muted">{{ aiSummaryError }}</p>
               <button type="button" class="btn btn-primary" (click)="refreshAISummary()">
-                <i class="ri-refresh-line me-1"></i>Try Again
+                <i class="bx bx-refresh me-1"></i>Try Again
               </button>
             </div>
 
             <!-- Empty State -->
             <div *ngIf="!isLoadingAISummary && !aiSummary && !aiSummaryError" class="text-center py-5">
-              <i class="ri-brain-line font-size-48 text-muted d-block mb-3"></i>
+              <i class="bx bx-brain font-size-48 text-muted d-block mb-3"></i>
               <h5>No AI Summary Available</h5>
               <p class="text-muted">Generate an AI summary to get insights about this client.</p>
               <button type="button" class="btn btn-primary" (click)="refreshAISummary()">
-                <i class="ri-brain-line me-1"></i>Generate AI Summary
+                <i class="bx bx-brain me-1"></i>Generate AI Summary
               </button>
             </div>
           </div>
