@@ -274,42 +274,11 @@ export interface ClientDetailsResponse {
   message?: string;
 }
 
-export interface ClientAISummary {
-  id: number;
-  clientId: number;
-  status: string;
-  confidence?: number;
-  lastUpdated: string;
-  summary?: string;
-  keyInsights?: string[];
-  businessProfile?: {
-    industry?: string;
-    entityType?: string;
-    annualRevenue?: string;
-    employees?: string;
-  };
-  activitySummary?: {
-    totalProjects?: number;
-    completionRate?: number;
-    avgResponseTime?: string;
-    lastActivity?: string;
-  };
-  actionItems?: {
-    title: string;
-    description: string;
-    priority: 'high' | 'medium' | 'low';
-    dueDate?: string;
-  }[];
-  riskFactors?: {
-    type: string;
-    description: string;
-    recommendation?: string;
-  }[];
-}
-
 export interface ClientAISummaryResponse {
   success: boolean;
-  aiSummary?: ClientAISummary;
+  summary?: string;
+  clientName?: string;
+  generatedAt?: string;
   message?: string;
 }
 

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement, ClientNote, CreateNoteRequest, UpdateNoteRequest, ClientAISummary, ClientAISummaryResponse } from '../../../core/services/api.service';
+import { ApiService, Client, Project, ClientDetailsResponse, ClientDetails, IntakeFormWithProject, ClientInvitation, ClientDocument, DocumentRequirement, ClientNote, CreateNoteRequest, UpdateNoteRequest, ClientAISummaryResponse } from '../../../core/services/api.service';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -50,7 +50,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   isAddingNewNote: boolean = false;
 
   // AI Summary Properties
-  aiSummary: ClientAISummary | null = null;
+  aiSummary: ClientAISummaryResponse | null = null;
   isLoadingAISummary: boolean = false;
   aiSummaryError: string | null = null;
   newNote: Partial<CreateNoteRequest> = {};
@@ -797,8 +797,8 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.isLoadingAISummary = false;
-          if (response.success && response.aiSummary) {
-            this.aiSummary = response.aiSummary;
+          if (response.success && response.summary) {
+            this.aiSummary = response;
             console.log('✅ AI summary loaded:', this.aiSummary);
           } else {
             this.aiSummaryError = response.message || 'Failed to load AI summary';
